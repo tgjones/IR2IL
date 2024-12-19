@@ -94,6 +94,14 @@ internal sealed class ModuleCompiler : IDisposable
                             typeof(FixedAddressValueTypeAttribute).GetConstructorStrict([]),
                             []));
 
+                    if (global.IsThreadLocal)
+                    {
+                        globalField.SetCustomAttribute(
+                            new CustomAttributeBuilder(
+                                typeof(ThreadStaticAttribute).GetConstructorStrict([]),
+                                []));
+                    }
+
                     result.Add(new CompiledGlobalVariable(global, valueType, globalValue, globalField));
                     break;
 
