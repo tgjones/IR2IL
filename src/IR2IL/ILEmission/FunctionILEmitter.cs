@@ -962,7 +962,8 @@ internal sealed class FunctionILEmitter : ILEmitter
                         break;
                 }
 
-                switch (toType.IntWidth, signedness)
+                var roundedUpBits = TypeSystem.RoundUpToTypeSize((int)toType.IntWidth);
+                switch (roundedUpBits, signedness)
                 {
                     case (8, Signedness.Signed):
                         ILGenerator.Emit(OpCodes.Conv_I1);
@@ -997,7 +998,13 @@ internal sealed class FunctionILEmitter : ILEmitter
                         break;
 
                     default:
-                        throw new NotImplementedException($"Conversion not implemented to {toType.IntWidth}: {opcode}");
+                        throw new NotImplementedException($"Integer conversion not implemented to {toType.IntWidth} {signedness}: {opcode}");
+                }
+
+                if (toType.IntWidth < roundedUpBits)
+                {
+                    EmitConstantIntegerValue(toType.IntWidth, -1);
+                    ILGenerator.Emit(OpCodes.And);
                 }
                 break;
 

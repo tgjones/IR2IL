@@ -78,22 +78,7 @@ internal abstract class ILEmitter
                 break;
 
             case LLVMValueKind.LLVMConstantIntValueKind:
-                switch (valueTypeRef.IntWidth)
-                {
-                    case 1:
-                    case 8:
-                    case 16:
-                    case 32:
-                        ILGenerator.Emit(OpCodes.Ldc_I4, (int)valueRef.ConstIntZExt);
-                        break;
-
-                    case 64:
-                        ILGenerator.Emit(OpCodes.Ldc_I8, valueRef.ConstIntSExt);
-                        break;
-
-                    default:
-                        throw new NotImplementedException($"Load constant integer width {valueTypeRef.IntWidth} not implemented: {valueRef}");
-                }
+                EmitConstantIntegerValue(valueTypeRef.IntWidth, (long)valueRef.ConstIntZExt);
                 break;
 
             case LLVMValueKind.LLVMConstantExprValueKind:
@@ -173,6 +158,25 @@ internal abstract class ILEmitter
 
             default:
                 throw new NotImplementedException($"Unsupported value kind {valueRef.Kind}: {valueRef}");
+        }
+    }
+
+    protected void EmitConstantIntegerValue(uint sizeInBits, long value)
+    {
+        switch (TypeSystem.RoundUpToTypeSize((int)sizeInBits))
+        {
+            case 8:
+            case 16:
+            case 32:
+                ILGenerator.Emit(OpCodes.Ldc_I4, (int)value);
+                break;
+
+            case 64:
+                ILGenerator.Emit(OpCodes.Ldc_I8, value);
+                break;
+
+            default:
+                throw new NotImplementedException($"Load constant integer width {sizeInBits} not implemented");
         }
     }
 

@@ -261,7 +261,7 @@ internal sealed class TypeSystem
 
     private const int MaxVectorSize = 1024;
 
-    private static int RoundUpToTypeSize(int sizeInBits)
+    public static int RoundUpToTypeSize(int sizeInBits)
     {
         if (sizeInBits > 1024)
         {
