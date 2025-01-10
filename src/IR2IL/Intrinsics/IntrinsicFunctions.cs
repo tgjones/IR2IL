@@ -26,9 +26,14 @@ internal static class IntrinsicFunctions
         { "llvm.sqrt.f32", StandardIntrinsicFunction.Create(typeof(MathF), nameof(MathF.Sqrt)) },
         { "llvm.sqrt.f64", StandardIntrinsicFunction.Create(typeof(Math), nameof(Math.Sqrt)) },
         { "llvm.vector.reduce.add.v4i32", StandardIntrinsicFunction.CreateGeneric(typeof(Vector128), nameof(Vector128.Sum), typeof(int)) },
+        { "llvm.vector.reduce.add.v16i8", StandardIntrinsicFunction.CreateGeneric(typeof(Vector128), nameof(Vector128.Sum), typeof(sbyte)) },
+        { "llvm.vector.reduce.add.v16i16", StandardIntrinsicFunction.CreateGeneric(typeof(Vector256), nameof(Vector256.Sum), typeof(short)) },
+        { "llvm.vector.reduce.add.v16i32", StandardIntrinsicFunction.CreateGeneric(typeof(Vector512), nameof(Vector512.Sum), typeof(int)) },
+        { "llvm.vector.reduce.add.v16i64", StandardIntrinsicFunction.CreateGeneric(typeof(Vector1024), nameof(Vector1024.Sum), typeof(long)) },
 
         // Standard intrinsics using custom methods.
         { "llvm.vector.reduce.mul.v4i32", StandardIntrinsicFunction.Create(typeof(LLVMIntrinsics), nameof(Runtime.LLVMIntrinsics.VectorReduceMulV4I32)) },
+        { "llvm.vector.reduce.mul.v16i8", StandardIntrinsicFunction.Create(typeof(LLVMIntrinsics), nameof(Runtime.LLVMIntrinsics.VectorReduceMulV16I8)) },
         { "llvm.vector.reduce.smax.v4i32", StandardIntrinsicFunction.Create(typeof(LLVMIntrinsics), nameof(Runtime.LLVMIntrinsics.VectorReduceSMaxV4I32)) },
 
         // Irregular intrinsics.

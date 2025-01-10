@@ -1,4 +1,5 @@
 using System.Runtime.InteropServices;
+using System.Runtime.Intrinsics;
 
 namespace IR2IL.Runtime;
 
@@ -6,6 +7,9 @@ namespace IR2IL.Runtime;
 public readonly struct Vector1024<T>
     where T : unmanaged
 {
+    internal readonly Vector512<T> _lower;
+    internal readonly Vector512<T> _upper;
+
     public static unsafe int Count => Vector1024.Size / sizeof(T);
 
     public static Vector32<T> Zero => default;

@@ -1,5 +1,7 @@
 using System.Diagnostics;
+using System.Numerics;
 using System.Runtime.CompilerServices;
+using System.Runtime.Intrinsics;
 
 namespace IR2IL.Runtime;
 
@@ -17,6 +19,25 @@ public static class Vector1024
         }
 
         return vector.GetElementUnsafe(index);
+    }
+
+    public static Vector512<T> GetLower<T>(this Vector1024<T> vector)
+        where T : unmanaged
+    {
+        return vector._lower;
+    }
+
+    public static Vector512<T> GetUpper<T>(this Vector1024<T> vector)
+        where T : unmanaged
+    {
+        return vector._upper;
+    }
+
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    public static T Sum<T>(this Vector1024<T> vector)
+        where T : unmanaged, IAdditionOperators<T, T, T>
+    {
+        return Vector512.Sum(vector.GetLower()) + Vector512.Sum(vector.GetUpper());
     }
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]

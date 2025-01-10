@@ -998,7 +998,7 @@ internal sealed class FunctionILEmitter : ILEmitter
                         break;
 
                     default:
-                        throw new NotImplementedException($"Integer conversion not implemented to {toType.IntWidth} {signedness}: {opcode}");
+                        throw new NotImplementedException($"Integer conversion not implemented to int width {toType.IntWidth} {signedness}: {opcode}");
                 }
 
                 if (toType.IntWidth < roundedUpBits)

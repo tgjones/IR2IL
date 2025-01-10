@@ -118,7 +118,8 @@ public partial class CompilerTests
 
             // These tests don't compile correctly on MSVC because of _Complex type differences.
             "0000_0078" or "0000_0079" or "0000_0080" or "0000_0089" or "0000_0090" or "0000_0091" => false,
-            "0000_0192" or "0006_0000" => false,
+            "0000_0192" or "0005_0058" or "0006_0000" or "0006_0009" or "0006_0010" or "0006_0011" => false,
+            "0006_0024" or "0006_0025" or "0006_0026" => false,
 
             // These tests don't run correctly on MSVC because of _Generic differences.
             "0005_0005" => false,
@@ -138,6 +139,18 @@ public partial class CompilerTests
 
             // These tests don't execute correctly because quick_exit behaves differently when called from CoreCLR.
             "0005_0040" or "0005_0041" or "0005_0042" or "0005_0043" => false,
+
+            // These tests don't execute correctly on MSVC because of stdnoreturn differences.
+            "0005_0044" => false,
+
+            // These tests don't execute correctly on MSVC because of x64 preprocessor define differences.
+            "0005_0055" => false,
+
+            // These tests don't execute correctly on MSVC because of float define differences.
+            "0005_0051" or "0005_0053" or "0005_0056" => false,
+
+            // These tests don't execute correctly on MSVC because of thread_local differences.
+            "0005_0062" => false,
 
             _ => true,
         }));

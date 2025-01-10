@@ -57,6 +57,13 @@ public static class VectorUtility
     public static Vector256<float> ConvertV8I32ToV8F32(Vector256<int> vector) => Vector256.ConvertToSingle(vector);
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    public static Vector128<short> ConvertV8I1ToV8I16(Vector64<sbyte> vector)
+    {
+        var (lower, upper) = Vector64.Widen(vector);
+        return Vector128.Create(lower, upper);
+    }
+
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public static Vector512<float> ConvertV16I32ToV16F32(Vector512<int> vector) => Vector512.ConvertToSingle(vector);
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
