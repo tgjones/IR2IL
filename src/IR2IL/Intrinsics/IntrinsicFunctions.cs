@@ -34,6 +34,7 @@ internal static class IntrinsicFunctions
         // Standard intrinsics using custom methods.
         { "llvm.vector.reduce.mul.v4i32", StandardIntrinsicFunction.Create(typeof(LLVMIntrinsics), nameof(Runtime.LLVMIntrinsics.VectorReduceMulV4I32)) },
         { "llvm.vector.reduce.mul.v16i8", StandardIntrinsicFunction.Create(typeof(LLVMIntrinsics), nameof(Runtime.LLVMIntrinsics.VectorReduceMulV16I8)) },
+        { "llvm.vector.reduce.mul.v16i16", StandardIntrinsicFunction.Create(typeof(LLVMIntrinsics), nameof(Runtime.LLVMIntrinsics.VectorReduceMulV16I16)) },
         { "llvm.vector.reduce.smax.v4i32", StandardIntrinsicFunction.Create(typeof(LLVMIntrinsics), nameof(Runtime.LLVMIntrinsics.VectorReduceSMaxV4I32)) },
 
         // Irregular intrinsics.

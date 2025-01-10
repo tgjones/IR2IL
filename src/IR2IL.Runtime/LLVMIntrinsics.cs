@@ -25,6 +25,30 @@ public static unsafe class LLVMIntrinsics
     }
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    public static sbyte VectorReduceMulV16I8(Vector128<sbyte> vector)
+    {
+        // TODO: Implement this method using intrinsics
+        var result = (sbyte)1;
+        for (var i = 0; i < Vector128<sbyte>.Count; i++)
+        {
+            result *= vector[i];
+        }
+        return result;
+    }
+
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    public static short VectorReduceMulV16I16(Vector256<short> vector)
+    {
+        // TODO: Implement this method using intrinsics
+        var result = (short)1;
+        for (var i = 0; i < Vector256<short>.Count; i++)
+        {
+            result *= vector[i];
+        }
+        return result;
+    }
+
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public static int VectorReduceSMaxV4I32(Vector128<int> vector)
     {
         if (Sse41.IsSupported)

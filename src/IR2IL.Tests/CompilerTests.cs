@@ -8,6 +8,8 @@ using System.Text;
 using System.Text.RegularExpressions;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 
+[assembly: Parallelize(Scope = ExecutionScope.MethodLevel)]
+
 namespace IR2IL.Tests;
 
 [TestClass]
