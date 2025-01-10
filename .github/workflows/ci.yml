@@ -3,20 +3,24 @@ name: CI
 on:
   push:
   pull_request:
-  
+
 jobs:
   build:
     runs-on: windows-latest
-  
+
     steps:
     - name: Checkout
       uses: actions/checkout@v4
+
+    - name: Cache downloaded LLVM zip
+      uses: actions/cache@v3
       with:
-        lfs: true
-  
+        key: build-cache-${{ hashFiles('src/IR2IL.Tests/IR2IL.Tests.csproj') }}
+        path: build/cache
+
     - name: Install .NET
       uses: actions/setup-dotnet@v4
-  
+
     - name: Build & Test Debug
       run: dotnet test src --configuration Debug
 

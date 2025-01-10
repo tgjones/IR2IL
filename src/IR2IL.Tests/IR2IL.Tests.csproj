@@ -1,4 +1,4 @@
-﻿<Project Sdk="Microsoft.NET.Sdk">
+<Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
     <IsPackable>false</IsPackable>
@@ -12,5 +12,29 @@
   <ItemGroup>
     <ProjectReference Include="..\IR2IL\IR2IL.csproj" />
   </ItemGroup>
+
+  <PropertyGroup>
+    <LlvmPath>$(MSBuildThisFileDirectory)..\..\build\llvm\</LlvmPath>
+    <LlvmMarkerPath>$(LlvmPath)marker.txt</LlvmMarkerPath>
+  </PropertyGroup>
+
+  <Target Name="DownloadAndUnzipClang"
+          BeforeTargets="Build"
+          Inputs="$(MSBuildThisFileFullPath)"
+          Outputs="$(LlvmMarkerPath)">
+    <PropertyGroup>
+      <ClangPathInZip>bin\clang.exe</ClangPathInZip>
+      <ClangPath>$(LlvmPath)$(ClangPathInZip)</ClangPath>
+    </PropertyGroup>
+    
+    <DownloadFile SourceUrl="https://github.com/llvm/llvm-project/releases/download/llvmorg-16.0.4/LLVM-16.0.4-win64.exe"
+                  DestinationFolder="..\..\build\cache">
+      <Output TaskParameter="DownloadedFile" PropertyName="DownloadedLlvmPath" />
+    </DownloadFile>
+
+    <Exec Command="&quot;C:\Program Files\7-Zip\7z.exe&quot; x -aoa -o&quot;$(LlvmPath)&quot; &quot;$(DownloadedLlvmPath)&quot; &quot;$(ClangPathInZip)&quot;" />
+
+    <WriteLinesToFile File="$(LlvmMarkerPath)" Lines="Downloaded" />
+  </Target>
 
 </Project>

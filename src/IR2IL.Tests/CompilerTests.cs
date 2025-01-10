@@ -15,7 +15,7 @@ public partial class CompilerTests
 {
     private static readonly string RepoRoot = Path.Combine(Environment.CurrentDirectory, "..", "..", "..", "..", "..");
     private static readonly string TestProgramsPath = Path.Combine(RepoRoot, "tests");
-    private static readonly string ClangPath = Path.Combine(RepoRoot, "lib", "clang", "win-x64", "clang.exe");
+    private static readonly string ClangPath = Path.Combine(RepoRoot, "build", "llvm", "bin", "clang.exe");
 
     private static IEnumerable<object[]> TestFiles(IEnumerable<string> testFiles)
     {
