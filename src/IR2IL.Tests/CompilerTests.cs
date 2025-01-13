@@ -283,6 +283,10 @@ public partial class CompilerTests
             out managedExitCode,
             out managedStandardOutput,
             out managedStandardError);
+
+        File.WriteAllText(
+            Path.ChangeExtension(outputPath, ".output"),
+            managedStandardOutput);
     }
 
     private static string CompileManaged(string testName, string optimizationLevel)
