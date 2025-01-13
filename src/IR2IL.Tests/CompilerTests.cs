@@ -259,6 +259,7 @@ public partial class CompilerTests
     private static string GetOutputPath(string testName, string optimizationLevel)
     {
         var outputFilePath = $"{Path.Combine(Environment.CurrentDirectory, "output", Path.GetRelativePath(TestProgramsPath, testName))}_{optimizationLevel}";
+        outputFilePath = Path.Combine(outputFilePath, Path.GetFileName(outputFilePath));
         var outputDirectory = Path.GetDirectoryName(outputFilePath) ?? throw new InvalidOperationException("No directory");
         Directory.CreateDirectory(outputDirectory);
         return outputFilePath;
