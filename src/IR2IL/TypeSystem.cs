@@ -98,6 +98,11 @@ internal sealed class TypeSystem
 
     public Type GetMsilVectorElementType(LLVMTypeRef elementTypeRef)
     {
+        if (elementTypeRef.Kind == LLVMTypeKind.LLVMPointerTypeKind)
+        {
+            return typeof(nint);
+        }
+
         var result = GetMsilType(elementTypeRef);
 
         if (result == typeof(bool))

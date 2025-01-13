@@ -6,6 +6,19 @@ namespace IR2IL.Runtime;
 public static class VectorUtility
 {
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    public static Vector128<double> ConvertV2F32ToV2F64(Vector64<float> vector)
+    {
+        var (lower, upper) = Vector64.Widen(vector);
+        return Vector128.Create(lower, upper);
+    }
+
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    public static Vector64<float> ConvertV2F64ToV2F32(Vector128<double> vector) => Vector64.Narrow(vector.GetLower(), vector.GetUpper());
+
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    public static Vector64<int> ConvertV2F64ToV2I32(Vector128<double> vector) => Vector64.ConvertToInt32(Vector64.Narrow(vector.GetLower(), vector.GetUpper()));
+
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public static Vector64<float> ConvertV2I8ToV2F32(Vector16<byte> vector) => Vector16.ConvertToSingle(vector);
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
@@ -25,10 +38,22 @@ public static class VectorUtility
     }
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    public static Vector128<long> ConvertV2I32ToV2I64(Vector64<int> vector) => Vector128.Create(vector[0], vector[1]);
+
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    public static Vector64<float> ConvertV2I64ToV2F32(Vector128<long> vector) => Vector64.ConvertToSingle(Vector64.Narrow(vector.GetLower(), vector.GetUpper()));
+
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    public static Vector128<double> ConvertV2I64ToV2F64(Vector128<long> vector) => Vector128.ConvertToDouble(vector);
+
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public static Vector32<short> ConvertV2I64ToV2I16(Vector128<long> vector) => Vector32.Create((short)vector[0], (short)vector[1]);
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public static Vector64<int> ConvertV2I64ToV2I32(Vector128<long> vector) => Vector64.Narrow(vector.GetLower(), vector.GetUpper());
+
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    public static Vector128<nint> ConvertV2I64ToV2Ptr(Vector128<long> vector) => Vector128.Create(Vector64.Create((nint)vector[0]), Vector64.Create((nint)vector[1]));
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public static Vector256<double> ConvertV4F32ToV4F64(Vector128<float> vector)
@@ -36,6 +61,9 @@ public static class VectorUtility
         var (lower, upper) = Vector128.Widen(vector);
         return Vector256.Create(lower, upper);
     }
+
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    public static Vector128<int> ConvertV4F32ToV4I32(Vector128<float> vector) => Vector128.ConvertToInt32(vector);
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public static Vector128<float> ConvertV4F64ToV4F32(Vector256<double> vector) => Vector128.Narrow(vector.GetLower(), vector.GetUpper());

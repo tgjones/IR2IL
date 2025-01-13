@@ -127,14 +127,16 @@ internal abstract class ILEmitter
                         break;
 
                     case LLVMTypeKind.LLVMIntegerTypeKind:
-                        switch (valueTypeRef.IntWidth)
+                        switch (TypeSystem.RoundUpToTypeSize((int)valueTypeRef.IntWidth))
                         {
+                            case 8:
+                            case 16:
                             case 32:
                                 ILGenerator.Emit(OpCodes.Ldc_I4_0);
                                 break;
 
                             default:
-                                throw new NotImplementedException();
+                                throw new NotImplementedException($"Emit constant not implemented for {valueRef}");
                         }
                         break;
 

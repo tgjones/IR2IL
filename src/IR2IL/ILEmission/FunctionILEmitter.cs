@@ -282,6 +282,10 @@ internal sealed class FunctionILEmitter : ILEmitter
                 EmitBinaryOperation(instruction, OpCodes.Div, nameof(Vector128.Divide));
                 break;
 
+            case LLVMOpcode.LLVMFMul:
+                EmitBinaryOperation(instruction, OpCodes.Mul, nameof(Vector128.Multiply));
+                break;
+
             case LLVMOpcode.LLVMFNeg:
                 EmitUnaryOperation(instruction, OpCodes.Neg, nameof(Vector128.Negate));
                 break;
@@ -294,7 +298,15 @@ internal sealed class FunctionILEmitter : ILEmitter
                 EmitConversion(instruction, Signedness.Signed);
                 break;
 
+            case LLVMOpcode.LLVMFPToUI:
+                EmitConversion(instruction, Signedness.Unsigned);
+                break;
+
             case LLVMOpcode.LLVMFPTrunc:
+                EmitConversion(instruction, Signedness.Unsigned);
+                break;
+
+            case LLVMOpcode.LLVMIntToPtr:
                 EmitConversion(instruction, Signedness.Unsigned);
                 break;
 
@@ -302,17 +314,16 @@ internal sealed class FunctionILEmitter : ILEmitter
                 EmitBinaryOperation(instruction, OpCodes.Shr_Un, nameof(Vector128.ShiftRightLogical));
                 break;
 
-            case LLVMOpcode.LLVMPHI:
-                ILGenerator.Emit(OpCodes.Ldloc, PhiLocals[instruction]);
-                break;
-
             case LLVMOpcode.LLVMMul:
-            case LLVMOpcode.LLVMFMul:
                 EmitBinaryOperation(instruction, OpCodes.Mul, nameof(Vector128.Multiply));
                 break;
 
             case LLVMOpcode.LLVMOr:
                 EmitBinaryOperation(instruction, OpCodes.Or, nameof(Vector128.BitwiseOr));
+                break;
+
+            case LLVMOpcode.LLVMPHI:
+                ILGenerator.Emit(OpCodes.Ldloc, PhiLocals[instruction]);
                 break;
 
             case LLVMOpcode.LLVMPtrToInt:
@@ -882,9 +893,20 @@ internal sealed class FunctionILEmitter : ILEmitter
                     LLVMRealPredicate.LLVMRealOGT => nameof(Vector128.GreaterThan),
                     LLVMRealPredicate.LLVMRealOLT => nameof(Vector128.LessThan),
                     LLVMRealPredicate.LLVMRealUGE => nameof(Vector128.GreaterThanOrEqual),
+                    LLVMRealPredicate.LLVMRealUNE => nameof(Vector128.Equals),
                     _ => throw new NotImplementedException($"Float comparison predicate {instruction.FCmpPredicate} not implemented for vectors: {instruction}"),
                 };
                 EmitVectorComparison(instruction, vectorComparisonMethodName);
+
+                switch (instruction.FCmpPredicate)
+                {
+                    case LLVMRealPredicate.LLVMRealUNE:
+                        // There is no .NET cross-platform API for e.g. Vector128.NotEquals, so we simulate it
+                        // by doing an Equals followed by OnesComplement.
+                        EmitVectorComparison(instruction, nameof(Vector128.OnesComplement));
+                        break;
+                }
+
                 break;
 
             default:
@@ -1006,6 +1028,10 @@ internal sealed class FunctionILEmitter : ILEmitter
                     EmitConstantIntegerValue(toType.IntWidth, -1);
                     ILGenerator.Emit(OpCodes.And);
                 }
+                break;
+
+            case LLVMTypeKind.LLVMPointerTypeKind:
+                ILGenerator.Emit(OpCodes.Conv_I);
                 break;
 
             case LLVMTypeKind.LLVMVectorTypeKind:
@@ -1156,7 +1182,8 @@ internal sealed class FunctionILEmitter : ILEmitter
             LLVMTypeKind.LLVMIntegerTypeKind => $"I{elementType.IntWidth}",
             LLVMTypeKind.LLVMDoubleTypeKind => "F64",
             LLVMTypeKind.LLVMFloatTypeKind => "F32",
-            _ => throw new InvalidOperationException()
+            LLVMTypeKind.LLVMPointerTypeKind => "Ptr",
+            _ => throw new InvalidOperationException($"Unsupported type {elementType}")
         });
 
         return result.ToString();
@@ -1439,7 +1466,7 @@ internal sealed class FunctionILEmitter : ILEmitter
                     }
                     else
                     {
-                        throw new NotImplementedException();
+                        throw new NotImplementedException($"GetElementPtr not implemented for index {index} for type {currentType}: {instruction}");
                     }
                     var field = structType.GetFields()[fieldIndex];
                     ILGenerator.Emit(OpCodes.Ldflda, field);
@@ -1447,14 +1474,25 @@ internal sealed class FunctionILEmitter : ILEmitter
                     currentType = currentType.StructGetTypeAtIndex(fieldIndex);
                     break;
 
+                case LLVMTypeKind.LLVMVectorTypeKind:
+                    EmitIndexedPtr(index, currentType.ElementType);
+                    currentType = currentType.ElementType;
+                    break;
+
                 default:
-                    throw new NotImplementedException();
+                    throw new NotImplementedException($"GetElementPtr not implemented for index {index} for type {currentType}: {instruction}");
             }
         }
     }
 
     private void EmitIndexedPtr(LLVMValueRef index, LLVMTypeRef currentType)
     {
+        if (index.TypeOf.Kind != LLVMTypeKind.LLVMIntegerTypeKind)
+        {
+            // TODO: Implement vector indices.
+            throw new NotImplementedException();
+        }
+
         var sizeInBytes = (long)TypeSystem.GetSizeOfTypeInBytes(currentType);
 
         if (index.Kind == LLVMValueKind.LLVMConstantIntValueKind)

@@ -154,6 +154,13 @@ public partial class CompilerTests
             // These tests don't execute correctly on MSVC because of thread_local differences.
             "0005_0062" => false,
 
+            // These tests don't execute correctly on Windows because of the stack being too large.
+            "0008_0014" or "0008_0015" or "0008_0016" or "0008_0017" or "0008_0018" or "0008_0019" => false,
+            "0008_0020" or "0008_0021" or "0008_0022" or "0008_0023" or "0008_0024" or "0008_0025" => false,
+            "0008_0026" or "0008_0027" or "0008_0028" or "0008_0029" or "0008_0030" or "0008_0031" => false,
+            "0008_0032" or "0008_0033" or "0008_0034" or "0008_0035" or "0008_0036" or "0008_0037" => false,
+            "0008_0038" => false,
+
             _ => true,
         }));
 
@@ -318,6 +325,7 @@ public partial class CompilerTests
             FileName = executablePath,
             RedirectStandardOutput = true,
             RedirectStandardError = true,
+            StandardOutputEncoding = Encoding.ASCII,
         };
 
         foreach (var argument in arguments)

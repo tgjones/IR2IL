@@ -25,6 +25,21 @@ public static class Vector16
     }
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    public static Vector16<T> BitwiseOr<T>(Vector16<T> left, Vector16<T> right)
+        where T : unmanaged, IBitwiseOperators<T, T, T>
+    {
+        Unsafe.SkipInit(out Vector16<T> result);
+
+        for (var index = 0; index < Vector16<T>.Count; index++)
+        {
+            T value = left.GetElementUnsafe(index) | right.GetElementUnsafe(index);
+            result.SetElementUnsafe(index, value);
+        }
+
+        return result;
+    }
+
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public static Vector16<TTo> As<TFrom, TTo>(this Vector16<TFrom> vector)
         where TFrom : unmanaged
         where TTo : unmanaged
