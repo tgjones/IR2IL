@@ -41,6 +41,9 @@ internal sealed class TypeSystem
             case LLVMTypeKind.LLVMFloatTypeKind:
                 return typeof(float);
 
+            case LLVMTypeKind.LLVMHalfTypeKind:
+                return typeof(Half);
+
             case LLVMTypeKind.LLVMIntegerTypeKind:
                 return GetIntegerType((int)typeRef.IntWidth);
 

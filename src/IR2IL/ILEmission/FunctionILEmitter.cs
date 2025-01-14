@@ -839,8 +839,8 @@ internal sealed class FunctionILEmitter : ILEmitter
 
         switch (operand0.TypeOf.Kind)
         {
-            case LLVMTypeKind.LLVMFloatTypeKind:
             case LLVMTypeKind.LLVMDoubleTypeKind:
+            case LLVMTypeKind.LLVMFloatTypeKind:
                 switch (instruction.FCmpPredicate)
                 {
                     case LLVMRealPredicate.LLVMRealOEQ:
@@ -887,6 +887,18 @@ internal sealed class FunctionILEmitter : ILEmitter
                         ILGenerator.Emit(OpCodes.Ceq);
                         ILGenerator.Emit(OpCodes.Ldc_I4_0);
                         ILGenerator.Emit(OpCodes.Ceq);
+                        break;
+
+                    default:
+                        throw new NotImplementedException($"Float comparison predicate {instruction.FCmpPredicate} not implemented: {instruction}");
+                }
+                break;
+
+            case LLVMTypeKind.LLVMHalfTypeKind:
+                switch (instruction.FCmpPredicate)
+                {
+                    case LLVMRealPredicate.LLVMRealUNE:
+                        ILGenerator.Emit(OpCodes.Call, typeof(Half).GetMethodStrict("op_Inequality", [typeof(Half), typeof(Half)]));
                         break;
 
                     default:
@@ -979,6 +991,10 @@ internal sealed class FunctionILEmitter : ILEmitter
                     ILGenerator.Emit(OpCodes.Conv_R_Un);
                 }
                 ILGenerator.Emit(OpCodes.Conv_R4);
+                break;
+
+            case LLVMTypeKind.LLVMHalfTypeKind:
+                ILGenerator.Emit(OpCodes.Call, typeof(Half).GetMethodStrict("op_Explicit", [TypeSystem.GetMsilType(operand.TypeOf)]));
                 break;
 
             case LLVMTypeKind.LLVMIntegerTypeKind:
@@ -1077,7 +1093,7 @@ internal sealed class FunctionILEmitter : ILEmitter
                 break;
 
             default:
-                throw new NotImplementedException($"Conversion not implemented to {toType}: {opcode}");
+                throw new NotImplementedException($"Conversion not implemented to {toType} for operand {operand}: {opcode}");
         }
     }
 
@@ -1850,12 +1866,16 @@ internal sealed class FunctionILEmitter : ILEmitter
     {
         switch (typeRef.Kind)
         {
+            case LLVMTypeKind.LLVMDoubleTypeKind:
+                ILGenerator.Emit(OpCodes.Ldind_R8);
+                break;
+
             case LLVMTypeKind.LLVMFloatTypeKind:
                 ILGenerator.Emit(OpCodes.Ldind_R4);
                 break;
 
-            case LLVMTypeKind.LLVMDoubleTypeKind:
-                ILGenerator.Emit(OpCodes.Ldind_R8);
+            case LLVMTypeKind.LLVMHalfTypeKind:
+                ILGenerator.Emit(OpCodes.Ldobj, typeof(Half));
                 break;
 
             case LLVMTypeKind.LLVMIntegerTypeKind:

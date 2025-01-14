@@ -54,26 +54,28 @@ internal abstract class ILEmitter
                 break;
 
             case LLVMValueKind.LLVMConstantFPValueKind:
+                var constRealDouble = valueRef.GetConstRealDouble(out var losesInfo);
+                if (losesInfo)
+                {
+                    throw new InvalidOperationException();
+                }
                 switch (valueTypeRef.Kind)
                 {
                     case LLVMTypeKind.LLVMDoubleTypeKind:
-                        ILGenerator.Emit(OpCodes.Ldc_R8, valueRef.GetConstRealDouble(out var losesInfo));
-                        if (losesInfo)
-                        {
-                            throw new InvalidOperationException();
-                        }
+                        ILGenerator.Emit(OpCodes.Ldc_R8, constRealDouble);
                         break;
 
                     case LLVMTypeKind.LLVMFloatTypeKind:
-                        ILGenerator.Emit(OpCodes.Ldc_R4, (float)valueRef.GetConstRealDouble(out var losesInfo2));
-                        if (losesInfo2)
-                        {
-                            throw new InvalidOperationException();
-                        }
+                        ILGenerator.Emit(OpCodes.Ldc_R4, (float)constRealDouble);
+                        break;
+
+                    case LLVMTypeKind.LLVMHalfTypeKind:
+                        ILGenerator.Emit(OpCodes.Ldc_R8, constRealDouble);
+                        ILGenerator.Emit(OpCodes.Call, typeof(Half).GetMethodStrict("op_Explicit", [typeof(double)]));
                         break;
 
                     default:
-                        throw new NotImplementedException();
+                        throw new NotImplementedException($"Unsuported constant floating-point type: {valueTypeRef}");
                 }
                 break;
 
@@ -357,6 +359,7 @@ internal abstract class ILEmitter
         switch (type.Kind)
         {
             case LLVMTypeKind.LLVMArrayTypeKind:
+            case LLVMTypeKind.LLVMHalfTypeKind:
             case LLVMTypeKind.LLVMStructTypeKind:
             case LLVMTypeKind.LLVMVectorTypeKind:
                 ILGenerator.Emit(OpCodes.Stobj, TypeSystem.GetMsilType(type));
