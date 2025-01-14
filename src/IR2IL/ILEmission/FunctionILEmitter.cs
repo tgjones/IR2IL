@@ -1108,6 +1108,8 @@ internal sealed class FunctionILEmitter : ILEmitter
             throw new InvalidOperationException();
         }
 
+        var isVectorShiftWithVectorCount = false;
+
         for (var i = 0u; i < operandCount; i++)
         {
             var operand = instruction.GetOperand(i);
@@ -1137,10 +1139,18 @@ internal sealed class FunctionILEmitter : ILEmitter
                                         var value = operand.GetAggregateElement(j);
                                         if (firstValueConstant != (int)value.ConstIntSExt)
                                         {
-                                            throw new NotImplementedException($"Unsupported amount to shift by: {operand}");
+                                            isVectorShiftWithVectorCount = true;
+                                            break;
                                         }
                                     }
-                                    ILGenerator.Emit(OpCodes.Ldc_I4, firstValueConstant);
+                                    if (isVectorShiftWithVectorCount)
+                                    {
+                                        EmitValue(operand);
+                                    }
+                                    else
+                                    {
+                                        ILGenerator.Emit(OpCodes.Ldc_I4, firstValueConstant);
+                                    }
                                     break;
 
                                 default:
@@ -1192,7 +1202,14 @@ internal sealed class FunctionILEmitter : ILEmitter
                     case nameof(Vector128.ShiftRightArithmetic):
                     case nameof(Vector128.ShiftRightLogical):
                         var vectorType = TypeSystem.GetMsilType(instruction.TypeOf);
-                        vectorMethod = nonGenericVectorType.GetMethodStrict(vectorMethodName, [vectorType, typeof(int)]);
+                        if (isVectorShiftWithVectorCount)
+                        {
+                            vectorMethod = typeof(LLVMIntrinsics).GetMethodStrict($"Vector{vectorMethodName}", [vectorType, vectorType]);
+                        }
+                        else
+                        {
+                            vectorMethod = nonGenericVectorType.GetMethodStrict(vectorMethodName, [vectorType, typeof(int)]);
+                        }
                         break;
 
                     case "SignedRemainder":

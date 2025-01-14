@@ -7,6 +7,32 @@ namespace IR2IL.Runtime;
 public static unsafe class LLVMIntrinsics
 {
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    public static Vector64<int> VectorShiftRightLogical(Vector64<int> vector, Vector64<int> count)
+    {
+        if (Sse2.IsSupported)
+        {
+            return Sse2.ShiftRightLogical(vector.ToVector128(), count.ToVector128()).GetLower();
+        }
+        else
+        {
+            throw new PlatformNotSupportedException();
+        }
+    }
+
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    public static Vector128<int> VectorShiftRightLogical(Vector128<int> vector, Vector128<int> count)
+    {
+        if (Sse2.IsSupported)
+        {
+            return Sse2.ShiftRightLogical(vector, count);
+        }
+        else
+        {
+            throw new PlatformNotSupportedException();
+        }
+    }
+
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public static int VectorReduceMulV4I32(Vector128<int> vector)
     {
         if (Sse41.IsSupported)
