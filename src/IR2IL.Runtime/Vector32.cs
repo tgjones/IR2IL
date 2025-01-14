@@ -1,7 +1,6 @@
 using System.Diagnostics;
 using System.Numerics;
 using System.Runtime.CompilerServices;
-using System.Runtime.Intrinsics;
 
 namespace IR2IL.Runtime;
 
@@ -18,6 +17,21 @@ public static class Vector32
         for (var index = 0; index < Vector32<T>.Count; index++)
         {
             T value = left.GetElementUnsafe(index) + right.GetElementUnsafe(index);
+            result.SetElementUnsafe(index, value);
+        }
+
+        return result;
+    }
+
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    public static Vector32<T> AndNot<T>(Vector32<T> left, Vector32<T> right)
+        where T : unmanaged, IBitwiseOperators<T, T, T>
+    {
+        Unsafe.SkipInit(out Vector32<T> result);
+
+        for (var index = 0; index < Vector32<T>.Count; index++)
+        {
+            T value = left.GetElementUnsafe(index) & ~right.GetElementUnsafe(index);
             result.SetElementUnsafe(index, value);
         }
 
@@ -47,6 +61,54 @@ public static class Vector32
     }
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    public static Vector32<T> BitwiseAnd<T>(Vector32<T> left, Vector32<T> right)
+        where T : unmanaged, IBitwiseOperators<T, T, T>
+    {
+        Unsafe.SkipInit(out Vector32<T> result);
+
+        for (var index = 0; index < Vector32<T>.Count; index++)
+        {
+            T value = left.GetElementUnsafe(index) & right.GetElementUnsafe(index);
+            result.SetElementUnsafe(index, value);
+        }
+
+        return result;
+    }
+
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    public static Vector32<T> BitwiseOr<T>(Vector32<T> left, Vector32<T> right)
+        where T : unmanaged, IBitwiseOperators<T, T, T>
+    {
+        Unsafe.SkipInit(out Vector32<T> result);
+
+        for (var index = 0; index < Vector32<T>.Count; index++)
+        {
+            T value = left.GetElementUnsafe(index) | right.GetElementUnsafe(index);
+            result.SetElementUnsafe(index, value);
+        }
+
+        return result;
+    }
+
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    public static Vector32<T> ConditionalSelect<T>(Vector32<T> condition, Vector32<T> left, Vector32<T> right)
+        where T : unmanaged, IBitwiseOperators<T, T, T>
+    {
+        return BitwiseOr(BitwiseAnd(left, condition), AndNot(right, condition));
+    }
+
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    public static Vector32<short> Create(sbyte e0, sbyte e1, sbyte e2, sbyte e3)
+    {
+        Unsafe.SkipInit(out Vector32<short> result);
+        result.SetElementUnsafe(0, e0);
+        result.SetElementUnsafe(1, e1);
+        result.SetElementUnsafe(2, e2);
+        result.SetElementUnsafe(3, e3);
+        return result;
+    }
+
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public static Vector32<short> Create(short e0, short e1)
     {
         Unsafe.SkipInit(out Vector32<short> result);
@@ -61,6 +123,23 @@ public static class Vector32
         Unsafe.SkipInit(out Vector32<ushort> result);
         result.SetElementUnsafe(0, e0);
         result.SetElementUnsafe(1, e1);
+        return result;
+    }
+
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    public static Vector32<T> Equals<T>(Vector32<T> left, Vector32<T> right)
+        where T : unmanaged, IEqualityOperators<T, T, bool>
+    {
+        Unsafe.SkipInit(out Vector32<T> result);
+
+        for (int index = 0; index < Vector32<T>.Count; index++)
+        {
+            T value = left.GetElementUnsafe(index) == right.GetElementUnsafe(index)
+                ? Scalar<T>.AllBitsSet
+                : default!;
+            result.SetElementUnsafe(index, value);
+        }
+
         return result;
     }
 
@@ -85,6 +164,21 @@ public static class Vector32
         for (var index = 0; index < Vector32<T>.Count; index++)
         {
             T value = left.GetElementUnsafe(index) * right.GetElementUnsafe(index);
+            result.SetElementUnsafe(index, value);
+        }
+
+        return result;
+    }
+
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    public static Vector32<T> OnesComplement<T>(Vector32<T> vector)
+        where T : unmanaged, IBitwiseOperators<T, T, T>
+    {
+        Unsafe.SkipInit(out Vector32<T> result);
+
+        for (int index = 0; index < Vector32<T>.Count; index++)
+        {
+            T value = ~vector.GetElementUnsafe(index);
             result.SetElementUnsafe(index, value);
         }
 
@@ -118,6 +212,21 @@ public static class Vector32
     {
         Vector32<T> result = vector;
         result.SetElementUnsafe(index, value);
+        return result;
+    }
+
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    public static Vector32<T> Xor<T>(Vector32<T> left, Vector32<T> right)
+        where T : unmanaged, IBitwiseOperators<T, T, T>
+    {
+        Unsafe.SkipInit(out Vector32<T> result);
+
+        for (var index = 0; index < Vector32<T>.Count; index++)
+        {
+            T value = left.GetElementUnsafe(index) ^ right.GetElementUnsafe(index);
+            result.SetElementUnsafe(index, value);
+        }
+
         return result;
     }
 

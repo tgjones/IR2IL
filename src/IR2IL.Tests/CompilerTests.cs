@@ -161,6 +161,9 @@ public partial class CompilerTests
             "0008_0032" or "0008_0033" or "0008_0034" or "0008_0035" or "0008_0036" or "0008_0037" => false,
             "0008_0038" => false,
 
+            // These tests cover undefined behavior for negative-floating-point-to-unsigned-int conversion.
+            "0009_0015" or "0009_0016" or "0009_0020" or "0009_0021" => false,
+
             _ => true,
         }));
 
@@ -184,7 +187,7 @@ public partial class CompilerTests
         var referenceOutputFilePath = Path.ChangeExtension(GetSourceFilePath(testName), ".reference_output");
         if (File.Exists(referenceOutputFilePath))
         {
-            var referenceOutputLines = File.ReadLines(referenceOutputFilePath);
+            var referenceOutputLines = File.ReadLines(referenceOutputFilePath, Encoding.ASCII);
 
             var nativeStandardOutputBuilder = new StringBuilder();
             int? nativeExitCode = null;

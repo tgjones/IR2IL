@@ -64,9 +64,9 @@ internal sealed class TypeSystem
     public Type GetIntegerType(int intTypeWidth) => intTypeWidth switch
     {
         1 => typeof(bool),
-        32 => typeof(int),
-        8 => typeof(byte),
+        8 => typeof(sbyte),
         16 => typeof(short),
+        32 => typeof(int),
         64 => typeof(long),
         _ => throw new NotImplementedException($"Integer width {intTypeWidth} not implemented"),
     };

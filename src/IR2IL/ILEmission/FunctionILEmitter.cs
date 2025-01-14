@@ -366,7 +366,7 @@ internal sealed class FunctionILEmitter : ILEmitter
                 break;
 
             case LLVMOpcode.LLVMSIToFP:
-                EmitConversion(instruction, Signedness.Unsigned);
+                EmitConversion(instruction, Signedness.Signed);
                 break;
 
             case LLVMOpcode.LLVMSub:
@@ -733,6 +733,12 @@ internal sealed class FunctionILEmitter : ILEmitter
                         ILGenerator.Emit(OpCodes.Clt);
                         break;
 
+                    case LLVMIntPredicate.LLVMIntUGE:
+                        ILGenerator.Emit(OpCodes.Clt_Un);
+                        ILGenerator.Emit(OpCodes.Ldc_I4_0);
+                        ILGenerator.Emit(OpCodes.Ceq);
+                        break;
+
                     case LLVMIntPredicate.LLVMIntUGT:
                         ILGenerator.Emit(OpCodes.Cgt_Un);
                         break;
@@ -747,17 +753,19 @@ internal sealed class FunctionILEmitter : ILEmitter
                 break;
 
             case LLVMTypeKind.LLVMVectorTypeKind:
-                var vectorComparisonMethodName = instruction.ICmpPredicate switch
+                var nonGenericVectorType = TypeSystem.GetNonGenericVectorType(instruction.GetOperand(0).TypeOf);
+                var (vectorUtilityType, vectorComparisonMethodName) = instruction.ICmpPredicate switch
                 {
-                    LLVMIntPredicate.LLVMIntEQ => nameof(Vector128.Equals),
-                    LLVMIntPredicate.LLVMIntSGE => nameof(Vector128.GreaterThanOrEqual),
-                    LLVMIntPredicate.LLVMIntSGT => nameof(Vector128.GreaterThan),
-                    LLVMIntPredicate.LLVMIntSLT => nameof(Vector128.LessThan),
-                    LLVMIntPredicate.LLVMIntUGT => nameof(Vector128.GreaterThan),
-                    LLVMIntPredicate.LLVMIntULT => nameof(Vector128.LessThan),
+                    LLVMIntPredicate.LLVMIntEQ => (nonGenericVectorType, nameof(Vector128.Equals)),
+                    LLVMIntPredicate.LLVMIntNE => (typeof(VectorUtility), $"Compare{nonGenericVectorType.Name}NotEquals"),
+                    LLVMIntPredicate.LLVMIntSGE => (nonGenericVectorType, nameof(Vector128.GreaterThanOrEqual)),
+                    LLVMIntPredicate.LLVMIntSGT => (nonGenericVectorType, nameof(Vector128.GreaterThan)),
+                    LLVMIntPredicate.LLVMIntSLT => (nonGenericVectorType, nameof(Vector128.LessThan)),
+                    LLVMIntPredicate.LLVMIntUGT => (nonGenericVectorType, nameof(Vector128.GreaterThan)),
+                    LLVMIntPredicate.LLVMIntULT => (nonGenericVectorType, nameof(Vector128.LessThan)),
                     _ => throw new NotImplementedException($"Integer comparison predicate {instruction.ICmpPredicate} not implemented for vectors: {instruction}"),
                 };
-                EmitVectorComparison(instruction, vectorComparisonMethodName);
+                EmitVectorComparison(instruction, vectorUtilityType, vectorComparisonMethodName);
                 break;
 
             default:
@@ -765,17 +773,17 @@ internal sealed class FunctionILEmitter : ILEmitter
         }
     }
 
-    private void EmitVectorComparison(LLVMValueRef instruction, string vectorComparisonMethodName)
+    private void EmitVectorComparison(LLVMValueRef instruction, Type vectorUtilityType, string vectorComparisonMethodName)
     {
         var operand0 = instruction.GetOperand(0);
 
-        var nonGenericVectorType = TypeSystem.GetNonGenericVectorType(operand0.TypeOf);
-        var genericVectorMethod = nonGenericVectorType.GetStaticMethodStrict(vectorComparisonMethodName);
+        var genericVectorMethod = vectorUtilityType.GetStaticMethodStrict(vectorComparisonMethodName);
         var elementType = TypeSystem.GetMsilVectorElementType(operand0.TypeOf.ElementType);
         var vectorMethod = genericVectorMethod.MakeGenericMethod(elementType);
         ILGenerator.Emit(OpCodes.Call, vectorMethod);
 
         // If result is not an integer type, bitcast it to integer type.
+        var nonGenericVectorType = TypeSystem.GetNonGenericVectorType(operand0.TypeOf);
         switch (operand0.TypeOf.ElementType.Kind)
         {
             case LLVMTypeKind.LLVMDoubleTypeKind:
@@ -887,26 +895,17 @@ internal sealed class FunctionILEmitter : ILEmitter
                 break;
 
             case LLVMTypeKind.LLVMVectorTypeKind:
-                var vectorComparisonMethodName = instruction.FCmpPredicate switch
+                var nonGenericVectorType = TypeSystem.GetNonGenericVectorType(instruction.GetOperand(0).TypeOf);
+                var (vectorUtilityType, vectorComparisonMethodName) = instruction.FCmpPredicate switch
                 {
-                    LLVMRealPredicate.LLVMRealOEQ => nameof(Vector128.Equals),
-                    LLVMRealPredicate.LLVMRealOGT => nameof(Vector128.GreaterThan),
-                    LLVMRealPredicate.LLVMRealOLT => nameof(Vector128.LessThan),
-                    LLVMRealPredicate.LLVMRealUGE => nameof(Vector128.GreaterThanOrEqual),
-                    LLVMRealPredicate.LLVMRealUNE => nameof(Vector128.Equals),
+                    LLVMRealPredicate.LLVMRealOEQ => (nonGenericVectorType, nameof(Vector128.Equals)),
+                    LLVMRealPredicate.LLVMRealOGT => (nonGenericVectorType, nameof(Vector128.GreaterThan)),
+                    LLVMRealPredicate.LLVMRealOLT => (nonGenericVectorType, nameof(Vector128.LessThan)),
+                    LLVMRealPredicate.LLVMRealUGE => (nonGenericVectorType, nameof(Vector128.GreaterThanOrEqual)),
+                    LLVMRealPredicate.LLVMRealUNE => (typeof(VectorUtility), $"Compare{nonGenericVectorType.Name}NotEquals"),
                     _ => throw new NotImplementedException($"Float comparison predicate {instruction.FCmpPredicate} not implemented for vectors: {instruction}"),
                 };
-                EmitVectorComparison(instruction, vectorComparisonMethodName);
-
-                switch (instruction.FCmpPredicate)
-                {
-                    case LLVMRealPredicate.LLVMRealUNE:
-                        // There is no .NET cross-platform API for e.g. Vector128.NotEquals, so we simulate it
-                        // by doing an Equals followed by OnesComplement.
-                        EmitVectorComparison(instruction, nameof(Vector128.OnesComplement));
-                        break;
-                }
-
+                EmitVectorComparison(instruction, vectorUtilityType, vectorComparisonMethodName);
                 break;
 
             default:
@@ -939,10 +938,46 @@ internal sealed class FunctionILEmitter : ILEmitter
         switch (toType.Kind)
         {
             case LLVMTypeKind.LLVMDoubleTypeKind:
+                // Ensure source type is treated as signed.
+                if (opcode == LLVMOpcode.LLVMSIToFP)
+                {
+                    switch (fromType.IntWidth)
+                    {
+                        case 8:
+                            ILGenerator.Emit(OpCodes.Conv_I1);
+                            break;
+
+                        case 16:
+                            ILGenerator.Emit(OpCodes.Conv_I2);
+                            break;
+                    }
+                }
+                if (opcode == LLVMOpcode.LLVMUIToFP)
+                {
+                    ILGenerator.Emit(OpCodes.Conv_R_Un);
+                }
                 ILGenerator.Emit(OpCodes.Conv_R8);
                 break;
 
             case LLVMTypeKind.LLVMFloatTypeKind:
+                // Ensure source type is treated as signed.
+                if (opcode == LLVMOpcode.LLVMSIToFP)
+                {
+                    switch (fromType.IntWidth)
+                    {
+                        case 8:
+                            ILGenerator.Emit(OpCodes.Conv_I1);
+                            break;
+
+                        case 16:
+                            ILGenerator.Emit(OpCodes.Conv_I2);
+                            break;
+                    }
+                }
+                if (opcode == LLVMOpcode.LLVMUIToFP)
+                {
+                    ILGenerator.Emit(OpCodes.Conv_R_Un);
+                }
                 ILGenerator.Emit(OpCodes.Conv_R4);
                 break;
 
@@ -1035,7 +1070,8 @@ internal sealed class FunctionILEmitter : ILEmitter
                 break;
 
             case LLVMTypeKind.LLVMVectorTypeKind:
-                var convertMethodName = $"Convert{GetIntrinsicMethodSuffix(fromType)}To{GetIntrinsicMethodSuffix(toType)}";
+                var convertMethodPrefix = opcode.ToString().Remove(0, 4);
+                var convertMethodName = $"{convertMethodPrefix}{GetIntrinsicMethodSuffix(fromType)}To{GetIntrinsicMethodSuffix(toType)}";
                 var convertMethod = typeof(VectorUtility).GetStaticMethodStrict(convertMethodName);
                 ILGenerator.Emit(OpCodes.Call, convertMethod);
                 break;
@@ -1085,7 +1121,7 @@ internal sealed class FunctionILEmitter : ILEmitter
                                         var value = operand.GetAggregateElement(j);
                                         if (firstValueConstant != (int)value.ConstIntSExt)
                                         {
-                                            throw new NotImplementedException();
+                                            throw new NotImplementedException($"Unsupported amount to shift by: {operand}");
                                         }
                                     }
                                     ILGenerator.Emit(OpCodes.Ldc_I4, firstValueConstant);
@@ -1179,7 +1215,7 @@ internal sealed class FunctionILEmitter : ILEmitter
 
         result.Append(elementType.Kind switch
         {
-            LLVMTypeKind.LLVMIntegerTypeKind => $"I{elementType.IntWidth}",
+            LLVMTypeKind.LLVMIntegerTypeKind => $"I{TypeSystem.RoundUpToTypeSize((int)elementType.IntWidth)}",
             LLVMTypeKind.LLVMDoubleTypeKind => "F64",
             LLVMTypeKind.LLVMFloatTypeKind => "F32",
             LLVMTypeKind.LLVMPointerTypeKind => "Ptr",
@@ -1619,7 +1655,7 @@ internal sealed class FunctionILEmitter : ILEmitter
                 var nonGenericVectorType = TypeSystem.GetNonGenericVectorType(operand1.TypeOf);
                 var createMethodArgumentTypes = new Type[operand1.TypeOf.VectorSize];
                 // Integer type with same bitwidth as operand1 element type.
-                Array.Fill(createMethodArgumentTypes, TypeSystem.GetIntegerType(operand1ElementSizeInBits));
+                Array.Fill(createMethodArgumentTypes, TypeSystem.GetIntegerType(TypeSystem.RoundUpToTypeSize(operand1ElementSizeInBits)));
                 var createMethod = nonGenericVectorType.GetMethodStrict(nameof(Vector128.Create), createMethodArgumentTypes);
                 ILGenerator.Emit(OpCodes.Call, createMethod);
 
@@ -1639,7 +1675,7 @@ internal sealed class FunctionILEmitter : ILEmitter
                         break;
 
                     default:
-                        throw new NotImplementedException();
+                        throw new NotImplementedException($"Unsupported operand element type: {operand1.TypeOf.ElementType}");
                 }
 
                 EmitValue(operand1);
@@ -1678,9 +1714,9 @@ internal sealed class FunctionILEmitter : ILEmitter
         var condition = operands[0];
 
         if (condition.TypeOf.Kind != LLVMTypeKind.LLVMIntegerTypeKind
-            || condition.TypeOf.IntWidth != 32)
+            || condition.TypeOf.IntWidth > 32)
         {
-            throw new NotImplementedException();
+            throw new NotImplementedException($"Unsupported switch condition: {condition}");
         }
 
         // Operand 1 is the default destination.
@@ -1694,7 +1730,7 @@ internal sealed class FunctionILEmitter : ILEmitter
             var caseValueType = operands[i].Kind;
 
             if (operands[i].Kind != LLVMValueKind.LLVMConstantIntValueKind
-                || operands[i].TypeOf.IntWidth != 32)
+                || operands[i].TypeOf.IntWidth > 32)
             {
                 throw new NotImplementedException();
             }
@@ -1835,7 +1871,7 @@ internal sealed class FunctionILEmitter : ILEmitter
                         break;
 
                     case 32:
-                        ILGenerator.Emit(OpCodes.Ldind_U4);
+                        ILGenerator.Emit(OpCodes.Ldind_I4);
                         break;
 
                     case 64:

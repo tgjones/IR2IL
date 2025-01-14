@@ -91,6 +91,16 @@ internal abstract class ILEmitter
                         ILGenerator.Emit(OpCodes.Add);
                         break;
 
+                    case LLVMOpcode.LLVMIntToPtr:
+                        EmitConstantValue(valueRef.GetOperand(0), valueRef.GetOperand(0).TypeOf);
+                        ILGenerator.Emit(OpCodes.Conv_U);
+                        break;
+
+                    case LLVMOpcode.LLVMPtrToInt:
+                        EmitConstantValue(valueRef.GetOperand(0), valueRef.GetOperand(0).TypeOf);
+                        EmitConvertToInt(valueRef.TypeOf.IntWidth);
+                        break;
+
                     default:
                         throw new NotImplementedException($"Const opcode {valueRef.ConstOpcode} not implemented: {valueRef}");
                 }
@@ -160,6 +170,23 @@ internal abstract class ILEmitter
 
             default:
                 throw new NotImplementedException($"Unsupported value kind {valueRef.Kind}: {valueRef}");
+        }
+    }
+
+    protected void EmitConvertToInt(uint sizeInBits)
+    {
+        switch (TypeSystem.RoundUpToTypeSize((int)sizeInBits))
+        {
+            case 32:
+                ILGenerator.Emit(OpCodes.Conv_I4);
+                break;
+
+            case 64:
+                ILGenerator.Emit(OpCodes.Conv_I8);
+                break;
+
+            default:
+                throw new NotImplementedException($"Convert to integer width {sizeInBits} not implemented");
         }
     }
 
