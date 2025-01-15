@@ -75,7 +75,11 @@ internal abstract class ILEmitter
                 break;
 
             case LLVMValueKind.LLVMConstantIntValueKind:
-                EmitConstantIntegerValue(valueTypeRef.IntWidth, (long)valueRef.ConstIntZExt);
+                EmitConstantIntegerValue(
+                    valueTypeRef.IntWidth,
+                    valueTypeRef.IntWidth == 1
+                        ? (long)valueRef.ConstIntSExt
+                        : (long)valueRef.ConstIntZExt);
                 break;
 
             case LLVMValueKind.LLVMConstantExprValueKind:
@@ -307,7 +311,7 @@ internal abstract class ILEmitter
             case LLVMValueKind.LLVMConstantDataArrayValueKind:
             case LLVMValueKind.LLVMConstantDataVectorValueKind:
             case LLVMValueKind.LLVMConstantVectorValueKind:
-                var elementSizeInBytes = TypeSystem.GetSizeOfTypeInBytes(arrayOrVectorValueType.ElementType);
+                var elementSizeInBytes = TypeSystem.RoundUpToTypeSize(TypeSystem.GetSizeOfTypeInBits(arrayOrVectorValueType.ElementType)) / 8;
                 for (var i = 0; i < length; i++)
                 {
                     ILGenerator.Emit(OpCodes.Ldloca, local);

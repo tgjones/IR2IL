@@ -64,7 +64,7 @@ internal static class Scalar<T>
             }
             else
             {
-                throw new NotSupportedException();
+                throw new NotSupportedException($"Type {typeof(T).FullName} not supported");
             }
         }
     }

@@ -164,8 +164,20 @@ public partial class CompilerTests
             // These tests cover undefined behavior for negative-floating-point-to-unsigned-int conversion.
             "0009_0015" or "0009_0016" or "0009_0020" or "0009_0021" => false,
 
+            // These tests use llvm.frameaddress, which we can't (easily) support.
+            "0011_0226" => false,
+
+            // These tests don't execute correctly on MSVC because of "long" data type differences.
+            "0011_0240" or "0011_0259" => false,
+
+            // These tests don't execute correctly on MSVC because of __intptr_t / intptr_t differences.
+            "0011_0247" => false,
+
             _ => true,
         })
+        // These tests are not supported on Windows because they use `extern int printf(...)`
+        // which isn't compatible with Microsoft's C runtime.
+        .Where(x => !Path.GetFileNameWithoutExtension(x).StartsWith("0021_"))
         // These tests cover Half, which .NET does have, but not yet for Vector128 etc.
         // We could implement the O0 versions, but not the O3 versions.
         .Where(x => !Path.GetFileNameWithoutExtension(x).StartsWith("0022_")));
