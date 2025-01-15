@@ -31,7 +31,7 @@ public static class Vector32
 
         for (var index = 0; index < Vector32<T>.Count; index++)
         {
-            T value = left.GetElementUnsafe(index) & ~right.GetElementUnsafe(index);
+            T value = left.GetElementUnsafe(index) & (~right.GetElementUnsafe(index));
             result.SetElementUnsafe(index, value);
         }
 
@@ -98,9 +98,9 @@ public static class Vector32
     }
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static Vector32<short> Create(sbyte e0, sbyte e1, sbyte e2, sbyte e3)
+    public static Vector32<sbyte> Create(sbyte e0, sbyte e1, sbyte e2, sbyte e3)
     {
-        Unsafe.SkipInit(out Vector32<short> result);
+        Unsafe.SkipInit(out Vector32<sbyte> result);
         result.SetElementUnsafe(0, e0);
         result.SetElementUnsafe(1, e1);
         result.SetElementUnsafe(2, e2);
@@ -234,7 +234,7 @@ public static class Vector32
     internal static T GetElementUnsafe<T>(in this Vector32<T> vector, int index)
         where T : unmanaged
     {
-        Debug.Assert((index >= 0) && (index < Vector32<T>.Count));
+        Debug.Assert((index >= 0) && (index < Vector32<T>.Count), $"Index {index} is out of range for type {typeof(T).FullName}");
         ref T address = ref Unsafe.As<Vector32<T>, T>(ref Unsafe.AsRef(in vector));
         return Unsafe.Add(ref address, index);
     }
@@ -243,7 +243,7 @@ public static class Vector32
     internal static void SetElementUnsafe<T>(in this Vector32<T> vector, int index, T value)
         where T : unmanaged
     {
-        Debug.Assert((index >= 0) && (index < Vector32<T>.Count));
+        Debug.Assert((index >= 0) && (index < Vector32<T>.Count), $"Index {index} is out of range for type {typeof(T).FullName}");
         ref T address = ref Unsafe.As<Vector32<T>, T>(ref Unsafe.AsRef(in vector));
         Unsafe.Add(ref address, index) = value;
     }
