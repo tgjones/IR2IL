@@ -189,7 +189,15 @@ internal abstract class ILEmitter
 
     protected void EmitConstantIntegerValue(uint sizeInBits, long value)
     {
-        switch (TypeSystem.RoundUpToTypeSize((int)sizeInBits))
+        var roundedUpBits = TypeSystem.RoundUpToTypeSize((int)sizeInBits);
+
+        if (roundedUpBits > sizeInBits)
+        {
+            var mask = (1 << (int)sizeInBits) - 1;
+            value = value & mask;
+        }
+
+        switch (roundedUpBits)
         {
             case 8:
             case 16:
@@ -307,7 +315,7 @@ internal abstract class ILEmitter
             case LLVMValueKind.LLVMConstantDataArrayValueKind:
             case LLVMValueKind.LLVMConstantDataVectorValueKind:
             case LLVMValueKind.LLVMConstantVectorValueKind:
-                var elementSizeInBytes = TypeSystem.RoundUpToTypeSize(TypeSystem.GetSizeOfTypeInBits(arrayOrVectorValueType.ElementType)) / 8;
+                var elementSizeInBytes = Math.Max(TypeSystem.GetSizeOfTypeInBits(arrayOrVectorValueType.ElementType), 8) / 8;
                 for (var i = 0; i < length; i++)
                 {
                     ILGenerator.Emit(OpCodes.Ldloca, local);
