@@ -1710,7 +1710,7 @@ internal sealed class FunctionILEmitter : ILEmitter
         }
     }
 
-    private readonly record struct SwitchCase(int ConstantValue, LLVMValueRef Value, LLVMBasicBlockRef Destination)
+    private readonly record struct SwitchCase(int ConstantValue, LLVMValueRef Value, Label DestinationLabel)
         : IComparable<SwitchCase>
     {
         public int CompareTo(SwitchCase other)
@@ -1736,6 +1736,8 @@ internal sealed class FunctionILEmitter : ILEmitter
             throw new NotImplementedException($"Unsupported switch condition: {condition}");
         }
 
+        var phiBlocksToEmit = new List<(Label, LLVMBasicBlockRef)>();
+
         // Operand 1 is the default destination.
 
         // Operand 2+ are the cases in the format:
@@ -1754,7 +1756,19 @@ internal sealed class FunctionILEmitter : ILEmitter
 
             var caseValue = (int)operands[i].ConstIntSExt;
 
-            cases.Add(new SwitchCase(caseValue, operands[i], operands[i + 1].AsBasicBlock()));
+            var destinationBlock = operands[i + 1].AsBasicBlock();
+            Label destinationLabel;
+            if (destinationBlock.ContainsPhiNodes())
+            {
+                destinationLabel = ILGenerator.DefineLabel();
+                phiBlocksToEmit.Add((destinationLabel, destinationBlock));
+            }
+            else
+            {
+                destinationLabel = GetOrCreateLabel(destinationBlock);
+            }
+
+            cases.Add(new SwitchCase(caseValue, operands[i], destinationLabel));
         }
         cases.Sort();
 
@@ -1784,7 +1798,7 @@ internal sealed class FunctionILEmitter : ILEmitter
                 }
                 var jumpTable = cases
                     .Take(endIndex)
-                    .Select(x => GetOrCreateLabel(x.Destination))
+                    .Select(x => x.DestinationLabel)
                     .ToArray();
                 ILGenerator.Emit(OpCodes.Switch, jumpTable);
                 cases.RemoveRange(0, endIndex);
@@ -1795,12 +1809,19 @@ internal sealed class FunctionILEmitter : ILEmitter
                 {
                     ILGenerator.Emit(OpCodes.Ldc_I4, 0);
                 }
-                ILGenerator.Emit(OpCodes.Beq, GetOrCreateLabel(cases[0].Destination));
+                ILGenerator.Emit(OpCodes.Beq, cases[0].DestinationLabel);
                 cases.RemoveAt(0);
             }
         }
 
         ILGenerator.Emit(OpCodes.Br, GetOrCreateLabel(instruction.SwitchDefaultDest));
+
+        foreach (var (phiLabel, destinationBlock) in phiBlocksToEmit)
+        {
+            ILGenerator.MarkLabel(phiLabel);
+            EmitPhiValues(instruction.InstructionParent, destinationBlock);
+            ILGenerator.Emit(OpCodes.Br, GetOrCreateLabel(destinationBlock));
+        }
     }
 
     private void EmitValue(LLVMValueRef valueRef)
