@@ -75,11 +75,7 @@ internal abstract class ILEmitter
                 break;
 
             case LLVMValueKind.LLVMConstantIntValueKind:
-                EmitConstantIntegerValue(
-                    valueTypeRef.IntWidth,
-                    valueTypeRef.IntWidth == 1
-                        ? (long)valueRef.ConstIntSExt
-                        : (long)valueRef.ConstIntZExt);
+                EmitConstantIntegerValue(valueTypeRef.IntWidth, valueRef.ConstIntSExt);
                 break;
 
             case LLVMValueKind.LLVMConstantExprValueKind:
