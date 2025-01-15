@@ -455,17 +455,34 @@ internal sealed class FunctionILEmitter : ILEmitter
         var fromType = instruction.GetOperand(0).TypeOf;
         var toType = instruction.TypeOf;
 
+        var fromTypeMsil = TypeSystem.GetMsilType(fromType);
+        var toTypeMsil = TypeSystem.GetMsilType(toType);
+
         switch (fromType.Kind)
         {
             case LLVMTypeKind.LLVMIntegerTypeKind:
             case LLVMTypeKind.LLVMFloatTypeKind:
             case LLVMTypeKind.LLVMDoubleTypeKind:
-            case LLVMTypeKind.LLVMVectorTypeKind:
                 var bitCastMethod = typeof(Unsafe).GetStaticMethodStrict(nameof(Unsafe.BitCast)).MakeGenericMethod(
-                    TypeSystem.GetMsilType(fromType),
-                    TypeSystem.GetMsilType(toType));
+                    fromTypeMsil,
+                    toTypeMsil);
                 ILGenerator.Emit(OpCodes.Call, bitCastMethod);
                 break;
+
+            case LLVMTypeKind.LLVMVectorTypeKind:
+                // If fromType is <N x i1>, call ExtractMostSignificantBits first,
+                // and set fromType to integer of correct size.
+                if (fromType.ElementType.Kind == LLVMTypeKind.LLVMIntegerTypeKind
+                    && fromType.ElementType.IntWidth == 1)
+                {
+                    var extractMostSignificantBitsMethod = TypeSystem.GetNonGenericVectorType(fromType)
+                        .GetStaticMethodStrict(nameof(Vector128.ExtractMostSignificantBits))
+                        .MakeGenericMethod(TypeSystem.GetMsilVectorElementType(fromType.ElementType));
+                    ILGenerator.Emit(OpCodes.Call, extractMostSignificantBitsMethod);
+
+                    fromTypeMsil = TypeSystem.GetIntegerType(TypeSystem.GetSizeOfTypeInBits(fromType));
+                }
+                goto case LLVMTypeKind.LLVMIntegerTypeKind;
 
             default:
                 throw new InvalidOperationException($"Unsupported bitcast from type {fromType} to type {toType}: {instruction}");
