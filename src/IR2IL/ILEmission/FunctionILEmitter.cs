@@ -894,18 +894,6 @@ internal sealed class FunctionILEmitter : ILEmitter
                 }
                 break;
 
-            case LLVMTypeKind.LLVMHalfTypeKind:
-                switch (instruction.FCmpPredicate)
-                {
-                    case LLVMRealPredicate.LLVMRealUNE:
-                        ILGenerator.Emit(OpCodes.Call, typeof(Half).GetMethodStrict("op_Inequality", [typeof(Half), typeof(Half)]));
-                        break;
-
-                    default:
-                        throw new NotImplementedException($"Float comparison predicate {instruction.FCmpPredicate} not implemented: {instruction}");
-                }
-                break;
-
             case LLVMTypeKind.LLVMVectorTypeKind:
                 var nonGenericVectorType = TypeSystem.GetNonGenericVectorType(instruction.GetOperand(0).TypeOf);
                 var (vectorUtilityType, vectorComparisonMethodName) = instruction.FCmpPredicate switch
@@ -991,10 +979,6 @@ internal sealed class FunctionILEmitter : ILEmitter
                     ILGenerator.Emit(OpCodes.Conv_R_Un);
                 }
                 ILGenerator.Emit(OpCodes.Conv_R4);
-                break;
-
-            case LLVMTypeKind.LLVMHalfTypeKind:
-                ILGenerator.Emit(OpCodes.Call, typeof(Half).GetMethodStrict("op_Explicit", [TypeSystem.GetMsilType(operand.TypeOf)]));
                 break;
 
             case LLVMTypeKind.LLVMIntegerTypeKind:
@@ -1889,10 +1873,6 @@ internal sealed class FunctionILEmitter : ILEmitter
 
             case LLVMTypeKind.LLVMFloatTypeKind:
                 ILGenerator.Emit(OpCodes.Ldind_R4);
-                break;
-
-            case LLVMTypeKind.LLVMHalfTypeKind:
-                ILGenerator.Emit(OpCodes.Ldobj, typeof(Half));
                 break;
 
             case LLVMTypeKind.LLVMIntegerTypeKind:

@@ -69,11 +69,6 @@ internal abstract class ILEmitter
                         ILGenerator.Emit(OpCodes.Ldc_R4, (float)constRealDouble);
                         break;
 
-                    case LLVMTypeKind.LLVMHalfTypeKind:
-                        ILGenerator.Emit(OpCodes.Ldc_R8, constRealDouble);
-                        ILGenerator.Emit(OpCodes.Call, typeof(Half).GetMethodStrict("op_Explicit", [typeof(double)]));
-                        break;
-
                     default:
                         throw new NotImplementedException($"Unsuported constant floating-point type: {valueTypeRef}");
                 }
@@ -359,7 +354,6 @@ internal abstract class ILEmitter
         switch (type.Kind)
         {
             case LLVMTypeKind.LLVMArrayTypeKind:
-            case LLVMTypeKind.LLVMHalfTypeKind:
             case LLVMTypeKind.LLVMStructTypeKind:
             case LLVMTypeKind.LLVMVectorTypeKind:
                 ILGenerator.Emit(OpCodes.Stobj, TypeSystem.GetMsilType(type));

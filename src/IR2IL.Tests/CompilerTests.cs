@@ -165,7 +165,10 @@ public partial class CompilerTests
             "0009_0015" or "0009_0016" or "0009_0020" or "0009_0021" => false,
 
             _ => true,
-        }));
+        })
+        // These tests cover Half, which .NET does have, but not yet for Vector128 etc.
+        // We could implement the O0 versions, but not the O3 versions.
+        .Where(x => !Path.GetFileNameWithoutExtension(x).StartsWith("0022_")));
 
     [GeneratedRegex(@"exit (\d+)")]
     private static partial Regex FujitsuCompilerTestSuiteExitCodeRegex();
