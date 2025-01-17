@@ -219,11 +219,11 @@ internal sealed class FunctionILEmitter : ILEmitter
         {
             case LLVMOpcode.LLVMAdd:
             case LLVMOpcode.LLVMFAdd:
-                EmitBinaryOperation(instruction, OpCodes.Add, nameof(Vector128.Add));
+                EmitBinaryOperation(instruction, OpCodes.Add, nameof(Vector128.Add), Signedness.Signed);
                 break;
 
             case LLVMOpcode.LLVMAnd:
-                EmitBinaryOperation(instruction, OpCodes.And, nameof(Vector128.BitwiseAnd));
+                EmitBinaryOperation(instruction, OpCodes.And, nameof(Vector128.BitwiseAnd), Signedness.Unsigned);
                 break;
 
             case LLVMOpcode.LLVMAlloca:
@@ -231,7 +231,7 @@ internal sealed class FunctionILEmitter : ILEmitter
                 break;
 
             case LLVMOpcode.LLVMAShr:
-                EmitBinaryOperation(instruction, OpCodes.Shr, nameof(Vector128.ShiftRightArithmetic));
+                EmitBinaryOperation(instruction, OpCodes.Shr, nameof(Vector128.ShiftRightArithmetic), Signedness.Signed);
                 break;
 
             case LLVMOpcode.LLVMAtomicRMW:
@@ -279,15 +279,15 @@ internal sealed class FunctionILEmitter : ILEmitter
                 break;
 
             case LLVMOpcode.LLVMFDiv:
-                EmitBinaryOperation(instruction, OpCodes.Div, nameof(Vector128.Divide));
+                EmitBinaryOperation(instruction, OpCodes.Div, nameof(Vector128.Divide), Signedness.Signed);
                 break;
 
             case LLVMOpcode.LLVMFMul:
-                EmitBinaryOperation(instruction, OpCodes.Mul, nameof(Vector128.Multiply));
+                EmitBinaryOperation(instruction, OpCodes.Mul, nameof(Vector128.Multiply), Signedness.Signed);
                 break;
 
             case LLVMOpcode.LLVMFNeg:
-                EmitUnaryOperation(instruction, OpCodes.Neg, nameof(Vector128.Negate));
+                EmitUnaryOperation(instruction, OpCodes.Neg, nameof(Vector128.Negate), Signedness.Signed);
                 break;
 
             case LLVMOpcode.LLVMFPExt:
@@ -311,15 +311,15 @@ internal sealed class FunctionILEmitter : ILEmitter
                 break;
 
             case LLVMOpcode.LLVMLShr:
-                EmitBinaryOperation(instruction, OpCodes.Shr_Un, nameof(Vector128.ShiftRightLogical));
+                EmitBinaryOperation(instruction, OpCodes.Shr_Un, nameof(Vector128.ShiftRightLogical), Signedness.Unsigned);
                 break;
 
             case LLVMOpcode.LLVMMul:
-                EmitBinaryOperation(instruction, OpCodes.Mul, nameof(Vector128.Multiply));
+                EmitBinaryOperation(instruction, OpCodes.Mul, nameof(Vector128.Multiply), Signedness.Signed);
                 break;
 
             case LLVMOpcode.LLVMOr:
-                EmitBinaryOperation(instruction, OpCodes.Or, nameof(Vector128.BitwiseOr));
+                EmitBinaryOperation(instruction, OpCodes.Or, nameof(Vector128.BitwiseOr), Signedness.Unsigned);
                 break;
 
             case LLVMOpcode.LLVMPHI:
@@ -342,7 +342,7 @@ internal sealed class FunctionILEmitter : ILEmitter
                 }
 
             case LLVMOpcode.LLVMSDiv:
-                EmitBinaryOperation(instruction, OpCodes.Div, nameof(Vector128.Divide));
+                EmitBinaryOperation(instruction, OpCodes.Div, nameof(Vector128.Divide), Signedness.Signed);
                 break;
 
             case LLVMOpcode.LLVMSelect:
@@ -354,7 +354,7 @@ internal sealed class FunctionILEmitter : ILEmitter
                 break;
 
             case LLVMOpcode.LLVMShl:
-                EmitBinaryOperation(instruction, OpCodes.Shl, nameof(Vector128.ShiftLeft));
+                EmitBinaryOperation(instruction, OpCodes.Shl, nameof(Vector128.ShiftLeft), Signedness.Unsigned);
                 break;
 
             case LLVMOpcode.LLVMStore:
@@ -371,11 +371,11 @@ internal sealed class FunctionILEmitter : ILEmitter
 
             case LLVMOpcode.LLVMSub:
             case LLVMOpcode.LLVMFSub:
-                EmitBinaryOperation(instruction, OpCodes.Sub, nameof(Vector128.Subtract));
+                EmitBinaryOperation(instruction, OpCodes.Sub, nameof(Vector128.Subtract), Signedness.Signed);
                 break;
 
             case LLVMOpcode.LLVMSRem:
-                EmitBinaryOperation(instruction, OpCodes.Rem, "SignedRemainder");
+                EmitBinaryOperation(instruction, OpCodes.Rem, "SignedRemainder", Signedness.Signed);
                 break;
 
             case LLVMOpcode.LLVMSwitch:
@@ -387,7 +387,7 @@ internal sealed class FunctionILEmitter : ILEmitter
                 break;
 
             case LLVMOpcode.LLVMUDiv:
-                EmitBinaryOperation(instruction, OpCodes.Div_Un, nameof(Vector128.Divide));
+                EmitBinaryOperation(instruction, OpCodes.Div_Un, nameof(Vector128.Divide), Signedness.Unsigned);
                 break;
 
             case LLVMOpcode.LLVMUIToFP:
@@ -401,11 +401,11 @@ internal sealed class FunctionILEmitter : ILEmitter
                 break;
 
             case LLVMOpcode.LLVMURem:
-                EmitBinaryOperation(instruction, OpCodes.Rem_Un, "UnsignedRemainder");
+                EmitBinaryOperation(instruction, OpCodes.Rem_Un, "UnsignedRemainder", Signedness.Unsigned);
                 break;
 
             case LLVMOpcode.LLVMXor:
-                EmitBinaryOperation(instruction, OpCodes.Xor, nameof(Vector128.Xor));
+                EmitBinaryOperation(instruction, OpCodes.Xor, nameof(Vector128.Xor), Signedness.Unsigned);
                 break;
 
             case LLVMOpcode.LLVMZExt:
@@ -1036,50 +1036,7 @@ internal sealed class FunctionILEmitter : ILEmitter
                         break;
                 }
 
-                var roundedUpBits = TypeSystem.RoundUpToTypeSize((int)toType.IntWidth);
-                switch (roundedUpBits, signedness)
-                {
-                    case (8, Signedness.Signed):
-                        ILGenerator.Emit(OpCodes.Conv_I1);
-                        break;
-
-                    case (8, Signedness.Unsigned):
-                        ILGenerator.Emit(OpCodes.Conv_U1);
-                        break;
-
-                    case (16, Signedness.Signed):
-                        ILGenerator.Emit(OpCodes.Conv_I2);
-                        break;
-
-                    case (16, Signedness.Unsigned):
-                        ILGenerator.Emit(OpCodes.Conv_U2);
-                        break;
-
-                    case (32, Signedness.Signed):
-                        ILGenerator.Emit(OpCodes.Conv_I4);
-                        break;
-
-                    case (32, Signedness.Unsigned):
-                        ILGenerator.Emit(OpCodes.Conv_U4);
-                        break;
-
-                    case (64, Signedness.Signed):
-                        ILGenerator.Emit(OpCodes.Conv_I8);
-                        break;
-
-                    case (64, Signedness.Unsigned):
-                        ILGenerator.Emit(OpCodes.Conv_U8);
-                        break;
-
-                    default:
-                        throw new NotImplementedException($"Integer conversion not implemented to int width {toType.IntWidth} {signedness}: {opcode}");
-                }
-
-                if (toType.IntWidth < roundedUpBits)
-                {
-                    EmitConstantIntegerValue(toType.IntWidth, -1);
-                    ILGenerator.Emit(OpCodes.And);
-                }
+                EmitIntegerConversion((int)toType.IntWidth, signedness);
                 break;
 
             case LLVMTypeKind.LLVMPointerTypeKind:
@@ -1098,11 +1055,61 @@ internal sealed class FunctionILEmitter : ILEmitter
         }
     }
 
+    private void EmitIntegerConversion(int bits, Signedness signedness)
+    {
+        var roundedUpBits = TypeSystem.RoundUpToTypeSize(bits);
+
+        switch (roundedUpBits, signedness)
+        {
+            case (8, Signedness.Signed):
+                ILGenerator.Emit(OpCodes.Conv_I1);
+                break;
+
+            case (8, Signedness.Unsigned):
+                ILGenerator.Emit(OpCodes.Conv_U1);
+                break;
+
+            case (16, Signedness.Signed):
+                ILGenerator.Emit(OpCodes.Conv_I2);
+                break;
+
+            case (16, Signedness.Unsigned):
+                ILGenerator.Emit(OpCodes.Conv_U2);
+                break;
+
+            case (32, Signedness.Signed):
+                ILGenerator.Emit(OpCodes.Conv_I4);
+                break;
+
+            case (32, Signedness.Unsigned):
+                ILGenerator.Emit(OpCodes.Conv_U4);
+                break;
+
+            case (64, Signedness.Signed):
+                ILGenerator.Emit(OpCodes.Conv_I8);
+                break;
+
+            case (64, Signedness.Unsigned):
+                ILGenerator.Emit(OpCodes.Conv_U8);
+                break;
+
+            default:
+                throw new NotImplementedException($"Integer conversion not implemented to int width {bits} {signedness}");
+        }
+
+        if (bits < roundedUpBits)
+        {
+            EmitConstantIntegerValue((uint)bits, -1);
+            ILGenerator.Emit(OpCodes.And);
+        }
+    }
+
     private void EmitUnaryOrBinaryOperation(
         LLVMValueRef instruction,
         OpCode scalarOpCode,
         string vectorMethodName,
-        int operandCount)
+        int operandCount,
+        Signedness signedness)
     {
         if (instruction.OperandCount != operandCount)
         {
@@ -1178,6 +1185,11 @@ internal sealed class FunctionILEmitter : ILEmitter
                 else
                 {
                     EmitValue(operand);
+
+                    if (operand.TypeOf.Kind == LLVMTypeKind.LLVMIntegerTypeKind)
+                    {
+                        EmitIntegerConversion((int)operand.TypeOf.IntWidth, signedness);
+                    }
                 }
             }
         }
@@ -1262,17 +1274,19 @@ internal sealed class FunctionILEmitter : ILEmitter
     private void EmitUnaryOperation(
         LLVMValueRef instruction,
         OpCode scalarOpCode,
-        string vectorMethodName)
+        string vectorMethodName,
+        Signedness signedness)
     {
-        EmitUnaryOrBinaryOperation(instruction, scalarOpCode, vectorMethodName, 1);
+        EmitUnaryOrBinaryOperation(instruction, scalarOpCode, vectorMethodName, 1, signedness);
     }
 
     private void EmitBinaryOperation(
         LLVMValueRef instruction,
         OpCode scalarOpCode,
-        string vectorMethodName)
+        string vectorMethodName,
+        Signedness signedness)
     {
-        EmitUnaryOrBinaryOperation(instruction, scalarOpCode, vectorMethodName, 2);
+        EmitUnaryOrBinaryOperation(instruction, scalarOpCode, vectorMethodName, 2, signedness);
     }
 
     private void EmitBr(LLVMValueRef instruction)
@@ -1849,14 +1863,7 @@ internal sealed class FunctionILEmitter : ILEmitter
         }
         else if (Locals.TryGetValue(valueRef, out var local))
         {
-            if (valueRef.IsAAllocaInst != null && valueRef.AllocaHasConstantNumElements())
-            {
-                ILGenerator.Emit(OpCodes.Ldloca, local);
-            }
-            else
-            {
-                ILGenerator.Emit(OpCodes.Ldloc, local);
-            }
+            EmitLoadLocal(valueRef, local);
         }
         else if (PhiLocals.TryGetValue(valueRef, out var phiLocal))
         {
@@ -1876,18 +1883,23 @@ internal sealed class FunctionILEmitter : ILEmitter
             var newLocal = ILGenerator.DeclareLocal(TypeSystem.GetMsilType(valueRef.TypeOf));
             Locals.Add(valueRef, newLocal);
 
-            if (valueRef.IsAAllocaInst != null)
-            {
-                ILGenerator.Emit(OpCodes.Ldloca, newLocal);
-            }
-            else
-            {
-                ILGenerator.Emit(OpCodes.Ldloc, newLocal);
-            }
+            EmitLoadLocal(valueRef, newLocal);
         }
         else
         {
             throw new InvalidOperationException($"Unexpected value: {valueRef}");
+        }
+    }
+
+    private void EmitLoadLocal(LLVMValueRef valueRef, LocalBuilder local)
+    {
+        if (valueRef.IsAAllocaInst != null && valueRef.AllocaHasConstantNumElements())
+        {
+            ILGenerator.Emit(OpCodes.Ldloca, local);
+        }
+        else
+        {
+            ILGenerator.Emit(OpCodes.Ldloc, local);
         }
     }
 
@@ -1918,11 +1930,11 @@ internal sealed class FunctionILEmitter : ILEmitter
                 {
                     case 1:
                     case 8:
-                        ILGenerator.Emit(OpCodes.Ldind_U1);
+                        ILGenerator.Emit(OpCodes.Ldind_I1);
                         break;
 
                     case 16:
-                        ILGenerator.Emit(OpCodes.Ldind_U2);
+                        ILGenerator.Emit(OpCodes.Ldind_I2);
                         break;
 
                     case 32:

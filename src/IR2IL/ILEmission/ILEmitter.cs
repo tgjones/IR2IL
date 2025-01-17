@@ -194,7 +194,18 @@ internal abstract class ILEmitter
         if (roundedUpBits > sizeInBits)
         {
             var mask = (1 << (int)sizeInBits) - 1;
-            value = value & mask;
+            if (value >= 0)
+            {
+                value = value & mask;
+            }
+            else if (roundedUpBits == 8)
+            {
+                value = (byte)(sbyte)value & mask;
+            }
+            else
+            {
+
+            }
         }
 
         switch (roundedUpBits)
@@ -326,7 +337,18 @@ internal abstract class ILEmitter
                         ILGenerator.Emit(OpCodes.Add);
                     }
                     var elementValue = arrayOrVectorValue.GetAggregateElement((uint)i);
-                    EmitConstantValue(elementValue, arrayOrVectorValueType.ElementType);
+                    // TODO: This is rather hacky. But we need to handle the situation where
+                    // i1 constant values in a vector should be emitted as i8, whereas normal
+                    // scalar values not in a vector should be emitted as i1.
+                    if (arrayOrVectorValueType.ElementType.Kind == LLVMTypeKind.LLVMIntegerTypeKind
+                        && arrayOrVectorValueType.ElementType.IntWidth == 1)
+                    {
+                        ILGenerator.Emit(OpCodes.Ldc_I4, (int)elementValue.ConstIntSExt);
+                    }
+                    else
+                    {
+                        EmitConstantValue(elementValue, arrayOrVectorValueType.ElementType);
+                    }
                     EmitStoreIndirect(arrayOrVectorValueType.ElementType);
                 }
                 break;

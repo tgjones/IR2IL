@@ -9,9 +9,9 @@ public static unsafe class LLVMIntrinsics
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public static Vector64<int> VectorShiftRightLogical(Vector64<int> vector, Vector64<int> count)
     {
-        if (Sse2.IsSupported)
+        if (Avx2.IsSupported)
         {
-            return Sse2.ShiftRightLogical(vector.ToVector128(), count.ToVector128()).GetLower();
+            return Avx2.ShiftRightLogicalVariable(vector.ToVector128(), count.AsUInt32().ToVector128()).GetLower();
         }
         else
         {
@@ -22,9 +22,9 @@ public static unsafe class LLVMIntrinsics
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public static Vector128<int> VectorShiftRightLogical(Vector128<int> vector, Vector128<int> count)
     {
-        if (Sse2.IsSupported)
+        if (Avx2.IsSupported)
         {
-            return Sse2.ShiftRightLogical(vector, count);
+            return Avx2.ShiftRightLogicalVariable(vector, count.AsUInt32());
         }
         else
         {
