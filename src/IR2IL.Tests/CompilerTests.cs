@@ -192,9 +192,11 @@ public partial class CompilerTests
         // These tests don't compile correctly on MSVC because of _Complex type differences.
         .Where(x => !Path.GetFileNameWithoutExtension(x).StartsWith("0016_"))
         .Where(x => !Path.GetFileNameWithoutExtension(x).StartsWith("0018_"))
+        // These tests don't execute correctly because of restrict differences.
+        .Where(x => !Path.GetFileNameWithoutExtension(x).StartsWith("0020_"))
 
         // TODO: Support more tests.
-        .Where(x => int.Parse(Path.GetFileNameWithoutExtension(x).Substring(0, 4)) <= 0019));
+        .Where(x => int.Parse(Path.GetFileNameWithoutExtension(x).Substring(0, 4)) <= 0020));
 
     [GeneratedRegex(@"exit (\d+)")]
     private static partial Regex FujitsuCompilerTestSuiteExitCodeRegex();
