@@ -173,6 +173,12 @@ public partial class CompilerTests
             // These tests don't execute correctly on MSVC because of __intptr_t / intptr_t differences.
             "0011_0247" => false,
 
+            // These tests don't execute correctly on MSVC because of __STDC_VERSION__ differences.
+            "0017_0031" or "0017_0032" or "0017_0033" or "0017_0034" or "0017_0035" => false,
+
+            // These tests don't execute correctly because of restrict differences.
+            "0019_0000" or "0019_0001" or "0019_0006" => false,
+
             _ => true,
         })
         // These tests are not supported on Windows because they use `extern int printf(...)`
@@ -181,11 +187,14 @@ public partial class CompilerTests
         // These tests cover Half, which .NET does have, but not yet for Vector128 etc.
         // We could implement the O0 versions, but not the O3 versions.
         .Where(x => !Path.GetFileNameWithoutExtension(x).StartsWith("0022_"))
-        // These tests cover bitfields which have different alignment on MSVC.
+        // These tests cover bitfields which have different alignment on MSVC / Windows.
         .Where(x => !Path.GetFileNameWithoutExtension(x).StartsWith("0014_"))
+        // These tests don't compile correctly on MSVC because of _Complex type differences.
+        .Where(x => !Path.GetFileNameWithoutExtension(x).StartsWith("0016_"))
+        .Where(x => !Path.GetFileNameWithoutExtension(x).StartsWith("0018_"))
 
         // TODO: Support more tests.
-        .Where(x => int.Parse(Path.GetFileNameWithoutExtension(x).Substring(0, 4)) <= 0014));
+        .Where(x => int.Parse(Path.GetFileNameWithoutExtension(x).Substring(0, 4)) <= 0019));
 
     [GeneratedRegex(@"exit (\d+)")]
     private static partial Regex FujitsuCompilerTestSuiteExitCodeRegex();
