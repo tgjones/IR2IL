@@ -183,14 +183,13 @@ public partial class CompilerTests
         .Where(x => !Path.GetFileNameWithoutExtension(x).StartsWith("0022_"))
 
         // TODO: Support more tests.
-        .Where(x => int.Parse(Path.GetFileNameWithoutExtension(x).Substring(0, 4)) <= 0011));
+        .Where(x => int.Parse(Path.GetFileNameWithoutExtension(x).Substring(0, 4)) <= 0013));
 
     [GeneratedRegex(@"exit (\d+)")]
     private static partial Regex FujitsuCompilerTestSuiteExitCodeRegex();
 
     [TestMethod]
     [DynamicData(nameof(TestDataFujitsuCompilerTestSuite), DynamicDataSourceType.Method, DynamicDataDisplayName = nameof(TestDataDisplayName))]
-    [Ignore("These tests are not yet working")]
     public void FujitsuCompilerTestSuite(string testName, string optimizationLevel)
     {
         CompileAndExecuteManaged(
