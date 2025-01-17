@@ -181,9 +181,11 @@ public partial class CompilerTests
         // These tests cover Half, which .NET does have, but not yet for Vector128 etc.
         // We could implement the O0 versions, but not the O3 versions.
         .Where(x => !Path.GetFileNameWithoutExtension(x).StartsWith("0022_"))
+        // These tests cover bitfields which have different alignment on MSVC.
+        .Where(x => !Path.GetFileNameWithoutExtension(x).StartsWith("0014_"))
 
         // TODO: Support more tests.
-        .Where(x => int.Parse(Path.GetFileNameWithoutExtension(x).Substring(0, 4)) <= 0013));
+        .Where(x => int.Parse(Path.GetFileNameWithoutExtension(x).Substring(0, 4)) <= 0014));
 
     [GeneratedRegex(@"exit (\d+)")]
     private static partial Regex FujitsuCompilerTestSuiteExitCodeRegex();
