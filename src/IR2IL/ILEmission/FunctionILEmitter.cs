@@ -993,6 +993,16 @@ internal sealed class FunctionILEmitter : ILEmitter
                 }
                 if (opcode == LLVMOpcode.LLVMUIToFP)
                 {
+                    switch (fromType.IntWidth)
+                    {
+                        case 8:
+                            ILGenerator.Emit(OpCodes.Conv_U1);
+                            break;
+
+                        case 16:
+                            ILGenerator.Emit(OpCodes.Conv_U2);
+                            break;
+                    }
                     ILGenerator.Emit(OpCodes.Conv_R_Un);
                 }
                 ILGenerator.Emit(OpCodes.Conv_R4);
