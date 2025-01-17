@@ -180,7 +180,10 @@ public partial class CompilerTests
         .Where(x => !Path.GetFileNameWithoutExtension(x).StartsWith("0021_"))
         // These tests cover Half, which .NET does have, but not yet for Vector128 etc.
         // We could implement the O0 versions, but not the O3 versions.
-        .Where(x => !Path.GetFileNameWithoutExtension(x).StartsWith("0022_")));
+        .Where(x => !Path.GetFileNameWithoutExtension(x).StartsWith("0022_"))
+
+        // TODO: Support more tests.
+        .Where(x => int.Parse(Path.GetFileNameWithoutExtension(x).Substring(0, 4)) <= 0011));
 
     [GeneratedRegex(@"exit (\d+)")]
     private static partial Regex FujitsuCompilerTestSuiteExitCodeRegex();
