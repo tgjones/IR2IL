@@ -212,9 +212,22 @@ internal sealed class ModuleCompiler : IDisposable
         Type returnType,
         Type[] parameterTypes)
     {
-        var libraryName = name.StartsWith("omp_") // TODO: Complete hack
-            ? "vcomp140.dll"
-            : "ucrtbase.dll";
+        string libraryName;
+        CallingConvention callingConvention;
+        if (OperatingSystem.IsWindows())
+        {
+            libraryName = name.StartsWith("omp_") // TODO: Complete hack
+                ? "vcomp140.dll"
+                : "ucrtbase.dll";
+            callingConvention = CallingConvention.Winapi;
+        }
+        else
+        {
+            libraryName = name.StartsWith("omp_") // TODO: Complete hack
+                ? "libomp"
+                : "libc";
+            callingConvention = CallingConvention.Cdecl;
+        }
 
         var methodInfo = _typeBuilder.DefinePInvokeMethod(
             name,
@@ -223,7 +236,7 @@ internal sealed class ModuleCompiler : IDisposable
             callingConventions,
             returnType,
             parameterTypes,
-            CallingConvention.Winapi,
+            callingConvention,
             CharSet.None);
 
         methodInfo.SetImplementationFlags(MethodImplAttributes.IL | MethodImplAttributes.Managed | MethodImplAttributes.PreserveSig);
