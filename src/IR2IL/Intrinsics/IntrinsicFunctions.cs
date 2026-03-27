@@ -55,6 +55,8 @@ internal static class IntrinsicFunctions
         { "llvm.usub.sat.i32", new LLVMUSubSatI32IntrinsicFunction() },
         { "llvm.va_start", new LLVMVaStartIntrinsicFunction() },
 
+        { "llvm.objectsize.i64.p0", new LLVMObjectSizeIntrinsicFunction() },
+
         // No-op intrinsics.
         { "llvm.assume", NoOpIntrinsicFunction.Instance },
         { "llvm.dbg.label", NoOpIntrinsicFunction.Instance },
