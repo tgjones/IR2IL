@@ -17,7 +17,24 @@ public partial class CompilerTests
 {
     private static readonly string RepoRoot = Path.Combine(Environment.CurrentDirectory, "..", "..", "..", "..", "..");
     private static readonly string TestProgramsPath = Path.Combine(RepoRoot, "tests");
-    private static readonly string ClangPath = Path.Combine(RepoRoot, "build", "llvm", "bin", "clang.exe");
+    private static readonly string ClangPath = Path.Combine(RepoRoot, "build", "llvm", "bin", OperatingSystem.IsWindows() ? "clang.exe" : "clang");
+    private static readonly string[] ClangExtraArgs = GetClangExtraArgs();
+
+    private static string[] GetClangExtraArgs()
+    {
+        if (!OperatingSystem.IsMacOS())
+        {
+            return [];
+        }
+
+        RunProgram("xcrun", ["--show-sdk-path"], out var exitCode, out var stdout, out _);
+        if (exitCode != 0)
+        {
+            throw new InvalidOperationException("xcrun --show-sdk-path failed.");
+        }
+
+        return ["-isysroot", stdout.Trim()];
+    }
 
     private static IEnumerable<object[]> TestFiles(IEnumerable<string> testFiles)
     {
@@ -396,7 +413,7 @@ public partial class CompilerTests
     {
         RunProgram(
             ClangPath,
-            arguments,
+            [..arguments, ..ClangExtraArgs],
             out var exitCode,
             out var standardOutput,
             out var standardError);

@@ -14,25 +14,37 @@
   </ItemGroup>
 
   <PropertyGroup>
-    <LlvmPath>$(MSBuildThisFileDirectory)..\..\build\llvm\</LlvmPath>
+    <LlvmPath>$([MSBuild]::NormalizeDirectory($(MSBuildThisFileDirectory), '..', '..', 'build', 'llvm'))</LlvmPath>
     <LlvmMarkerPath>$(LlvmPath)marker.txt</LlvmMarkerPath>
+    <LlvmCacheDir>$([MSBuild]::NormalizeDirectory($(MSBuildThisFileDirectory), '..', '..', 'build', 'cache'))</LlvmCacheDir>
   </PropertyGroup>
 
   <Target Name="DownloadAndUnzipClang"
           BeforeTargets="Build"
           Inputs="$(MSBuildThisFileFullPath)"
           Outputs="$(LlvmMarkerPath)">
-    <PropertyGroup>
-      <ClangPathInZip>bin\clang.exe</ClangPathInZip>
-      <ClangPath>$(LlvmPath)$(ClangPathInZip)</ClangPath>
+    <PropertyGroup Condition="$([MSBuild]::IsOSPlatform('Windows'))">
+      <LlvmDownloadUrl>https://github.com/llvm/llvm-project/releases/download/llvmorg-16.0.4/LLVM-16.0.4-win64.exe</LlvmDownloadUrl>
+      <ClangPathInArchive>bin\clang.exe</ClangPathInArchive>
     </PropertyGroup>
-    
-    <DownloadFile SourceUrl="https://github.com/llvm/llvm-project/releases/download/llvmorg-16.0.4/LLVM-16.0.4-win64.exe"
-                  DestinationFolder="..\..\build\cache">
+    <PropertyGroup Condition="$([MSBuild]::IsOSPlatform('OSX'))">
+      <LlvmDownloadUrl>https://github.com/llvm/llvm-project/releases/download/llvmorg-16.0.4/clang+llvm-16.0.4-arm64-apple-darwin22.0.tar.xz</LlvmDownloadUrl>
+      <ClangPathInArchive>clang+llvm-16.0.4-arm64-apple-darwin22.0/bin/clang</ClangPathInArchive>
+    </PropertyGroup>
+
+    <Error Condition="'$(LlvmDownloadUrl)' == ''" Text="Unsupported platform: LlvmDownloadUrl is not set." />
+
+    <DownloadFile SourceUrl="$(LlvmDownloadUrl)"
+                  DestinationFolder="$(LlvmCacheDir)">
       <Output TaskParameter="DownloadedFile" PropertyName="DownloadedLlvmPath" />
     </DownloadFile>
 
-    <Exec Command="&quot;C:\Program Files\7-Zip\7z.exe&quot; x -aoa -o&quot;$(LlvmPath)&quot; &quot;$(DownloadedLlvmPath)&quot; &quot;$(ClangPathInZip)&quot;" />
+    <Exec Condition="$([MSBuild]::IsOSPlatform('Windows'))"
+          Command="&quot;C:\Program Files\7-Zip\7z.exe&quot; x -aoa -o&quot;$(LlvmPath)&quot; &quot;$(DownloadedLlvmPath)&quot; &quot;$(ClangPathInArchive)&quot;" />
+
+    <MakeDir Condition="$([MSBuild]::IsOSPlatform('OSX'))" Directories="$(LlvmPath)" />
+    <Exec Condition="$([MSBuild]::IsOSPlatform('OSX'))"
+          Command="tar -xJf &quot;$(DownloadedLlvmPath)&quot; --strip-components=1 -C &quot;$(LlvmPath)&quot; &quot;$(ClangPathInArchive)&quot; &quot;clang+llvm-16.0.4-arm64-apple-darwin22.0/bin/clang-16&quot;" />
 
     <WriteLinesToFile File="$(LlvmMarkerPath)" Lines="Downloaded" />
   </Target>
