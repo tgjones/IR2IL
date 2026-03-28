@@ -22,6 +22,8 @@ internal static class IntrinsicFunctions
         { "llvm.fmuladd.v2f64", StandardIntrinsicFunction.Create(typeof(Vector128), nameof(Vector128.FusedMultiplyAdd), typeof(Vector128<double>), typeof(Vector128<double>), typeof(Vector128<double>)) },
         { "llvm.fmuladd.v4f32", StandardIntrinsicFunction.Create(typeof(Vector128), nameof(Vector128.FusedMultiplyAdd), typeof(Vector128<float>), typeof(Vector128<float>), typeof(Vector128<float>)) },
         { "llvm.fmuladd.v4f64", StandardIntrinsicFunction.Create(typeof(Vector256), nameof(Vector256.FusedMultiplyAdd), typeof(Vector256<double>), typeof(Vector256<double>), typeof(Vector256<double>)) },
+        { "llvm.sin.f32", StandardIntrinsicFunction.Create(typeof(MathF), nameof(MathF.Sin)) },
+        { "llvm.sin.f64", StandardIntrinsicFunction.Create(typeof(Math), nameof(Math.Sin)) },
         { "llvm.smin.i32", StandardIntrinsicFunction.Create(typeof(Math), nameof(Math.Min), typeof(int), typeof(int)) },
         { "llvm.smax.i32", StandardIntrinsicFunction.Create(typeof(Math), nameof(Math.Max), typeof(int), typeof(int)) },
         { "llvm.smax.i64", StandardIntrinsicFunction.Create(typeof(Math), nameof(Math.Max), typeof(long), typeof(long)) },
