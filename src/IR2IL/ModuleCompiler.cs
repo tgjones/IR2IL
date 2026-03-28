@@ -46,6 +46,7 @@ internal sealed class ModuleCompiler : IDisposable
 
         var compiledModule = new CompiledModule(
             _typeSystem,
+            _typeBuilder,
             compiledGlobalVariables,
             compiledFunctions);
 

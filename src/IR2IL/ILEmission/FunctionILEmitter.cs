@@ -1430,7 +1430,6 @@ internal sealed class FunctionILEmitter : ILEmitter
             }
         }
 
-
         for (var i = 0; i < operands.Length - 1; i++)
         {
             EmitValue(operands[i]);
@@ -1488,6 +1487,17 @@ internal sealed class FunctionILEmitter : ILEmitter
         }
 
         var method = CompiledModule.GetFunction(functionToCall);
+
+        // Special handling for printf function. It's variadic which means it doesn't work on non-Windows.
+        // We implement it in managed code by parsing the format string + a call to Console.Write.
+        if (isVarArg && functionToCall.Name == "printf")
+        {
+            var fixedParamTypes = functionType.ParamTypes.Select(t => TypeSystem.GetMsilType(t)).ToArray();
+            var allParamTypes = fixedParamTypes.Concat(varArgsParameterTypes).ToArray();
+            var printfOverload = CompiledModule.GetOrCreatePrintfOverload(allParamTypes);
+            ILGenerator.Emit(OpCodes.Call, printfOverload);
+            return;
+        }
 
         ILGenerator.EmitCall(
             OpCodes.Call,
