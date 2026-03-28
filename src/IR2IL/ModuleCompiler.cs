@@ -235,6 +235,16 @@ internal sealed class ModuleCompiler : IDisposable
             callingConvention = CallingConvention.Cdecl;
         }
 
+        // LLVMSharp preserves the \x01 sentinel byte from LLVM's \01 escape (e.g. "\01_fopen" arrives
+        // as "\x01_fopen"). The \x01 byte followed by '_' encodes the Mach-O convention of prefixing
+        // C names with '_'; strip both to recover the plain C name for dlsym (e.g. "fopen").
+        // StringComparison.Ordinal is required: the default cultural comparison treats \u0001 as a
+        // zero-weight character.
+        if (!OperatingSystem.IsWindows() && name.StartsWith("\x01_", StringComparison.Ordinal))
+        {
+            name = name[2..];
+        }
+
         var methodInfo = _typeBuilder.DefinePInvokeMethod(
             name,
             libraryName,
