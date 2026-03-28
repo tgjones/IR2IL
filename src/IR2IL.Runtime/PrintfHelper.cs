@@ -86,7 +86,7 @@ public static class PrintfHelper
                     break;
 
                 case 'u':
-                    sb.Append(Convert.ToUInt64(arg));
+                    sb.Append(unchecked((ulong)Convert.ToInt64(arg)));
                     break;
 
                 case 'f':
