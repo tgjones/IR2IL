@@ -5,6 +5,18 @@ namespace IR2IL.Runtime;
 
 public static class PrintfHelper
 {
+    public static unsafe int Puts(void* str)
+    {
+        Console.WriteLine(Marshal.PtrToStringAnsi((IntPtr)str) ?? string.Empty);
+        return 1;
+    }
+
+    public static int PutChar(int c)
+    {
+        Console.Write((char)c);
+        return c;
+    }
+
     public static int PrintfCore(IntPtr format, object[] args)
     {
         var formatString = Marshal.PtrToStringAnsi(format) ?? string.Empty;
@@ -72,7 +84,7 @@ public static class PrintfHelper
                 case 'i':
                     sb.Append(Convert.ToInt64(arg));
                     break;
-                    
+
                 case 'u':
                     sb.Append(Convert.ToUInt64(arg));
                     break;

@@ -7,6 +7,7 @@ using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
 using IR2IL.Helpers;
 using IR2IL.ILEmission;
+using IR2IL.Runtime;
 using LLVMSharp.Interop;
 
 namespace IR2IL;
@@ -162,6 +163,10 @@ internal sealed class ModuleCompiler : IDisposable
         {
             // TODO: More math library functions.
             // TODO: Validate parameter types are expected.
+            case "puts":
+                return typeof(PrintfHelper).GetMethodStrict(nameof(PrintfHelper.Puts), [typeof(void*)]);
+            case "putchar":
+                return typeof(PrintfHelper).GetMethodStrict(nameof(PrintfHelper.PutChar), [typeof(int)]);
             case "exp10":
                 return typeof(double).GetMethodStrict(nameof(double.Exp10));
             case "exp10f":
