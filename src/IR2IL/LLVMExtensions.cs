@@ -177,6 +177,7 @@ internal static partial class LLVMExtensions
             case LLVMValueKind.LLVMConstantIntValueKind:
             case LLVMValueKind.LLVMConstantPointerNullValueKind:
             case LLVMValueKind.LLVMPoisonValueValueKind:
+            case LLVMValueKind.LLVMUndefValueValueKind:
                 return true;
 
             case LLVMValueKind.LLVMGlobalVariableValueKind:
