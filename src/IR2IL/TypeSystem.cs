@@ -190,7 +190,7 @@ internal sealed class TypeSystem
             structType.SetCustomAttribute(customAttributeBuilder);
 
             structType.DefineField(
-                $"_element0",
+                "_element0",
                 elementType,
                 FieldAttributes.Private);
         }
