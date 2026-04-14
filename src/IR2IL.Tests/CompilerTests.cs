@@ -100,7 +100,7 @@ public partial class CompilerTests
         .Where(x => Path.GetFileNameWithoutExtension(x) switch
         {
             // These tests are not supported on non-Windows because they use varargs.
-            "00140" or "00186" or "00204" when !RuntimeInformation.IsOSPlatform(OSPlatform.Windows) => false,
+            "00140" or "00186" or "00189" or "00204" when !RuntimeInformation.IsOSPlatform(OSPlatform.Windows) => false,
 
             // These tests are not supported on Windows because they use `extern int printf(...)`
             // which isn't compatible with Microsoft's C runtime.
