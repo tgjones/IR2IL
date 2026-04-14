@@ -6,6 +6,11 @@ using System.Linq;
 using System.Reflection;
 using System.Text;
 using System.Text.RegularExpressions;
+using System.Threading;
+using ICSharpCode.Decompiler;
+using ICSharpCode.Decompiler.CSharp;
+using ICSharpCode.Decompiler.Disassembler;
+using ICSharpCode.Decompiler.Metadata;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 
 [assembly: Parallelize(Scope = ExecutionScope.MethodLevel)]
@@ -350,6 +355,23 @@ public partial class CompilerTests
 
         var outputPath = $"{fullTestName}.exe";
         Compiler.Compile(irPath, outputPath);
+
+        // Write IL to file for debugging purposes.
+        {
+            using var peFile = new PEFile(outputPath);
+            using var ilWriter = new StringWriter();
+            var disassembler = new ReflectionDisassembler(new PlainTextOutput(ilWriter), CancellationToken.None);
+            disassembler.WriteModuleContents(peFile);
+            File.WriteAllText($"{fullTestName}.il", ilWriter.ToString());
+        }
+
+        // ... and for an easier birds-eye-view, write decompiled C# to file.
+        var decompiler = new CSharpDecompiler(
+            outputPath,
+            new DecompilerSettings());
+        File.WriteAllText(
+            $"{fullTestName}.cs",
+            decompiler.DecompileWholeModuleAsString());
 
         return outputPath;
     }

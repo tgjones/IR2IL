@@ -6,6 +6,7 @@
   </PropertyGroup>
 
   <ItemGroup>
+    <PackageReference Include="ICSharpCode.Decompiler" Version="10.0.0.8330" />
     <PackageReference Include="MSTest" Version="3.6.2" />
   </ItemGroup>
 
