@@ -4,6 +4,7 @@ using System.Diagnostics;
 using System.IO;
 using System.Linq;
 using System.Reflection;
+using System.Runtime.InteropServices;
 using System.Text;
 using System.Text.RegularExpressions;
 using System.Threading;
@@ -98,6 +99,9 @@ public partial class CompilerTests
         .GetFiles(Path.Combine(TestProgramsPath, "c-testsuite"), "*.c", SearchOption.AllDirectories)
         .Where(x => Path.GetFileNameWithoutExtension(x) switch
         {
+            // These tests are not supported on non-Windows because they use varargs.
+            "00140" or "00186" when !RuntimeInformation.IsOSPlatform(OSPlatform.Windows) => false,
+
             // These tests are not supported on Windows because they use `extern int printf(...)`
             // which isn't compatible with Microsoft's C runtime.
             "00210" or "00211" or "00213" or "00214" or "00215" or "00217" or "00218" => false,
