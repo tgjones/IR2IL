@@ -13,6 +13,7 @@ internal static class IntrinsicFunctions
         { "llvm.ceil.f64", StandardIntrinsicFunction.Create(typeof(Math), nameof(Math.Ceiling), typeof(double)) },
         { "llvm.copysign.f32", StandardIntrinsicFunction.Create(typeof(MathF), nameof(MathF.CopySign)) },
         { "llvm.copysign.f64", StandardIntrinsicFunction.Create(typeof(Math), nameof(Math.CopySign)) },
+        { "llvm.cos.f32", StandardIntrinsicFunction.Create(typeof(MathF), nameof(MathF.Cos)) },
         { "llvm.ctpop.i8", StandardIntrinsicFunction.Create(typeof(sbyte), nameof(sbyte.PopCount), typeof(sbyte)) },
         { "llvm.fabs.f32", StandardIntrinsicFunction.Create(typeof(MathF), nameof(MathF.Abs)) },
         { "llvm.fabs.f64", StandardIntrinsicFunction.Create(typeof(Math), nameof(Math.Abs), typeof(double)) },
