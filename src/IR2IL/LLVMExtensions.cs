@@ -194,12 +194,16 @@ internal static partial class LLVMExtensions
             LLVMOpcode.LLVMAdd => value.GetOperand(0).HasNoSideEffects() && value.GetOperand(1).HasNoSideEffects(),
             LLVMOpcode.LLVMAlloca => true,
             LLVMOpcode.LLVMCall => value.IsAIntrinsicInst != null, // TODO: Not every intrinsic has no side effects.
+            LLVMOpcode.LLVMExtractElement => value.GetOperands().All(x => x.HasNoSideEffects()),
+            LLVMOpcode.LLVMExtractValue => value.GetOperands().All(x => x.HasNoSideEffects()),
             LLVMOpcode.LLVMFCmp => value.GetOperand(0).HasNoSideEffects() && value.GetOperand(1).HasNoSideEffects(),
             LLVMOpcode.LLVMFDiv => value.GetOperand(0).HasNoSideEffects() && value.GetOperand(1).HasNoSideEffects(),
+            LLVMOpcode.LLVMFRem => value.GetOperand(0).HasNoSideEffects() && value.GetOperand(1).HasNoSideEffects(),
             LLVMOpcode.LLVMFreeze => value.GetOperand(0).HasNoSideEffects(),
             LLVMOpcode.LLVMGetElementPtr => value.GetOperands().All(x => x.HasNoSideEffects()),
             LLVMOpcode.LLVMICmp => value.GetOperand(0).HasNoSideEffects() && value.GetOperand(1).HasNoSideEffects(),
             LLVMOpcode.LLVMInsertElement => value.GetOperands().All(x => x.HasNoSideEffects()),
+            LLVMOpcode.LLVMInsertValue => value.GetOperands().All(x => x.HasNoSideEffects()),
             LLVMOpcode.LLVMLoad => true, // TODO: Is this correct?
             LLVMOpcode.LLVMPHI => true, // Because we load it from a local that is guaranteed not to change in the current block
             LLVMOpcode.LLVMSDiv => value.GetOperand(0).HasNoSideEffects() && value.GetOperand(1).HasNoSideEffects(),
@@ -355,5 +359,17 @@ internal static partial class LLVMExtensions
         {
             return null;
         }
+    }
+
+    public static unsafe uint[] GetIndices(this LLVMValueRef instruction)
+    {
+        var numIndices = LLVM.GetNumIndices(instruction);
+        var indices = LLVM.GetIndices(instruction);
+        var result = new uint[numIndices];
+        for (uint i = 0; i < numIndices; i++)
+        {
+            result[i] = indices[i];
+        }
+        return result;
     }
 }

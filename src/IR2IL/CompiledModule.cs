@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Reflection;
 using System.Reflection.Emit;
+using System.Runtime.CompilerServices;
 using IR2IL.Helpers;
 using IR2IL.Runtime;
 using LLVMSharp.Interop;
@@ -17,9 +18,22 @@ internal sealed class CompiledModule
     private readonly Dictionary<LLVMValueRef, MethodInfo> _functionLookup = [];
     private readonly Dictionary<LLVMValueRef, FieldInfo> _globalLookup = [];
     private readonly Dictionary<string, MethodBuilder> _printfOverloads = [];
+    private MethodBuilder? _inlineArrayElementRef;
 
     private static readonly MethodInfo PrintfCore =
         typeof(PrintfHelper).GetMethodStrict(nameof(PrintfHelper.PrintfCore), [typeof(IntPtr), typeof(object[])]);
+
+    private static readonly MethodInfo UnsafeAsOpenMethod =
+        typeof(Unsafe).GetMethods(BindingFlags.Public | BindingFlags.Static)
+            .Single(m => m.Name == nameof(Unsafe.As) && m.GetGenericArguments().Length == 2);
+
+    private static readonly MethodInfo UnsafeAddIntOpenMethod =
+        typeof(Unsafe).GetMethods(BindingFlags.Public | BindingFlags.Static)
+            .Single(m => m.Name == nameof(Unsafe.Add)
+                      && m.GetGenericArguments().Length == 1
+                      && m.GetParameters().Length == 2
+                      && m.GetParameters()[0].ParameterType.IsByRef
+                      && m.GetParameters()[1].ParameterType == typeof(int));
 
     public CompiledModule(
         TypeSystem typeSystem,
@@ -46,6 +60,36 @@ internal sealed class CompiledModule
     public MethodInfo GetFunction(LLVMValueRef function) => _functionLookup[function];
 
     public FieldInfo GetGlobal(LLVMValueRef global) => _globalLookup[global];
+
+    // Generates (or retrieves) a generic helper equivalent to Roslyn's:
+    //   static ref TElement InlineArrayElementRef<TBuffer, TElement>(ref TBuffer buffer, int index)
+    //       => ref Unsafe.Add(ref Unsafe.As<TBuffer, TElement>(ref buffer), index);
+    public MethodBuilder GetOrCreateInlineArrayElementRef()
+    {
+        if (_inlineArrayElementRef is not null)
+            return _inlineArrayElementRef;
+
+        var method = _typeBuilder.DefineMethod(
+            "InlineArrayElementRef",
+            MethodAttributes.Static | MethodAttributes.Assembly);
+
+        var genericParams = method.DefineGenericParameters("TBuffer", "TElement");
+        var tBuffer = genericParams[0];
+        var tElement = genericParams[1];
+
+        method.SetReturnType(tElement.MakeByRefType());
+        method.SetParameters(tBuffer.MakeByRefType(), typeof(int));
+
+        var il = method.GetILGenerator();
+        il.Emit(OpCodes.Ldarg_0);
+        il.Emit(OpCodes.Call, UnsafeAsOpenMethod.MakeGenericMethod(tBuffer, tElement));
+        il.Emit(OpCodes.Ldarg_1);
+        il.Emit(OpCodes.Call, UnsafeAddIntOpenMethod.MakeGenericMethod(tElement));
+        il.Emit(OpCodes.Ret);
+
+        _inlineArrayElementRef = method;
+        return method;
+    }
 
     // Generates (or retrieves a cached) printf overload for the given parameter types.
     // allParamTypes[0] is the format string (void*); the rest are the vararg argument types.

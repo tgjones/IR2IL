@@ -254,6 +254,10 @@ internal sealed class FunctionILEmitter : ILEmitter
                 EmitExtractElement(instruction);
                 break;
 
+            case LLVMOpcode.LLVMExtractValue:
+                EmitExtractValue(instruction);
+                break;
+
             case LLVMOpcode.LLVMFreeze:
                 EmitFreeze(instruction);
                 break;
@@ -272,6 +276,10 @@ internal sealed class FunctionILEmitter : ILEmitter
 
             case LLVMOpcode.LLVMInsertElement:
                 EmitInsertElement(instruction);
+                break;
+
+            case LLVMOpcode.LLVMInsertValue:
+                EmitInsertValue(instruction);
                 break;
 
             case LLVMOpcode.LLVMLoad:
@@ -509,6 +517,46 @@ internal sealed class FunctionILEmitter : ILEmitter
         ILGenerator.Emit(OpCodes.Call, getElementMethod);
     }
 
+    private void EmitExtractValue(LLVMValueRef instruction)
+    {
+        var aggregateOperand = instruction.GetOperand(0);
+        var aggregateType = aggregateOperand.TypeOf;
+        
+        var indices = instruction.GetIndices();
+
+        if (indices.Length != 1)
+        {
+            throw new NotSupportedException($"Only single index extractvalue is supported: {instruction}");
+        }
+
+        EmitValueAddress(aggregateOperand);
+
+        switch (aggregateType.Kind)
+        {
+            case LLVMTypeKind.LLVMArrayTypeKind:
+                var bufferType = TypeSystem.GetMsilType(aggregateType);
+                var elementType = TypeSystem.GetMsilType(aggregateType.ElementType);
+
+                // Get a ref to the target element via the InlineArrayElementRef helper.
+                ILGenerator.Emit(OpCodes.Ldc_I4, (int)indices[0]);
+                ILGenerator.Emit(OpCodes.Call, CompiledModule.GetOrCreateInlineArrayElementRef().MakeGenericMethod(bufferType, elementType));
+
+                // Load the value through the ref, then leave the modified aggregate as the result.
+                EmitLoadIndirect(aggregateType.ElementType);
+                break;
+
+            case LLVMTypeKind.LLVMStructTypeKind:
+                var structType = TypeSystem.GetMsilType(aggregateType);
+                var fieldIndex = indices[0];
+                var field = structType.GetFields()[fieldIndex];
+                ILGenerator.Emit(OpCodes.Ldfld, field);
+                break;
+            
+            default:
+                throw new NotSupportedException($"Unsupported aggregate type for extractvalue: {aggregateType}");
+        }
+    }
+
     private void EmitAlloca(LLVMValueRef instruction)
     {
         var numElements = instruction.GetOperand(0);
@@ -709,6 +757,42 @@ internal sealed class FunctionILEmitter : ILEmitter
             .GetStaticMethodStrict(nameof(Vector128.WithElement))
             .MakeGenericMethod(valueType);
         ILGenerator.Emit(OpCodes.Call, withElementMethod);
+    }
+
+    private void EmitInsertValue(LLVMValueRef instruction)
+    {
+        var aggregateOperand = instruction.GetOperand(0);
+        var aggregateType = aggregateOperand.TypeOf;
+
+        if (aggregateType.Kind != LLVMTypeKind.LLVMArrayTypeKind)
+        {
+            throw new NotSupportedException();
+        }
+
+        var indices = instruction.GetIndices();
+
+        if (indices.Length != 1)
+        {
+            throw new NotSupportedException($"Only single index insertvalue is supported: {instruction}");
+        }
+
+        var bufferType = TypeSystem.GetMsilType(aggregateType);
+        var elementType = TypeSystem.GetMsilType(aggregateType.ElementType);
+
+        // Store the aggregate to a local so we can take its address.
+        var aggregateLocal = ILGenerator.DeclareLocal(bufferType);
+        EmitValue(aggregateOperand);
+        ILGenerator.Emit(OpCodes.Stloc, aggregateLocal);
+
+        // Get a ref to the target element via the InlineArrayElementRef helper.
+        ILGenerator.Emit(OpCodes.Ldloca, aggregateLocal);
+        ILGenerator.Emit(OpCodes.Ldc_I4, (int)indices[0]);
+        ILGenerator.Emit(OpCodes.Call, CompiledModule.GetOrCreateInlineArrayElementRef().MakeGenericMethod(bufferType, elementType));
+
+        // Store the value through the ref, then leave the modified aggregate as the result.
+        EmitValue(instruction.GetOperand(1));
+        EmitStoreIndirect(aggregateType.ElementType);
+        ILGenerator.Emit(OpCodes.Ldloc, aggregateLocal);
     }
 
     private void EmitICmp(LLVMValueRef instruction)
@@ -1889,6 +1973,22 @@ internal sealed class FunctionILEmitter : ILEmitter
         }
     }
 
+    private void EmitValueAddress(LLVMValueRef valueRef)
+    {
+        if (Locals.TryGetValue(valueRef, out var local))
+        {
+            ILGenerator.Emit(OpCodes.Ldloca, local);
+        }
+        else if (Parameters.TryGetValue(valueRef, out var parameter))
+        {
+            ILGenerator.Emit(OpCodes.Ldarga, parameter.Position - 1);
+        }
+        else
+        {
+            throw new InvalidOperationException($"Unexpected value for address: {valueRef}");
+        }
+    }
+
     private void EmitValue(LLVMValueRef valueRef)
     {
         if (valueRef.IsConstant)
@@ -1988,6 +2088,8 @@ internal sealed class FunctionILEmitter : ILEmitter
                 ILGenerator.Emit(OpCodes.Ldind_I);
                 break;
 
+            case LLVMTypeKind.LLVMArrayTypeKind:
+            case LLVMTypeKind.LLVMStructTypeKind:
             case LLVMTypeKind.LLVMVectorTypeKind:
                 ILGenerator.Emit(OpCodes.Ldobj, TypeSystem.GetMsilType(typeRef));
                 break;
