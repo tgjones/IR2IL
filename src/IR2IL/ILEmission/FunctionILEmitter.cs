@@ -306,6 +306,10 @@ internal sealed class FunctionILEmitter : ILEmitter
                 EmitConversion(instruction, Signedness.Unsigned);
                 break;
 
+            case LLVMOpcode.LLVMFRem:
+                EmitBinaryOperation(instruction, OpCodes.Rem, "SignedRemainder", Signedness.Signed);
+                break;
+
             case LLVMOpcode.LLVMIntToPtr:
                 EmitConversion(instruction, Signedness.Unsigned);
                 break;
