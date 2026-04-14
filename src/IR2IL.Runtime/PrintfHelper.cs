@@ -42,16 +42,20 @@ public static class PrintfHelper
             i++; // skip '%'
 
             // Flags
+            var flagsStart = i;
             while (i < format.Length && "-+ #0".Contains(format[i]))
             {
                 i++;
             }
+            var flags = format[flagsStart..i];
 
             // Width
+            var widthStart = i;
             while (i < format.Length && char.IsAsciiDigit(format[i]))
             {
                 i++;
             }
+            var width = i > widthStart ? int.Parse(format[widthStart..i]) : 0;
 
             // Precision
             int precision = -1;
@@ -78,22 +82,26 @@ public static class PrintfHelper
             var spec = format[i++];
             var arg = argIndex < args.Length ? args[argIndex++] : null;
 
+            string formatted;
             switch (spec)
             {
                 case 'd':
                 case 'i':
-                    sb.Append(Convert.ToInt64(arg));
+                    formatted = Convert.ToInt64(arg).ToString();
+                    sb.Append(ApplyWidth(formatted, width, flags, zeroPad: true));
                     break;
 
                 case 'u':
-                    sb.Append(unchecked((ulong)Convert.ToInt64(arg)));
+                    formatted = unchecked((ulong)Convert.ToInt64(arg)).ToString();
+                    sb.Append(ApplyWidth(formatted, width, flags, zeroPad: true));
                     break;
 
                 case 'f':
                 case 'F':
                 {
                     var val = Convert.ToDouble(arg);
-                    sb.Append(precision >= 0 ? val.ToString("F" + precision) : val.ToString("F6"));
+                    formatted = precision >= 0 ? val.ToString("F" + precision) : val.ToString("F6");
+                    sb.Append(ApplyWidth(formatted, width, flags, zeroPad: true));
                     break;
                 }
 
@@ -102,25 +110,30 @@ public static class PrintfHelper
                 {
                     var val = Convert.ToDouble(arg);
                     int sigFigs = precision >= 0 ? (precision == 0 ? 1 : precision) : 6;
-                    sb.Append(val.ToString((spec == 'G' ? "G" : "G") + sigFigs));
+                    formatted = val.ToString((spec == 'G' ? "G" : "G") + sigFigs);
+                    sb.Append(ApplyWidth(formatted, width, flags, zeroPad: true));
                     break;
                 }
 
                 case 'e':
                 case 'E':
-                    sb.AppendFormat(spec == 'e' ? "{0:e}" : "{0:E}", Convert.ToDouble(arg));
+                    formatted = string.Format(spec == 'e' ? "{0:e}" : "{0:E}", Convert.ToDouble(arg));
+                    sb.Append(ApplyWidth(formatted, width, flags, zeroPad: true));
                     break;
 
                 case 'x':
-                    sb.AppendFormat("{0:x}", Convert.ToInt64(arg));
+                    formatted = string.Format("{0:x}", unchecked((ulong)Convert.ToInt64(arg)));
+                    sb.Append(ApplyWidth(formatted, width, flags, zeroPad: true));
                     break;
 
                 case 'X':
-                    sb.AppendFormat("{0:X}", Convert.ToInt64(arg));
+                    formatted = string.Format("{0:X}", unchecked((ulong)Convert.ToInt64(arg)));
+                    sb.Append(ApplyWidth(formatted, width, flags, zeroPad: true));
                     break;
 
                 case 's':
-                    sb.Append(arg is IntPtr ptr ? Marshal.PtrToStringAnsi(ptr) : Convert.ToString(arg));
+                    formatted = arg is IntPtr ptr ? Marshal.PtrToStringAnsi(ptr) ?? string.Empty : Convert.ToString(arg) ?? string.Empty;
+                    sb.Append(ApplyWidth(formatted, width, flags, zeroPad: false));
                     break;
 
                 case 'c':
@@ -140,5 +153,19 @@ public static class PrintfHelper
         }
 
         return sb.ToString();
+    }
+
+    private static string ApplyWidth(string value, int width, string flags, bool zeroPad)
+    {
+        if (width <= 0 || value.Length >= width)
+            return value;
+
+        if (flags.Contains('-'))
+            return value.PadRight(width);
+
+        if (zeroPad && flags.Contains('0'))
+            return value.PadLeft(width, '0');
+
+        return value.PadLeft(width);
     }
 }
