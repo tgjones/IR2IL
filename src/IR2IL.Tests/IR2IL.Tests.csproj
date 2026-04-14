@@ -45,7 +45,7 @@
 
     <MakeDir Condition="$([MSBuild]::IsOSPlatform('OSX'))" Directories="$(LlvmPath)" />
     <Exec Condition="$([MSBuild]::IsOSPlatform('OSX'))"
-          Command="tar -xJf &quot;$(DownloadedLlvmPath)&quot; --strip-components=1 -C &quot;$(LlvmPath)&quot; &quot;$(ClangPathInArchive)&quot; &quot;clang+llvm-16.0.4-arm64-apple-darwin22.0/bin/clang-16&quot;" />
+          Command="tar -xJf &quot;$(DownloadedLlvmPath)&quot; --strip-components=1 -C &quot;$(LlvmPath)&quot; &quot;$(ClangPathInArchive)&quot; &quot;clang+llvm-16.0.4-arm64-apple-darwin22.0/bin/clang-16&quot; &quot;clang+llvm-16.0.4-arm64-apple-darwin22.0/lib/clang/16/include&quot;" />
 
     <WriteLinesToFile File="$(LlvmMarkerPath)" Lines="Downloaded" />
   </Target>
