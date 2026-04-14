@@ -575,7 +575,13 @@ internal sealed class FunctionILEmitter : ILEmitter
                 break;
 
             case LLVMValueKind.LLVMInstructionValueKind:
+                var elementSizeInBytes = TypeSystem.GetSizeOfTypeInBytes(instruction.GetAllocatedType());
                 EmitValue(numElements);
+                if (elementSizeInBytes != 1)
+                {
+                    ILGenerator.Emit(OpCodes.Ldc_I8, (long)elementSizeInBytes);
+                    ILGenerator.Emit(OpCodes.Mul);
+                }
                 ILGenerator.Emit(OpCodes.Conv_U);
                 ILGenerator.Emit(OpCodes.Localloc);
                 EmitStoreResult(instruction);
