@@ -1,5 +1,6 @@
 using System.Runtime.CompilerServices;
 using System.Runtime.Intrinsics;
+using System.Runtime.Intrinsics.Arm;
 using System.Runtime.Intrinsics.X86;
 
 namespace IR2IL.Runtime;
@@ -87,9 +88,24 @@ public static unsafe class LLVMIntrinsics
             // Extract the maximum value.
             return Sse2.ConvertToInt32(temp);
         }
+        else if (AdvSimd.Arm64.IsSupported)
+        {
+            // Pairwise max to reduce 4 elements to 1.
+            var temp = AdvSimd.Arm64.MaxPairwise(vector, vector);
+            temp = AdvSimd.Arm64.MaxPairwise(temp, temp);
+            return temp.ToScalar();
+        }
         else
         {
-            throw new PlatformNotSupportedException();
+            var result = int.MinValue;
+            for (var i = 0; i < Vector128<int>.Count; i++)
+            {
+                if (vector[i] > result)
+                {
+                    result = vector[i];
+                }
+            }
+            return result;
         }
     }
 }
