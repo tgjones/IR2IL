@@ -1,0 +1,61 @@
+# IR2IL — Claude Notes
+
+## What this project is
+
+IR2IL is a proof-of-concept LLVM IR to MSIL (CIL) translator. It compiles LLVM IR (`.ll` files produced by clang) into .NET assemblies using `System.Reflection.Emit`, then runs them on the CLR.
+
+## Running tests
+
+The solution file is at `src/IR2IL.sln`. Always run tests from the repo root:
+
+```bash
+dotnet test src
+```
+
+Filtering tests (MSUnit parameter syntax doesn't work directly — use `Name~` instead):
+
+```bash
+dotnet test src --filter "Name~fibonacci"
+dotnet test src --filter "Name~Arbitrary"
+```
+
+List available tests:
+
+```bash
+dotnet test src --filter "FullyQualifiedName~Arbitrary" --list-tests
+```
+
+## Architecture
+
+### Compilation pipeline
+
+1. **`Compiler`** — entry point, coordinates the pipeline
+2. **`ModuleCompiler`** — owns the `LLVMModuleRef`, `TypeBuilder`, and `TypeSystem`; orchestrates compilation of globals and functions
+3. **`CompiledModule`** — holds the mapping from LLVM values to compiled .NET members (`MethodInfo`, `FieldInfo`); passed to all IL emitters
+4. **`FunctionILEmitter`** — emits MSIL for a single LLVM function body
+5. **`GlobalsILEmitter`** — emits the static constructor that initialises global variables
+6. **`TypeSystem`** — maps LLVM types to .NET types; owns struct type definitions
+
+### Key classes
+
+- `src/IR2IL/ModuleCompiler.cs` — compiles the LLVM module; creates `CompiledModule` (passing `_typeBuilder` so it can generate methods at compile time)
+- `src/IR2IL/CompiledModule.cs` — function/global lookup + on-demand method generation (e.g. `GetOrCreatePrintfOverload`)
+- `src/IR2IL/ILEmission/FunctionILEmitter.cs` — main instruction emitter
+- `src/IR2IL/Intrinsics/` — LLVM intrinsic handlers (`IntrinsicFunction` subclasses, registered in `IntrinsicFunctions.LLVMIntrinsics`)
+- `src/IR2IL.Runtime/` — small runtime library linked into compiled programs
+
+### Handling varargs on macOS ARM64
+
+CoreCLR on macOS ARM64 does **not** support the managed vararg calling convention (`CallingConventions.VarArgs`). P/Invoke of native vararg functions (e.g. `printf`) also does not work reliably on this platform.
+
+**Solution for known functions**: intercept calls to known vararg C functions in `FunctionILEmitter.EmitCall` and route them to generated managed implementations instead.
+
+**Tests using varargs** that cannot be handled this way are skipped on non-Windows by adding them to the ignored list (the exact list depends on which test suite it is) in `CompilerTests.cs`.
+
+For `printf` specifically:
+- `FunctionILEmitter.EmitCall` detects `functionToCall.Name == "printf"` when `isVarArg` is true
+- It calls `CompiledModule.GetOrCreatePrintfOverload(allParamTypes)` to get (or lazily generate) a concrete typed wrapper method
+- The generated `__printf(void* fmt, T arg, ...)` method boxes its arguments into an `object[]` and calls `PrintfHelper.PrintfCore(IntPtr, object[])` in `IR2IL.Runtime`
+- `PrintfHelper.PrintfCore` parses the C format string and writes to `Console.Write`
+
+The typed `__printf` overloads are generated as `MethodBuilder` instances during compilation (before `TypeBuilder.CreateType()` is called), so they live in the emitted assembly rather than the runtime library.
