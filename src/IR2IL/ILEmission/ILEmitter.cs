@@ -142,6 +142,10 @@ internal abstract class ILEmitter
                                 ILGenerator.Emit(OpCodes.Ldc_I4_0);
                                 break;
 
+                            case 64:
+                                ILGenerator.Emit(OpCodes.Ldc_I8, 0L);
+                                break;
+
                             default:
                                 throw new NotImplementedException($"Emit constant not implemented for {valueRef}");
                         }

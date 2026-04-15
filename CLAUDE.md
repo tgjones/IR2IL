@@ -44,6 +44,16 @@ dotnet test src --filter "FullyQualifiedName~Arbitrary" --list-tests
 - `src/IR2IL/Intrinsics/` — LLVM intrinsic handlers (`IntrinsicFunction` subclasses, registered in `IntrinsicFunctions.LLVMIntrinsics`)
 - `src/IR2IL.Runtime/` — small runtime library linked into compiled programs
 
+### Adding LLVM intrinsics
+
+New intrinsics are registered in `src/IR2IL/Intrinsics/IntrinsicFunctions.cs`. Use `StandardIntrinsicFunction`:
+
+- **Scalar BCL methods** (unambiguous): `StandardIntrinsicFunction.Create(typeof(MathF), nameof(MathF.Sqrt))`
+- **Scalar BCL methods** (ambiguous overloads, e.g. `MathF.Log`): pass explicit parameter types — `StandardIntrinsicFunction.Create(typeof(MathF), nameof(MathF.Log), typeof(float))`
+- **Vector BCL methods** (e.g. `Vector128.Exp`, `Vector64.Log`): these are **not** generic method definitions — they have concrete typed overloads. Use `Create` with the concrete vector parameter type: `StandardIntrinsicFunction.Create(typeof(Vector128), nameof(Vector128.Exp), typeof(Vector128<double>))`
+- **Truly generic vector methods** (e.g. `Vector128.Sum<T>`): use `StandardIntrinsicFunction.CreateGeneric(typeof(Vector128), nameof(Vector128.Sum), typeof(int))`
+- **Custom helpers**: add a method to `src/IR2IL.Runtime/VectorUtility.cs` (or `LLVMIntrinsics.cs`) and register with `StandardIntrinsicFunction.Create(typeof(VectorUtility), nameof(VectorUtility.MyMethod))`
+
 ### Handling varargs on macOS ARM64
 
 CoreCLR on macOS ARM64 does **not** support the managed vararg calling convention (`CallingConventions.VarArgs`). P/Invoke of native vararg functions (e.g. `printf`) also does not work reliably on this platform.

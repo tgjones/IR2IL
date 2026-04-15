@@ -8,6 +8,38 @@ namespace IR2IL.Runtime;
 public static unsafe class LLVMIntrinsics
 {
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    public static bool AreUnordered(double a, double b)
+    {
+        return double.IsNaN(a) || double.IsNaN(b);
+    }
+
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    public static bool AreUnordered(float a, float b)
+    {
+        return float.IsNaN(a) || float.IsNaN(b);
+    }
+
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    public static bool AreOrderedAndNotEqual(double a, double b)
+    {
+        return a > b || a < b;
+    }
+
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    public static bool AreOrderedAndNotEqual(float a, float b)
+    {
+        return a > b || a < b;
+    }
+
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    public static Vector32<short> VectorShiftRightLogical(Vector32<short> vector, Vector32<short> count)
+    {
+        return Vector32.Create(
+            (short)((ushort)vector[0] >> count[0]),
+            (short)((ushort)vector[1] >> count[1]));
+    }
+
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public static Vector64<int> VectorShiftRightLogical(Vector64<int> vector, Vector64<int> count)
     {
         if (Avx2.IsSupported)

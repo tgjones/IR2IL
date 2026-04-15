@@ -109,6 +109,9 @@ public static class Vector32
     }
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    public static Vector32<short> Create(short value) => Create(value, value);
+
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public static Vector32<short> Create(short e0, short e1)
     {
         Unsafe.SkipInit(out Vector32<short> result);

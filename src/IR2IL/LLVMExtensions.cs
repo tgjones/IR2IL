@@ -171,11 +171,13 @@ internal static partial class LLVMExtensions
         switch (value.Kind)
         {
             case LLVMValueKind.LLVMArgumentValueKind:
+            case LLVMValueKind.LLVMConstantAggregateZeroValueKind:
             case LLVMValueKind.LLVMConstantDataVectorValueKind:
             case LLVMValueKind.LLVMConstantExprValueKind:
             case LLVMValueKind.LLVMConstantFPValueKind:
             case LLVMValueKind.LLVMConstantIntValueKind:
             case LLVMValueKind.LLVMConstantPointerNullValueKind:
+            case LLVMValueKind.LLVMConstantVectorValueKind:
             case LLVMValueKind.LLVMPoisonValueValueKind:
             case LLVMValueKind.LLVMUndefValueValueKind:
                 return true;

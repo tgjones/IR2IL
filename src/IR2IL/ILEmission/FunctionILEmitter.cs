@@ -978,6 +978,14 @@ internal sealed class FunctionILEmitter : ILEmitter
                         ILGenerator.Emit(OpCodes.Clt);
                         break;
 
+                    case LLVMRealPredicate.LLVMRealONE:
+                    {
+                        var floatType = TypeSystem.GetMsilType(operand0.TypeOf);
+                        var areOrderedAndNotEqualMethod = typeof(LLVMIntrinsics).GetMethodStrict(nameof(LLVMIntrinsics.AreOrderedAndNotEqual), [floatType, floatType]);
+                        ILGenerator.Emit(OpCodes.Call, areOrderedAndNotEqualMethod);
+                        break;
+                    }
+
                     case LLVMRealPredicate.LLVMRealUGE:
                         ILGenerator.Emit(OpCodes.Clt_Un);
                         ILGenerator.Emit(OpCodes.Ldc_I4_0);
@@ -999,6 +1007,14 @@ internal sealed class FunctionILEmitter : ILEmitter
                         ILGenerator.Emit(OpCodes.Ldc_I4_0);
                         ILGenerator.Emit(OpCodes.Ceq);
                         break;
+
+                    case LLVMRealPredicate.LLVMRealUNO:
+                    {
+                        var floatType = TypeSystem.GetMsilType(operand0.TypeOf);
+                        var areUnorderedMethod = typeof(LLVMIntrinsics).GetMethodStrict(nameof(LLVMIntrinsics.AreUnordered), [floatType, floatType]);
+                        ILGenerator.Emit(OpCodes.Call, areUnorderedMethod);
+                        break;
+                    }
 
                     default:
                         throw new NotImplementedException($"Float comparison predicate {instruction.FCmpPredicate} not implemented: {instruction}");
