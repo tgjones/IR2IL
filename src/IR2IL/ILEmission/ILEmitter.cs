@@ -197,6 +197,26 @@ internal abstract class ILEmitter
     {
         var roundedUpBits = TypeSystem.RoundUpToTypeSize((int)sizeInBits);
 
+        if (roundedUpBits == 128)
+        {
+            // Sign-extend the long value to 128 bits, then mask to sizeInBits.
+            var lower = (ulong)value;
+            var upper = value < 0 ? ulong.MaxValue : 0UL;
+
+            if (sizeInBits < 128)
+            {
+                var maskLower = sizeInBits >= 64 ? ulong.MaxValue : (1UL << (int)sizeInBits) - 1UL;
+                var maskUpper = sizeInBits <= 64 ? 0UL : (1UL << (int)(sizeInBits - 64)) - 1UL;
+                lower &= maskLower;
+                upper &= maskUpper;
+            }
+
+            ILGenerator.Emit(OpCodes.Ldc_I8, (long)upper);
+            ILGenerator.Emit(OpCodes.Ldc_I8, (long)lower);
+            ILGenerator.Emit(OpCodes.Newobj, typeof(Int128).GetConstructorStrict([typeof(ulong), typeof(ulong)]));
+            return;
+        }
+
         if (roundedUpBits > sizeInBits)
         {
             var mask = (1L << (int)sizeInBits) - 1;

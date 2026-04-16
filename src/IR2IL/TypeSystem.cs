@@ -70,10 +70,11 @@ internal sealed class TypeSystem
         
         return RoundUpToTypeSize(intTypeWidth) switch
         {
-            8  => typeof(sbyte),
-            16 => typeof(short),
-            32 => typeof(int),
-            64 => typeof(long),
+            8   => typeof(sbyte),
+            16  => typeof(short),
+            32  => typeof(int),
+            64  => typeof(long),
+            128 => typeof(Int128),
             _ => throw new NotImplementedException($"Integer width {intTypeWidth} not implemented"),
         };
     }
