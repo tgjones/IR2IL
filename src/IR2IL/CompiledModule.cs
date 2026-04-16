@@ -19,6 +19,7 @@ internal sealed class CompiledModule
     private readonly Dictionary<LLVMValueRef, (FieldInfo Field, bool IsExternal)> _globalLookup = [];
     private readonly Dictionary<string, MethodBuilder> _printfOverloads = [];
     private readonly Dictionary<string, MethodBuilder> _fprintfOverloads = [];
+    private readonly Dictionary<string, MethodBuilder> _sprintfChkOverloads = [];
     private MethodBuilder? _inlineArrayElementRef;
 
     private static readonly MethodInfo PrintfCore =
@@ -26,6 +27,9 @@ internal sealed class CompiledModule
 
     private static readonly MethodInfo FprintfCore =
         typeof(PrintfHelper).GetMethodStrict(nameof(PrintfHelper.FprintfCore), [typeof(IntPtr), typeof(IntPtr), typeof(object[])]);
+
+    private static readonly MethodInfo SprintfChkCore =
+        typeof(PrintfHelper).GetMethodStrict(nameof(PrintfHelper.SprintfChkCore), [typeof(IntPtr), typeof(IntPtr), typeof(object[])]);
 
     private static readonly MethodInfo UnsafeAsOpenMethod =
         typeof(Unsafe).GetMethods(BindingFlags.Public | BindingFlags.Static)
@@ -228,6 +232,79 @@ internal sealed class CompiledModule
         il.Emit(OpCodes.Ret);
 
         _fprintfOverloads[key] = method;
+        return method;
+    }
+
+    // Generates (or retrieves a cached) __sprintf_chk overload for the given parameter types.
+    // allParamTypes[0] is buf (void*); [1] is flag (int); [2] is buflen (long); [3] is fmt (void*);
+    // the rest are the vararg argument types.
+    public MethodBuilder GetOrCreateSprintfChkOverload(Type[] allParamTypes)
+    {
+        var key = string.Join(",", allParamTypes.Select(t => t.FullName));
+        if (_sprintfChkOverloads.TryGetValue(key, out var cached))
+            return cached;
+
+        var method = _typeBuilder.DefineMethod(
+            "__sprintf_chk",
+            MethodAttributes.Static | MethodAttributes.Private,
+            typeof(int),
+            allParamTypes);
+
+        var il = method.GetILGenerator();
+
+        // Load buf (void*) and convert to IntPtr for SprintfChkCore
+        il.Emit(OpCodes.Ldarg_0);
+        il.Emit(OpCodes.Conv_I);
+
+        // Load fmt (void*) — arg3 — and convert to IntPtr for SprintfChkCore
+        // (arg1=flag and arg2=buflen are intentionally skipped)
+        il.Emit(OpCodes.Ldarg_3);
+        il.Emit(OpCodes.Conv_I);
+
+        // Build object[] from the vararg arguments (everything after the 4 fixed params)
+        var varArgCount = allParamTypes.Length - 4;
+        il.Emit(OpCodes.Ldc_I4, varArgCount);
+        il.Emit(OpCodes.Newarr, typeof(object));
+
+        for (var i = 0; i < varArgCount; i++)
+        {
+            il.Emit(OpCodes.Dup);
+            il.Emit(OpCodes.Ldc_I4, i);
+
+            var argIndex = i + 4;
+            if (argIndex <= 3)
+            {
+                il.Emit(argIndex switch
+                {
+                    0 => OpCodes.Ldarg_0,
+                    1 => OpCodes.Ldarg_1,
+                    2 => OpCodes.Ldarg_2,
+                    _ => OpCodes.Ldarg_3,
+                });
+            }
+            else
+            {
+                il.Emit(OpCodes.Ldarg_S, (byte)argIndex);
+            }
+
+            var argType = allParamTypes[argIndex];
+            if (argType.IsPointer)
+            {
+                il.Emit(OpCodes.Conv_I);
+                il.Emit(OpCodes.Box, typeof(IntPtr));
+            }
+            else if (argType.IsValueType)
+            {
+                il.Emit(OpCodes.Box, argType);
+            }
+
+            il.Emit(OpCodes.Stelem_Ref);
+        }
+
+        il.Emit(OpCodes.Call, SprintfChkCore);
+        il.Emit(OpCodes.Ret);
+
+        _sprintfChkOverloads[key] = method;
         return method;
     }
 }

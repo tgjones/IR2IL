@@ -25,6 +25,16 @@ public static class PrintfHelper
         return output.Length;
     }
 
+    public static int SprintfChkCore(IntPtr buf, IntPtr format, object[] args)
+    {
+        var formatString = Marshal.PtrToStringAnsi(format) ?? string.Empty;
+        var output = FormatPrintf(formatString, args);
+        var bytes = Encoding.Latin1.GetBytes(output);
+        Marshal.Copy(bytes, 0, buf, bytes.Length);
+        Marshal.WriteByte(buf + bytes.Length, 0);
+        return bytes.Length;
+    }
+
     public static int FprintfCore(IntPtr stream, IntPtr format, object[] args)
     {
         var formatString = Marshal.PtrToStringAnsi(format) ?? string.Empty;

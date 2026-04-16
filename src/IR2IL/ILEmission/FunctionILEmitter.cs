@@ -1728,15 +1728,18 @@ internal sealed class FunctionILEmitter : ILEmitter
 
         var method = CompiledModule.GetFunction(functionToCall);
 
-        // Special handling for printf/fprintf: variadic calling convention doesn't work on non-Windows.
-        // We implement them in managed code by parsing the format string + a call to Console.Write.
-        if (isVarArg && (functionToCall.Name == "printf" || functionToCall.Name == "fprintf"))
+        // Special handling for printf/fprintf/__sprintf_chk: variadic calling convention doesn't work on non-Windows.
+        // We implement them in managed code by parsing the format string + a call to Console.Write / Marshal.Copy.
+        if (isVarArg && functionToCall.Name is "printf" or "fprintf" or "__sprintf_chk")
         {
             var fixedParamTypes = functionType.ParamTypes.Select(t => TypeSystem.GetMsilType(t)).ToArray();
             var allParamTypes = fixedParamTypes.Concat(varArgsParameterTypes).ToArray();
-            var overload = functionToCall.Name == "fprintf"
-                ? CompiledModule.GetOrCreateFprintfOverload(allParamTypes)
-                : CompiledModule.GetOrCreatePrintfOverload(allParamTypes);
+            var overload = functionToCall.Name switch
+            {
+                "fprintf" => CompiledModule.GetOrCreateFprintfOverload(allParamTypes),
+                "__sprintf_chk" => CompiledModule.GetOrCreateSprintfChkOverload(allParamTypes),
+                _ => CompiledModule.GetOrCreatePrintfOverload(allParamTypes),
+            };
             ILGenerator.Emit(OpCodes.Call, overload);
             return;
         }
