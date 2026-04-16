@@ -58,13 +58,15 @@ New intrinsics are registered in `src/IR2IL/Intrinsics/IntrinsicFunctions.cs`. U
 
 LLVM IR allows integers of any bit width (e.g. `i40` from a struct with 3+29+3-bit fields that clang packs into 40 bits). .NET only has 8/16/32/64-bit integers.
 
-**Representation**: `TypeSystem.GetIntegerType` rounds any non-standard width up to the next container type via `RoundUpToTypeSize` — so `i40` → `long`, `i24` → `int`, `i9` → `short`. The upper bits of the container are kept clear.
+**Representation**: `TypeSystem.GetIntegerType` rounds any non-standard width up to the next container type via `RoundUpToTypeSize` — so `i40` → `long`, `i24` → `int`, `i9` → `short`, `i72`/`i80`/`i128` → `Int128`. The upper bits of the container are kept clear.
 
 **Arithmetic masking**: `EmitUnaryOrBinaryOperation` emits a bitwise AND after each scalar opcode when the result type is a non-power-of-2 width. This keeps bits above the logical width zeroed so that subsequent operations (comparisons, sign extension) see correct values. For example, `add i40` computes in `long` then masks with `0xFFFFFFFFFF`.
 
+**Integers wider than 64 bits** (i65–i128): stored as `Int128`. Binary operations on these types are handled by `EmitWideIntegerBinaryOp`, which calls `Int128` operator methods directly rather than using IL opcodes. `lshr` routes through `WideIntegerHelper.LshrInt128` (casts to `UInt128` for the unsigned shift). Wide integer shift amounts (e.g. `lshr i72 %x, i72 64`) are emitted directly as `Ldc_I4` for constants — never pushed as `Int128`, since `Conv_I4` doesn't work on a struct. Loading wide integers from memory uses `WideIntegerHelper.LoadWideInt`. Narrowing from `Int128` to ≤64-bit targets goes through `WideIntegerHelper.Int128ToLong` first.
+
 **Struct sizing**: LLVM computes `sizeof({ i40 })` as 8 bytes on ARM64 (5 bytes + 3 padding for 8-byte alignment), matching a .NET struct with a single `long` field.
 
-**Not yet implemented**: `sext` from a non-power-of-2 source (e.g. `sext i40 to i64`) — the sign bit would need shifting to be correctly extended.
+**Not yet implemented**: `sext` from a non-power-of-2 source (e.g. `sext i40 to i64`) — the sign bit would need shifting to be correctly extended. Also `stind` for wide integer types.
 
 ### Handling varargs on macOS ARM64
 
