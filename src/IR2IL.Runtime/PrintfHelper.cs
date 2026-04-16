@@ -158,13 +158,13 @@ public static class PrintfHelper
                     break;
 
                 case 'x':
-                    formatted = string.Format("{0:x}", unchecked((ulong)Convert.ToInt64(arg)));
+                    formatted = string.Format("{0:x}", ToUnsignedByType(arg));
                     if (precision > formatted.Length) formatted = formatted.PadLeft(precision, '0');
                     sb.Append(ApplyWidth(formatted, width, flags, zeroPad: precision < 0));
                     break;
 
                 case 'X':
-                    formatted = string.Format("{0:X}", unchecked((ulong)Convert.ToInt64(arg)));
+                    formatted = string.Format("{0:X}", ToUnsignedByType(arg));
                     if (precision > formatted.Length) formatted = formatted.PadLeft(precision, '0');
                     sb.Append(ApplyWidth(formatted, width, flags, zeroPad: precision < 0));
                     break;
@@ -192,6 +192,21 @@ public static class PrintfHelper
 
         return sb.ToString();
     }
+
+    // Converts a boxed integer to ulong preserving the value's natural unsigned width.
+    // %x/%X in C operate on unsigned int (32-bit) by default, not unsigned long long.
+    private static ulong ToUnsignedByType(object? arg) => arg switch
+    {
+        byte v   => v,
+        sbyte v  => unchecked((byte)v),
+        short v  => unchecked((ushort)v),
+        ushort v => v,
+        int v    => unchecked((uint)v),
+        uint v   => v,
+        long v   => unchecked((ulong)v),
+        ulong v  => v,
+        _        => unchecked((ulong)Convert.ToInt64(arg)),
+    };
 
     private static string ApplyWidth(string value, int width, string flags, bool zeroPad)
     {
