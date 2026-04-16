@@ -16,12 +16,16 @@ internal sealed class CompiledModule
     private readonly TypeBuilder _typeBuilder;
 
     private readonly Dictionary<LLVMValueRef, MethodInfo> _functionLookup = [];
-    private readonly Dictionary<LLVMValueRef, FieldInfo> _globalLookup = [];
+    private readonly Dictionary<LLVMValueRef, (FieldInfo Field, bool IsExternal)> _globalLookup = [];
     private readonly Dictionary<string, MethodBuilder> _printfOverloads = [];
+    private readonly Dictionary<string, MethodBuilder> _fprintfOverloads = [];
     private MethodBuilder? _inlineArrayElementRef;
 
     private static readonly MethodInfo PrintfCore =
         typeof(PrintfHelper).GetMethodStrict(nameof(PrintfHelper.PrintfCore), [typeof(IntPtr), typeof(object[])]);
+
+    private static readonly MethodInfo FprintfCore =
+        typeof(PrintfHelper).GetMethodStrict(nameof(PrintfHelper.FprintfCore), [typeof(IntPtr), typeof(IntPtr), typeof(object[])]);
 
     private static readonly MethodInfo UnsafeAsOpenMethod =
         typeof(Unsafe).GetMethods(BindingFlags.Public | BindingFlags.Static)
@@ -46,7 +50,7 @@ internal sealed class CompiledModule
 
         foreach (var globalVariable in globalVariables)
         {
-            _globalLookup.Add(globalVariable.Global, globalVariable.Field);
+            _globalLookup.Add(globalVariable.Global, (globalVariable.Field, globalVariable.IsExternal));
         }
 
         foreach (var function in functions)
@@ -59,7 +63,7 @@ internal sealed class CompiledModule
 
     public MethodInfo GetFunction(LLVMValueRef function) => _functionLookup[function];
 
-    public FieldInfo GetGlobal(LLVMValueRef global) => _globalLookup[global];
+    public (FieldInfo Field, bool IsExternal) GetGlobal(LLVMValueRef global) => _globalLookup[global];
 
     // Generates (or retrieves) a generic helper equivalent to Roslyn's:
     //   static ref TElement InlineArrayElementRef<TBuffer, TElement>(ref TBuffer buffer, int index)
@@ -156,9 +160,79 @@ internal sealed class CompiledModule
         _printfOverloads[key] = method;
         return method;
     }
+
+    // Generates (or retrieves a cached) fprintf overload for the given parameter types.
+    // allParamTypes[0] is the stream (void*); allParamTypes[1] is the format string (void*);
+    // the rest are the vararg argument types.
+    public MethodBuilder GetOrCreateFprintfOverload(Type[] allParamTypes)
+    {
+        var key = string.Join(",", allParamTypes.Select(t => t.FullName));
+        if (_fprintfOverloads.TryGetValue(key, out var cached))
+            return cached;
+
+        var method = _typeBuilder.DefineMethod(
+            "__fprintf",
+            MethodAttributes.Static | MethodAttributes.Private,
+            typeof(int),
+            allParamTypes);
+
+        var il = method.GetILGenerator();
+
+        // Load stream (void*) and convert to IntPtr for FprintfCore
+        il.Emit(OpCodes.Ldarg_0);
+        il.Emit(OpCodes.Conv_I);
+
+        // Load fmt (void*) and convert to IntPtr for FprintfCore
+        il.Emit(OpCodes.Ldarg_1);
+        il.Emit(OpCodes.Conv_I);
+
+        // Build object[] from the vararg arguments (everything after stream and fmt)
+        var varArgCount = allParamTypes.Length - 2;
+        il.Emit(OpCodes.Ldc_I4, varArgCount);
+        il.Emit(OpCodes.Newarr, typeof(object));
+
+        for (var i = 0; i < varArgCount; i++)
+        {
+            il.Emit(OpCodes.Dup);
+            il.Emit(OpCodes.Ldc_I4, i);
+
+            var argIndex = i + 2;
+            if (argIndex <= 3)
+            {
+                il.Emit(argIndex switch
+                {
+                    2 => OpCodes.Ldarg_2,
+                    _ => OpCodes.Ldarg_3,
+                });
+            }
+            else
+            {
+                il.Emit(OpCodes.Ldarg_S, (byte)argIndex);
+            }
+
+            var argType = allParamTypes[argIndex];
+            if (argType.IsPointer)
+            {
+                il.Emit(OpCodes.Conv_I);
+                il.Emit(OpCodes.Box, typeof(IntPtr));
+            }
+            else if (argType.IsValueType)
+            {
+                il.Emit(OpCodes.Box, argType);
+            }
+
+            il.Emit(OpCodes.Stelem_Ref);
+        }
+
+        il.Emit(OpCodes.Call, FprintfCore);
+        il.Emit(OpCodes.Ret);
+
+        _fprintfOverloads[key] = method;
+        return method;
+    }
 }
 
-internal sealed record CompiledGlobalVariable(LLVMValueRef Global, LLVMTypeRef Type, LLVMValueRef Value, FieldInfo Field);
+internal sealed record CompiledGlobalVariable(LLVMValueRef Global, LLVMTypeRef Type, LLVMValueRef Value, FieldInfo Field, bool IsExternal = false);
 
 internal record CompiledFunction(LLVMValueRef Function, MethodInfo MethodInfo);
 

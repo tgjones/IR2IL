@@ -61,15 +61,22 @@ internal sealed class TypeSystem
         }
     }
 
-    public Type GetIntegerType(int intTypeWidth) => intTypeWidth switch
+    public Type GetIntegerType(int intTypeWidth)
     {
-        1 => typeof(bool),
-        8 => typeof(sbyte),
-        16 => typeof(short),
-        32 => typeof(int),
-        64 => typeof(long),
-        _ => throw new NotImplementedException($"Integer width {intTypeWidth} not implemented"),
-    };
+        if (intTypeWidth == 1)
+        {
+            return typeof(bool);
+        }
+        
+        return RoundUpToTypeSize(intTypeWidth) switch
+        {
+            8  => typeof(sbyte),
+            16 => typeof(short),
+            32 => typeof(int),
+            64 => typeof(long),
+            _ => throw new NotImplementedException($"Integer width {intTypeWidth} not implemented"),
+        };
+    }
 
     public Type GetMsilVectorType(LLVMTypeRef typeRef)
     {

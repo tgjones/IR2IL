@@ -117,8 +117,10 @@ internal abstract class ILEmitter
                 break;
 
             case LLVMValueKind.LLVMGlobalVariableValueKind:
-                var staticField = CompiledModule.GetGlobal(valueRef);
-                ILGenerator.Emit(OpCodes.Ldsflda, staticField);
+                var (staticField, isExternalGlobal) = CompiledModule.GetGlobal(valueRef);
+                // For internal globals, the static field IS the storage — push its address.
+                // For external globals, the field holds the resolved native address — push that value.
+                ILGenerator.Emit(isExternalGlobal ? OpCodes.Ldsfld : OpCodes.Ldsflda, staticField);
                 break;
 
             case LLVMValueKind.LLVMPoisonValueValueKind:
@@ -197,19 +199,8 @@ internal abstract class ILEmitter
 
         if (roundedUpBits > sizeInBits)
         {
-            var mask = (1 << (int)sizeInBits) - 1;
-            if (value >= 0)
-            {
-                value = value & mask;
-            }
-            else if (roundedUpBits == 8)
-            {
-                value = (byte)(sbyte)value & mask;
-            }
-            else
-            {
-
-            }
+            var mask = (1L << (int)sizeInBits) - 1;
+            value = value & mask;
         }
 
         switch (roundedUpBits)

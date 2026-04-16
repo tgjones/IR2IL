@@ -82,6 +82,21 @@ internal sealed class ModuleCompiler : IDisposable
             {
                 case LLVMValueKind.LLVMGlobalVariableValueKind:
                     var valueType = (LLVMTypeRef)LLVM.GlobalGetValueType(global);
+
+                    if (global.IsDeclaration)
+                    {
+                        // External global: storage lives in a native library.
+                        // We create a nint field to hold the resolved address, populated at startup
+                        // via NativeLibrary.GetExport.
+                        var externalField = _typeBuilder.DefineField(
+                            global.Name.Replace(".", string.Empty),
+                            typeof(nint),
+                            FieldAttributes.Private | FieldAttributes.Static);
+
+                        result.Add(new CompiledGlobalVariable(global, valueType, default, externalField, IsExternal: true));
+                        break;
+                    }
+
                     var globalValue = global.GetOperand(0);
 
                     var globalType = _typeSystem.GetMsilType(valueType);

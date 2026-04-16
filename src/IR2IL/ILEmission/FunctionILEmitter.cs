@@ -1328,8 +1328,17 @@ internal sealed class FunctionILEmitter : ILEmitter
         {
             case LLVMTypeKind.LLVMDoubleTypeKind:
             case LLVMTypeKind.LLVMFloatTypeKind:
+                ILGenerator.Emit(scalarOpCode);
+                break;
+
             case LLVMTypeKind.LLVMIntegerTypeKind:
                 ILGenerator.Emit(scalarOpCode);
+                var resultWidth = (int)instruction.TypeOf.IntWidth;
+                if (resultWidth != TypeSystem.RoundUpToTypeSize(resultWidth))
+                {
+                    EmitConstantIntegerValue((uint)resultWidth, -1);
+                    ILGenerator.Emit(OpCodes.And);
+                }
                 break;
 
             case LLVMTypeKind.LLVMVectorTypeKind:
@@ -1598,14 +1607,16 @@ internal sealed class FunctionILEmitter : ILEmitter
 
         var method = CompiledModule.GetFunction(functionToCall);
 
-        // Special handling for printf function. It's variadic which means it doesn't work on non-Windows.
-        // We implement it in managed code by parsing the format string + a call to Console.Write.
-        if (isVarArg && functionToCall.Name == "printf")
+        // Special handling for printf/fprintf: variadic calling convention doesn't work on non-Windows.
+        // We implement them in managed code by parsing the format string + a call to Console.Write.
+        if (isVarArg && (functionToCall.Name == "printf" || functionToCall.Name == "fprintf"))
         {
             var fixedParamTypes = functionType.ParamTypes.Select(t => TypeSystem.GetMsilType(t)).ToArray();
             var allParamTypes = fixedParamTypes.Concat(varArgsParameterTypes).ToArray();
-            var printfOverload = CompiledModule.GetOrCreatePrintfOverload(allParamTypes);
-            ILGenerator.Emit(OpCodes.Call, printfOverload);
+            var overload = functionToCall.Name == "fprintf"
+                ? CompiledModule.GetOrCreateFprintfOverload(allParamTypes)
+                : CompiledModule.GetOrCreatePrintfOverload(allParamTypes);
+            ILGenerator.Emit(OpCodes.Call, overload);
             return;
         }
 
@@ -2082,9 +2093,8 @@ internal sealed class FunctionILEmitter : ILEmitter
                 break;
 
             case LLVMTypeKind.LLVMIntegerTypeKind:
-                switch (typeRef.IntWidth)
+                switch (TypeSystem.RoundUpToTypeSize((int)typeRef.IntWidth))
                 {
-                    case 1:
                     case 8:
                         ILGenerator.Emit(OpCodes.Ldind_I1);
                         break;

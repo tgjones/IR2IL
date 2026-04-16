@@ -54,6 +54,18 @@ New intrinsics are registered in `src/IR2IL/Intrinsics/IntrinsicFunctions.cs`. U
 - **Truly generic vector methods** (e.g. `Vector128.Sum<T>`): use `StandardIntrinsicFunction.CreateGeneric(typeof(Vector128), nameof(Vector128.Sum), typeof(int))`
 - **Custom helpers**: add a method to `src/IR2IL.Runtime/VectorUtility.cs` (or `LLVMIntrinsics.cs`) and register with `StandardIntrinsicFunction.Create(typeof(VectorUtility), nameof(VectorUtility.MyMethod))`
 
+### Arbitrary-width integer types
+
+LLVM IR allows integers of any bit width (e.g. `i40` from a struct with 3+29+3-bit fields that clang packs into 40 bits). .NET only has 8/16/32/64-bit integers.
+
+**Representation**: `TypeSystem.GetIntegerType` rounds any non-standard width up to the next container type via `RoundUpToTypeSize` — so `i40` → `long`, `i24` → `int`, `i9` → `short`. The upper bits of the container are kept clear.
+
+**Arithmetic masking**: `EmitUnaryOrBinaryOperation` emits a bitwise AND after each scalar opcode when the result type is a non-power-of-2 width. This keeps bits above the logical width zeroed so that subsequent operations (comparisons, sign extension) see correct values. For example, `add i40` computes in `long` then masks with `0xFFFFFFFFFF`.
+
+**Struct sizing**: LLVM computes `sizeof({ i40 })` as 8 bytes on ARM64 (5 bytes + 3 padding for 8-byte alignment), matching a .NET struct with a single `long` field.
+
+**Not yet implemented**: `sext` from a non-power-of-2 source (e.g. `sext i40 to i64`) — the sign bit would need shifting to be correctly extended.
+
 ### Handling varargs on macOS ARM64
 
 CoreCLR on macOS ARM64 does **not** support the managed vararg calling convention (`CallingConventions.VarArgs`). P/Invoke of native vararg functions (e.g. `printf`) also does not work reliably on this platform.

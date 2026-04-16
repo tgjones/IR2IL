@@ -25,6 +25,30 @@ public static class PrintfHelper
         return output.Length;
     }
 
+    public static int FprintfCore(IntPtr stream, IntPtr format, object[] args)
+    {
+        var formatString = Marshal.PtrToStringAnsi(format) ?? string.Empty;
+        var output = FormatPrintf(formatString, args);
+        // Route stderr (fd 2) to Console.Error; everything else (including stdout) to Console.Out.
+        var fd = Fileno(stream);
+        var writer = fd == 2 ? Console.Error : Console.Out;
+        writer.Write(output);
+        return output.Length;
+    }
+
+    private static int Fileno(IntPtr stream)
+    {
+        if (OperatingSystem.IsWindows())
+            return FilenoWindows(stream);
+        return FilenoUnix(stream);
+    }
+
+    [DllImport("ucrtbase", EntryPoint = "_fileno")]
+    private static extern int FilenoWindows(IntPtr stream);
+
+    [DllImport("libc", EntryPoint = "fileno")]
+    private static extern int FilenoUnix(IntPtr stream);
+
     private static string FormatPrintf(string format, object[] args)
     {
         var sb = new StringBuilder();
@@ -88,12 +112,14 @@ public static class PrintfHelper
                 case 'd':
                 case 'i':
                     formatted = Convert.ToInt64(arg).ToString();
-                    sb.Append(ApplyWidth(formatted, width, flags, zeroPad: true));
+                    if (precision > formatted.Length) formatted = formatted.PadLeft(precision, '0');
+                    sb.Append(ApplyWidth(formatted, width, flags, zeroPad: precision < 0));
                     break;
 
                 case 'u':
                     formatted = unchecked((ulong)Convert.ToInt64(arg)).ToString();
-                    sb.Append(ApplyWidth(formatted, width, flags, zeroPad: true));
+                    if (precision > formatted.Length) formatted = formatted.PadLeft(precision, '0');
+                    sb.Append(ApplyWidth(formatted, width, flags, zeroPad: precision < 0));
                     break;
 
                 case 'f':
@@ -123,12 +149,14 @@ public static class PrintfHelper
 
                 case 'x':
                     formatted = string.Format("{0:x}", unchecked((ulong)Convert.ToInt64(arg)));
-                    sb.Append(ApplyWidth(formatted, width, flags, zeroPad: true));
+                    if (precision > formatted.Length) formatted = formatted.PadLeft(precision, '0');
+                    sb.Append(ApplyWidth(formatted, width, flags, zeroPad: precision < 0));
                     break;
 
                 case 'X':
                     formatted = string.Format("{0:X}", unchecked((ulong)Convert.ToInt64(arg)));
-                    sb.Append(ApplyWidth(formatted, width, flags, zeroPad: true));
+                    if (precision > formatted.Length) formatted = formatted.PadLeft(precision, '0');
+                    sb.Append(ApplyWidth(formatted, width, flags, zeroPad: precision < 0));
                     break;
 
                 case 's':
