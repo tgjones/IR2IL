@@ -21,8 +21,9 @@ public static class PrintfHelper
     {
         var formatString = Marshal.PtrToStringAnsi(format) ?? string.Empty;
         var output = FormatPrintf(formatString, args);
-        Console.Write(output);
-        return output.Length;
+        var bytes = Encoding.Latin1.GetBytes(output);
+        Console.OpenStandardOutput().Write(bytes);
+        return bytes.Length;
     }
 
     public static int SprintfChkCore(IntPtr buf, IntPtr format, object[] args)
@@ -41,9 +42,10 @@ public static class PrintfHelper
         var output = FormatPrintf(formatString, args);
         // Route stderr (fd 2) to Console.Error; everything else (including stdout) to Console.Out.
         var fd = Fileno(stream);
-        var writer = fd == 2 ? Console.Error : Console.Out;
-        writer.Write(output);
-        return output.Length;
+        var bytes = Encoding.Latin1.GetBytes(output);
+        var outStream = fd == 2 ? Console.OpenStandardError() : Console.OpenStandardOutput();
+        outStream.Write(bytes);
+        return bytes.Length;
     }
 
     private static int Fileno(IntPtr stream)
@@ -153,9 +155,15 @@ public static class PrintfHelper
 
                 case 'e':
                 case 'E':
-                    formatted = string.Format(spec == 'e' ? "{0:e}" : "{0:E}", Convert.ToDouble(arg));
+                {
+                    int prec = precision >= 0 ? precision : 6;
+                    var val = Convert.ToDouble(arg);
+                    formatted = val.ToString((spec == 'e' ? "e" : "E") + prec);
+                    // C standard requires at least 2 exponent digits; .NET may produce 3 (e.g. e+003 → e+03)
+                    formatted = NormalizeExponent(formatted);
                     sb.Append(ApplyWidth(formatted, width, flags, zeroPad: true));
                     break;
+                }
 
                 case 'x':
                     formatted = string.Format("{0:x}", ToUnsignedByType(arg));
@@ -207,6 +215,17 @@ public static class PrintfHelper
         ulong v  => v,
         _        => unchecked((ulong)Convert.ToInt64(arg)),
     };
+
+    // .NET may produce 3-digit exponents (e+003) but C requires at least 2 (e+03).
+    // Find the exponent marker and strip leading zeros down to 2 digits.
+    private static string NormalizeExponent(string s)
+    {
+        var e = s.LastIndexOfAny(['e', 'E']);
+        if (e < 0 || e + 2 >= s.Length) return s;
+        var exp = s[(e + 2)..].TrimStart('0');
+        if (exp.Length < 2) exp = exp.PadLeft(2, '0');
+        return s[..(e + 2)] + exp;
+    }
 
     private static string ApplyWidth(string value, int width, string flags, bool zeroPad)
     {
