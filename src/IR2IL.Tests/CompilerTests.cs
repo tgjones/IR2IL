@@ -149,6 +149,9 @@ public partial class CompilerTests
             "0000_0192" or "0005_0058" or "0006_0000" or "0006_0009" or "0006_0010" or "0006_0011" => false,
             "0006_0024" or "0006_0025" or "0006_0026" => false,
 
+            // These tests don't run on macOS because OpenMP isn't installed by default.
+            "0002_0185" when RuntimeInformation.IsOSPlatform(OSPlatform.OSX) => false,
+
             // These tests don't run correctly on MSVC because of _Generic differences.
             "0005_0005" => false,
 
@@ -159,10 +162,10 @@ public partial class CompilerTests
             "0005_0017" or "0005_0018" or "0005_0019" or "0005_0020" or "0005_0021" or "0005_0022" => false,
             "0005_0028" or "0005_0029" or "0005_0030" or "0005_0045" or "0005_0063" => false,
 
-            // These tests don't compile correctly on MSVC beacuse of align library differences.
+            // These tests don't compile correctly on MSVC because of align library differences.
             "0005_0032" or "0005_0033" => false,
 
-            // These tests don't execute correctly on MSVC beacuse of OpenMP differences.
+            // These tests don't execute correctly on MSVC because of OpenMP differences.
             "0005_0036" => false,
 
             // These tests don't execute correctly because quick_exit behaves differently when called from CoreCLR.

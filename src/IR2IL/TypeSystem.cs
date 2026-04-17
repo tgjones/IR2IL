@@ -91,7 +91,7 @@ internal sealed class TypeSystem
 
     public Type GetMsilVectorType(LLVMTypeRef elementTypeRef, int vectorSize)
     {
-        var vectorSizeInBits = vectorSize * RoundUpToTypeSize(GetSizeOfTypeInBits(elementTypeRef));
+        var vectorSizeInBits = RoundUpToTypeSize(vectorSize * RoundUpToTypeSize(GetSizeOfTypeInBits(elementTypeRef)));
         if (vectorSizeInBits > MaxVectorSize)
         {
             throw new NotImplementedException();
@@ -230,7 +230,7 @@ internal sealed class TypeSystem
 
     public Type GetNonGenericVectorType(LLVMTypeRef vectorType)
     {
-        var vectorSizeInBits = vectorType.VectorSize * RoundUpToTypeSize(GetSizeOfTypeInBits(vectorType.ElementType));
+        var vectorSizeInBits = RoundUpToTypeSize((int)vectorType.VectorSize * RoundUpToTypeSize(GetSizeOfTypeInBits(vectorType.ElementType)));
         if (vectorSizeInBits > MaxVectorSize)
         {
             throw new NotImplementedException();
@@ -253,7 +253,7 @@ internal sealed class TypeSystem
 
     public Type GetGenericVectorType(LLVMTypeRef vectorElementType, int vectorSize)
     {
-        var vectorSizeInBits = vectorSize * RoundUpToTypeSize(GetSizeOfTypeInBits(vectorElementType));
+        var vectorSizeInBits = RoundUpToTypeSize(vectorSize * RoundUpToTypeSize(GetSizeOfTypeInBits(vectorElementType)));
         if (vectorSizeInBits > MaxVectorSize)
         {
             throw new NotImplementedException();

@@ -8,6 +8,11 @@ public static class WideIntegerHelper
 
     public static Int128 LshrInt128(Int128 value, int shift) => (Int128)((UInt128)value >> shift);
 
+    public static bool UltInt128(Int128 a, Int128 b) => (UInt128)a < (UInt128)b;
+    public static bool UleInt128(Int128 a, Int128 b) => (UInt128)a <= (UInt128)b;
+    public static bool UgtInt128(Int128 a, Int128 b) => (UInt128)a > (UInt128)b;
+    public static bool UgeInt128(Int128 a, Int128 b) => (UInt128)a >= (UInt128)b;
+
     /// <summary>
     /// Loads <paramref name="byteCount"/> bytes from <paramref name="ptr"/> (little-endian)
     /// into an <see cref="Int128"/>.  Used to materialise LLVM integer types wider than 64 bits

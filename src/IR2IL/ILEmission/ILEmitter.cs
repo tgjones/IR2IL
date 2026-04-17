@@ -75,7 +75,10 @@ internal abstract class ILEmitter
                 break;
 
             case LLVMValueKind.LLVMConstantIntValueKind:
-                EmitConstantIntegerValue(valueTypeRef.IntWidth, valueRef.ConstIntSExt);
+                if (valueTypeRef.IntWidth > 64)
+                    EmitWideConstantIntegerValue(valueRef);
+                else
+                    EmitConstantIntegerValue(valueTypeRef.IntWidth, valueRef.ConstIntSExt);
                 break;
 
             case LLVMValueKind.LLVMConstantExprValueKind:
@@ -191,6 +194,20 @@ internal abstract class ILEmitter
             default:
                 throw new NotImplementedException($"Convert to integer width {sizeInBits} not implemented");
         }
+    }
+
+    // ConstIntSExt only returns the lower 64 bits; for i128+ constants use PrintToString
+    // which gives the full signed decimal, then parse as Int128.
+    private void EmitWideConstantIntegerValue(LLVMValueRef valueRef)
+    {
+        var text = valueRef.PrintToString();  // e.g. "i128 36893488147419103232" or "i128 -1"
+        var valueStr = text[(text.LastIndexOf(' ') + 1)..];
+        var value = Int128.Parse(valueStr);
+        var lower = (ulong)(UInt128)value;
+        var upper = (ulong)((UInt128)value >> 64);
+        ILGenerator.Emit(OpCodes.Ldc_I8, (long)upper);
+        ILGenerator.Emit(OpCodes.Ldc_I8, (long)lower);
+        ILGenerator.Emit(OpCodes.Newobj, typeof(Int128).GetConstructorStrict([typeof(ulong), typeof(ulong)]));
     }
 
     protected void EmitConstantIntegerValue(uint sizeInBits, long value)
@@ -413,15 +430,21 @@ internal abstract class ILEmitter
                 break;
 
             case LLVMTypeKind.LLVMIntegerTypeKind:
-                ILGenerator.Emit(type.IntWidth switch
+                if (type.IntWidth > 64)
                 {
-                    1 => OpCodes.Stind_I1,
-                    8 => OpCodes.Stind_I1,
-                    16 => OpCodes.Stind_I2,
-                    32 => OpCodes.Stind_I4,
-                    64 => OpCodes.Stind_I8,
-                    _ => throw new NotImplementedException($"Indirect store not implemented for integer width {type.IntWidth}: {type}")
-                });
+                    ILGenerator.Emit(OpCodes.Stobj, TypeSystem.GetMsilType(type));
+                }
+                else
+                {
+                    ILGenerator.Emit(TypeSystem.RoundUpToTypeSize((int)type.IntWidth) switch
+                    {
+                        8 => OpCodes.Stind_I1,
+                        16 => OpCodes.Stind_I2,
+                        32 => OpCodes.Stind_I4,
+                        64 => OpCodes.Stind_I8,
+                        _ => throw new NotImplementedException($"Indirect store not implemented for integer width {type.IntWidth}: {type}")
+                    });
+                }
                 break;
 
             case LLVMTypeKind.LLVMPointerTypeKind:

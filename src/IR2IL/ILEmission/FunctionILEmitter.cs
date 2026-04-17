@@ -810,6 +810,55 @@ internal sealed class FunctionILEmitter : ILEmitter
 
         switch (operand0.TypeOf.Kind)
         {
+            case LLVMTypeKind.LLVMIntegerTypeKind when operand0.TypeOf.IntWidth > 64:
+                // Int128 is a struct — IL Ceq/Clt/Cgt don't work; use Int128/UInt128 operators.
+                switch (instruction.ICmpPredicate)
+                {
+                    case LLVMIntPredicate.LLVMIntEQ:
+                        ILGenerator.Emit(OpCodes.Call, typeof(Int128).GetMethodStrict("op_Equality", [typeof(Int128), typeof(Int128)]));
+                        break;
+
+                    case LLVMIntPredicate.LLVMIntNE:
+                        ILGenerator.Emit(OpCodes.Call, typeof(Int128).GetMethodStrict("op_Inequality", [typeof(Int128), typeof(Int128)]));
+                        break;
+
+                    case LLVMIntPredicate.LLVMIntSGE:
+                        ILGenerator.Emit(OpCodes.Call, typeof(Int128).GetMethodStrict("op_GreaterThanOrEqual", [typeof(Int128), typeof(Int128)]));
+                        break;
+
+                    case LLVMIntPredicate.LLVMIntSGT:
+                        ILGenerator.Emit(OpCodes.Call, typeof(Int128).GetMethodStrict("op_GreaterThan", [typeof(Int128), typeof(Int128)]));
+                        break;
+
+                    case LLVMIntPredicate.LLVMIntSLE:
+                        ILGenerator.Emit(OpCodes.Call, typeof(Int128).GetMethodStrict("op_LessThanOrEqual", [typeof(Int128), typeof(Int128)]));
+                        break;
+
+                    case LLVMIntPredicate.LLVMIntSLT:
+                        ILGenerator.Emit(OpCodes.Call, typeof(Int128).GetMethodStrict("op_LessThan", [typeof(Int128), typeof(Int128)]));
+                        break;
+
+                    case LLVMIntPredicate.LLVMIntUGE:
+                        ILGenerator.Emit(OpCodes.Call, typeof(WideIntegerHelper).GetStaticMethodStrict(nameof(WideIntegerHelper.UgeInt128)));
+                        break;
+
+                    case LLVMIntPredicate.LLVMIntUGT:
+                        ILGenerator.Emit(OpCodes.Call, typeof(WideIntegerHelper).GetStaticMethodStrict(nameof(WideIntegerHelper.UgtInt128)));
+                        break;
+
+                    case LLVMIntPredicate.LLVMIntULE:
+                        ILGenerator.Emit(OpCodes.Call, typeof(WideIntegerHelper).GetStaticMethodStrict(nameof(WideIntegerHelper.UleInt128)));
+                        break;
+
+                    case LLVMIntPredicate.LLVMIntULT:
+                        ILGenerator.Emit(OpCodes.Call, typeof(WideIntegerHelper).GetStaticMethodStrict(nameof(WideIntegerHelper.UltInt128)));
+                        break;
+
+                    default:
+                        throw new NotImplementedException($"Integer comparison predicate {instruction.ICmpPredicate} not implemented for i128: {instruction}");
+                }
+                break;
+
             case LLVMTypeKind.LLVMIntegerTypeKind:
             case LLVMTypeKind.LLVMPointerTypeKind:
                 switch (instruction.ICmpPredicate)
@@ -1230,6 +1279,16 @@ internal sealed class FunctionILEmitter : ILEmitter
                 ILGenerator.Emit(OpCodes.Conv_U8);
                 break;
 
+            case (128, Signedness.Signed):
+                ILGenerator.Emit(OpCodes.Conv_I8);
+                ILGenerator.Emit(OpCodes.Call, typeof(Int128).GetMethodStrict("op_Implicit", [typeof(long)]));
+                break;
+
+            case (128, Signedness.Unsigned):
+                ILGenerator.Emit(OpCodes.Conv_U8);
+                ILGenerator.Emit(OpCodes.Call, typeof(Int128).GetMethodStrict("op_Implicit", [typeof(ulong)]));
+                break;
+
             default:
                 throw new NotImplementedException($"Integer conversion not implemented to int width {bits} {signedness}");
         }
@@ -1592,6 +1651,48 @@ internal sealed class FunctionILEmitter : ILEmitter
             EmitValue(condition.GetOperand(0));
             EmitValue(condition.GetOperand(1));
 
+            // Int128 is a struct — Beq/Blt/etc. don't work; use Int128/UInt128 operators then Brtrue.
+            if (condition.GetOperand(0).TypeOf.Kind == LLVMTypeKind.LLVMIntegerTypeKind &&
+                condition.GetOperand(0).TypeOf.IntWidth > 64)
+            {
+                switch (condition.ICmpPredicate)
+                {
+                    case LLVMIntPredicate.LLVMIntEQ:
+                        ILGenerator.Emit(OpCodes.Call, typeof(Int128).GetMethodStrict("op_Equality", [typeof(Int128), typeof(Int128)]));
+                        break;
+                    case LLVMIntPredicate.LLVMIntNE:
+                        ILGenerator.Emit(OpCodes.Call, typeof(Int128).GetMethodStrict("op_Inequality", [typeof(Int128), typeof(Int128)]));
+                        break;
+                    case LLVMIntPredicate.LLVMIntSGE:
+                        ILGenerator.Emit(OpCodes.Call, typeof(Int128).GetMethodStrict("op_GreaterThanOrEqual", [typeof(Int128), typeof(Int128)]));
+                        break;
+                    case LLVMIntPredicate.LLVMIntSGT:
+                        ILGenerator.Emit(OpCodes.Call, typeof(Int128).GetMethodStrict("op_GreaterThan", [typeof(Int128), typeof(Int128)]));
+                        break;
+                    case LLVMIntPredicate.LLVMIntSLE:
+                        ILGenerator.Emit(OpCodes.Call, typeof(Int128).GetMethodStrict("op_LessThanOrEqual", [typeof(Int128), typeof(Int128)]));
+                        break;
+                    case LLVMIntPredicate.LLVMIntSLT:
+                        ILGenerator.Emit(OpCodes.Call, typeof(Int128).GetMethodStrict("op_LessThan", [typeof(Int128), typeof(Int128)]));
+                        break;
+                    case LLVMIntPredicate.LLVMIntUGE:
+                        ILGenerator.Emit(OpCodes.Call, typeof(WideIntegerHelper).GetStaticMethodStrict(nameof(WideIntegerHelper.UgeInt128)));
+                        break;
+                    case LLVMIntPredicate.LLVMIntUGT:
+                        ILGenerator.Emit(OpCodes.Call, typeof(WideIntegerHelper).GetStaticMethodStrict(nameof(WideIntegerHelper.UgtInt128)));
+                        break;
+                    case LLVMIntPredicate.LLVMIntULE:
+                        ILGenerator.Emit(OpCodes.Call, typeof(WideIntegerHelper).GetStaticMethodStrict(nameof(WideIntegerHelper.UleInt128)));
+                        break;
+                    case LLVMIntPredicate.LLVMIntULT:
+                        ILGenerator.Emit(OpCodes.Call, typeof(WideIntegerHelper).GetStaticMethodStrict(nameof(WideIntegerHelper.UltInt128)));
+                        break;
+                    default:
+                        throw new NotImplementedException($"Branch condition i128 comparison {condition.ICmpPredicate} not implemented: {condition}");
+                }
+                return OpCodes.Brtrue;
+            }
+
             return condition.ICmpPredicate switch
             {
                 LLVMIntPredicate.LLVMIntEQ => OpCodes.Beq,
@@ -1793,13 +1894,22 @@ internal sealed class FunctionILEmitter : ILEmitter
         // TODO: If every operand is const, call GetElementPtrConst
 
         var pointer = instruction.GetOperand(0);
+        var firstIndex = instruction.GetOperand(1);
+
+        // When the first index is a vector, the result is a vector of pointers.
+        if (firstIndex.TypeOf.Kind == LLVMTypeKind.LLVMVectorTypeKind)
+        {
+            EmitVectorGetElementPtr(instruction, pointer, firstIndex);
+            return;
+        }
+
         EmitValue(pointer);
 
         var sourceElementType = (LLVMTypeRef)LLVM.GetGEPSourceElementType(instruction);
         var currentType = sourceElementType;
 
         // First index operand always indexes into the source element pointer type.
-        EmitIndexedPtr(instruction.GetOperand(1), currentType);
+        EmitIndexedPtr(firstIndex, currentType);
 
         for (var i = 2u; i < instruction.OperandCount; i++)
         {
@@ -1842,6 +1952,65 @@ internal sealed class FunctionILEmitter : ILEmitter
                     throw new NotImplementedException($"GetElementPtr not implemented for index {index} for type {currentType}: {instruction}");
             }
         }
+    }
+
+    private unsafe void EmitVectorGetElementPtr(LLVMValueRef instruction, LLVMValueRef pointer, LLVMValueRef indexVector)
+    {
+        var sourceElementType = (LLVMTypeRef)LLVM.GetGEPSourceElementType(instruction);
+        var sizeInBytes = TypeSystem.GetSizeOfTypeInBytes(sourceElementType);
+        var vectorSize = (int)indexVector.TypeOf.VectorSize;
+
+        // Store base pointer to a local so we can reuse it.
+        var baseLocal = ILGenerator.DeclareLocal(typeof(void*));
+        EmitValue(pointer);
+        ILGenerator.Emit(OpCodes.Stloc, baseLocal);
+
+        // Store the index vector to a local so we can extract individual elements.
+        var indexVectorLocal = ILGenerator.DeclareLocal(TypeSystem.GetMsilType(indexVector.TypeOf));
+        EmitValue(indexVector);
+        ILGenerator.Emit(OpCodes.Stloc, indexVectorLocal);
+
+        // Create a zero-initialised result vector local.
+        var resultType = TypeSystem.GetMsilType(instruction.TypeOf);
+        var resultLocal = ILGenerator.DeclareLocal(resultType);
+        ILGenerator.Emit(OpCodes.Ldloca, resultLocal);
+        ILGenerator.Emit(OpCodes.Initobj, resultType);
+
+        var indexElementSizeInBytes = TypeSystem.GetSizeOfTypeInBytes(indexVector.TypeOf.ElementType);
+        var resultElementSizeInBytes = TypeSystem.GetSizeOfTypeInBytes(instruction.TypeOf.ElementType);
+
+        for (var i = 0; i < vectorSize; i++)
+        {
+            // Push address of resultLocal[i].
+            ILGenerator.Emit(OpCodes.Ldloca, resultLocal);
+            ILGenerator.Emit(OpCodes.Ldc_I4, i * resultElementSizeInBytes);
+            ILGenerator.Emit(OpCodes.Conv_U);
+            ILGenerator.Emit(OpCodes.Add);
+
+            // Compute base + indices[i] * sizeInBytes.
+            ILGenerator.Emit(OpCodes.Ldloc, baseLocal);
+
+            ILGenerator.Emit(OpCodes.Ldloca, indexVectorLocal);
+            ILGenerator.Emit(OpCodes.Ldc_I4, i * indexElementSizeInBytes);
+            ILGenerator.Emit(OpCodes.Conv_U);
+            ILGenerator.Emit(OpCodes.Add);
+            EmitLoadIndirect(indexVector.TypeOf.ElementType);
+            ILGenerator.Emit(OpCodes.Conv_I8);
+
+            if (sizeInBytes != 1)
+            {
+                ILGenerator.Emit(OpCodes.Ldc_I8, (long)sizeInBytes);
+                ILGenerator.Emit(OpCodes.Mul);
+            }
+
+            ILGenerator.Emit(OpCodes.Conv_U);
+            ILGenerator.Emit(OpCodes.Add);
+
+            // Store the computed pointer into resultLocal[i].
+            ILGenerator.Emit(OpCodes.Stind_I);
+        }
+
+        ILGenerator.Emit(OpCodes.Ldloc, resultLocal);
     }
 
     private void EmitIndexedPtr(LLVMValueRef index, LLVMTypeRef currentType)

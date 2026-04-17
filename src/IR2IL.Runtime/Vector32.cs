@@ -130,6 +130,21 @@ public static class Vector32
     }
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    public static uint ExtractMostSignificantBits<T>(this Vector32<T> vector)
+        where T : unmanaged
+    {
+        uint result = 0;
+        for (int index = 0; index < Vector32<T>.Count; index++)
+        {
+            T element = vector.GetElementUnsafe(index);
+            ref byte elementBytes = ref Unsafe.As<T, byte>(ref element);
+            byte msbByte = Unsafe.Add(ref elementBytes, Unsafe.SizeOf<T>() - 1);
+            result |= (uint)(msbByte >> 7) << index;
+        }
+        return result;
+    }
+
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public static Vector32<T> Equals<T>(Vector32<T> left, Vector32<T> right)
         where T : unmanaged, IEqualityOperators<T, T, bool>
     {
