@@ -336,6 +336,14 @@ public static class VectorUtility
         return Vector256.Create(Math.Atan(vector[0]), Math.Atan(vector[1]), Math.Atan(vector[2]), Math.Atan(vector[3]));
     }
 
+    // Tan
+
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    public static Vector128<double> TanV2F64(Vector128<double> vector)
+    {
+        return Vector128.Create(Math.Tan(vector[0]), Math.Tan(vector[1]));
+    }
+
     // Sinh
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
