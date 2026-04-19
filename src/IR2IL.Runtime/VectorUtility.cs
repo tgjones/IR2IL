@@ -251,6 +251,84 @@ public static class VectorUtility
         return Vector256.Create(Math.Pow(left[0], right[0]), Math.Pow(left[1], right[1]), Math.Pow(left[2], right[2]), Math.Pow(left[3], right[3]));
     }
 
+    // Acos
+
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    public static Vector64<float> AcosV2F32(Vector64<float> vector)
+    {
+        return Vector64.Create(MathF.Acos(vector[0]), MathF.Acos(vector[1]));
+    }
+
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    public static Vector128<double> AcosV2F64(Vector128<double> vector)
+    {
+        return Vector128.Create(Math.Acos(vector[0]), Math.Acos(vector[1]));
+    }
+
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    public static Vector128<float> AcosV4F32(Vector128<float> vector)
+    {
+        return Vector128.Create(MathF.Acos(vector[0]), MathF.Acos(vector[1]), MathF.Acos(vector[2]), MathF.Acos(vector[3]));
+    }
+
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    public static Vector256<double> AcosV4F64(Vector256<double> vector)
+    {
+        return Vector256.Create(Math.Acos(vector[0]), Math.Acos(vector[1]), Math.Acos(vector[2]), Math.Acos(vector[3]));
+    }
+
+    // Asin
+
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    public static Vector64<float> AsinV2F32(Vector64<float> vector)
+    {
+        return Vector64.Create(MathF.Asin(vector[0]), MathF.Asin(vector[1]));
+    }
+
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    public static Vector128<double> AsinV2F64(Vector128<double> vector)
+    {
+        return Vector128.Create(Math.Asin(vector[0]), Math.Asin(vector[1]));
+    }
+
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    public static Vector128<float> AsinV4F32(Vector128<float> vector)
+    {
+        return Vector128.Create(MathF.Asin(vector[0]), MathF.Asin(vector[1]), MathF.Asin(vector[2]), MathF.Asin(vector[3]));
+    }
+
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    public static Vector256<double> AsinV4F64(Vector256<double> vector)
+    {
+        return Vector256.Create(Math.Asin(vector[0]), Math.Asin(vector[1]), Math.Asin(vector[2]), Math.Asin(vector[3]));
+    }
+
+    // Atan
+
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    public static Vector64<float> AtanV2F32(Vector64<float> vector)
+    {
+        return Vector64.Create(MathF.Atan(vector[0]), MathF.Atan(vector[1]));
+    }
+
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    public static Vector128<double> AtanV2F64(Vector128<double> vector)
+    {
+        return Vector128.Create(Math.Atan(vector[0]), Math.Atan(vector[1]));
+    }
+
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    public static Vector128<float> AtanV4F32(Vector128<float> vector)
+    {
+        return Vector128.Create(MathF.Atan(vector[0]), MathF.Atan(vector[1]), MathF.Atan(vector[2]), MathF.Atan(vector[3]));
+    }
+
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    public static Vector256<double> AtanV4F64(Vector256<double> vector)
+    {
+        return Vector256.Create(Math.Atan(vector[0]), Math.Atan(vector[1]), Math.Atan(vector[2]), Math.Atan(vector[3]));
+    }
+
     // SIToFP
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
