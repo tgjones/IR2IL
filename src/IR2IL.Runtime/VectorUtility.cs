@@ -361,6 +361,12 @@ public static class VectorUtility
     // Cosh
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    public static Vector64<float> CoshV2F32(Vector64<float> vector)
+    {
+        return Vector64.Create(MathF.Cosh(vector[0]), MathF.Cosh(vector[1]));
+    }
+
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public static Vector128<double> CoshV2F64(Vector128<double> vector)
     {
         return Vector128.Create(Math.Cosh(vector[0]), Math.Cosh(vector[1]));
