@@ -110,6 +110,7 @@ internal static class IntrinsicFunctions
         { "llvm.tan.v2f64", StandardIntrinsicFunction.Create(typeof(VectorUtility), nameof(VectorUtility.TanV2F64)) },
         { "llvm.tanh.f32", StandardIntrinsicFunction.Create(typeof(MathF), nameof(MathF.Tanh)) },
         { "llvm.tanh.f64", StandardIntrinsicFunction.Create(typeof(Math), nameof(Math.Tanh)) },
+        { "llvm.tanh.v2f32", StandardIntrinsicFunction.Create(typeof(VectorUtility), nameof(VectorUtility.TanhV2F32)) },
         { "llvm.umin.i32", StandardIntrinsicFunction.Create(typeof(Math), nameof(Math.Min), typeof(uint), typeof(uint)) },
         { "llvm.umax.i64", StandardIntrinsicFunction.Create(typeof(Math), nameof(Math.Max), typeof(ulong), typeof(ulong)) },
         { "llvm.vector.reduce.add.v4i64", StandardIntrinsicFunction.CreateGeneric(typeof(Vector256), nameof(Vector256.Sum), typeof(long)) },

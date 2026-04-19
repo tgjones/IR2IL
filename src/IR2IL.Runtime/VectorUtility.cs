@@ -372,6 +372,14 @@ public static class VectorUtility
         return Vector128.Create(Math.Cosh(vector[0]), Math.Cosh(vector[1]));
     }
 
+    // Tanh
+
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    public static Vector64<float> TanhV2F32(Vector64<float> vector)
+    {
+        return Vector64.Create(MathF.Tanh(vector[0]), MathF.Tanh(vector[1]));
+    }
+
     // Atan2
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
@@ -485,6 +493,12 @@ public static class VectorUtility
     public static Vector64<float> SignedRemainderV2F32(Vector64<float> left, Vector64<float> right)
     {
         return Vector64.Create(left[0] % right[0], left[1] % right[1]);
+    }
+
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    public static Vector128<float> SignedRemainderV4F32(Vector128<float> left, Vector128<float> right)
+    {
+        return Vector128.Create(left[0] % right[0], left[1] % right[1], left[2] % right[2], left[3] % right[3]);
     }
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
