@@ -4,6 +4,30 @@
 
 IR2IL is a proof-of-concept LLVM IR to MSIL (CIL) translator. It compiles LLVM IR (`.ll` files produced by clang) into .NET assemblies using `System.Reflection.Emit`, then runs them on the CLR.
 
+## Running quick throwaway C# programs
+
+`dotnet script` and `dotnet-script` are **not available** in this environment. To run a one-off C# snippet (e.g. to inspect BCL APIs via reflection), create a temp project manually:
+
+```bash
+mkdir -p /tmp/probe && cd /tmp/probe && cat > probe.csproj << 'EOF'
+<Project Sdk="Microsoft.NET.Sdk">
+  <PropertyGroup>
+    <OutputType>Exe</OutputType>
+    <TargetFramework>net10.0</TargetFramework>
+  </PropertyGroup>
+</Project>
+EOF
+cat > Program.cs << 'EOF'
+using System;
+using System.Linq;
+using System.Reflection;
+// ... your code here
+EOF
+dotnet run
+```
+
+Include all necessary `using` directives — implicit global usings are not always available for all APIs (e.g. `System.Reflection` must be explicit).
+
 ## Running tests
 
 The solution file is at `src/IR2IL.sln`. Always run tests from the repo root:
@@ -50,8 +74,8 @@ New intrinsics are registered in `src/IR2IL/Intrinsics/IntrinsicFunctions.cs`. U
 
 - **Scalar BCL methods** (unambiguous): `StandardIntrinsicFunction.Create(typeof(MathF), nameof(MathF.Sqrt))`
 - **Scalar BCL methods** (ambiguous overloads, e.g. `MathF.Log`): pass explicit parameter types — `StandardIntrinsicFunction.Create(typeof(MathF), nameof(MathF.Log), typeof(float))`
-- **Vector BCL methods** (e.g. `Vector128.Exp`, `Vector64.Log`): these are **not** generic method definitions — they have concrete typed overloads. Use `Create` with the concrete vector parameter type: `StandardIntrinsicFunction.Create(typeof(Vector128), nameof(Vector128.Exp), typeof(Vector128<double>))`
-- **Truly generic vector methods** (e.g. `Vector128.Sum<T>`): use `StandardIntrinsicFunction.CreateGeneric(typeof(Vector128), nameof(Vector128.Sum), typeof(int))`
+- **Vector BCL methods with concrete typed overloads** (e.g. `Vector128.Exp`, `Vector64.Log`): use `Create` with the concrete vector parameter type: `StandardIntrinsicFunction.Create(typeof(Vector128), nameof(Vector128.Exp), typeof(Vector128<double>))`
+- **Generic-only vector methods** (e.g. `Vector128.Sqrt<T>`, `Vector128.Sum<T>`): use `StandardIntrinsicFunction.CreateGeneric` with the element type as the type argument: `StandardIntrinsicFunction.CreateGeneric(typeof(Vector128), nameof(Vector128.Sqrt), typeof(double))`. To tell which kind a method is, check via reflection — `Create` fails at startup with `Method X not found` if you use it for a generic-only method.
 - **Custom helpers**: add a method to `src/IR2IL.Runtime/VectorUtility.cs` (or `LLVMIntrinsics.cs`) and register with `StandardIntrinsicFunction.Create(typeof(VectorUtility), nameof(VectorUtility.MyMethod))`
 
 ### Arbitrary-width integer types
