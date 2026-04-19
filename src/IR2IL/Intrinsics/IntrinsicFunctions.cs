@@ -144,7 +144,7 @@ internal static class IntrinsicFunctions
         { "llvm.stacksave.p0", new LLVMStackSaveIntrinsicFunction() },
         { "llvm.threadlocal.address.p0", new LLVMThreadLocalAddressIntrinsicFunction() },
         { "llvm.usub.sat.i32", new LLVMUSubSatI32IntrinsicFunction() },
-        { "llvm.va_start", new LLVMVaStartIntrinsicFunction() },
+        { "llvm.va_start.p0", new LLVMVaStartIntrinsicFunction() },
 
         { "llvm.objectsize.i64.p0", new LLVMObjectSizeIntrinsicFunction() },
 
