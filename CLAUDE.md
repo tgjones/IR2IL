@@ -8,6 +8,8 @@ IR2IL is a proof-of-concept LLVM IR to MSIL (CIL) translator. It compiles LLVM I
 
 `dotnet script` and `dotnet-script` are **not available** in this environment. To run a one-off C# snippet (e.g. to inspect BCL APIs via reflection), create a temp project manually:
 
+Each Bash tool call starts with the cwd reset to the repo root — `cd` in one call has no effect on the next. So the `.csproj`, `Program.cs`, and `dotnet run` must all be in a **single Bash call**:
+
 ```bash
 mkdir -p /tmp/probe && cd /tmp/probe && cat > probe.csproj << 'EOF'
 <Project Sdk="Microsoft.NET.Sdk">
