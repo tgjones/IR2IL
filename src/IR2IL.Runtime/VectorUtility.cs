@@ -350,6 +350,12 @@ public static class VectorUtility
         return Vector128.Create(MathF.Atan2(y[0], x[0]), MathF.Atan2(y[1], x[1]), MathF.Atan2(y[2], x[2]), MathF.Atan2(y[3], x[3]));
     }
 
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    public static Vector128<double> Atan2V2F64(Vector128<double> y, Vector128<double> x)
+    {
+        return Vector128.Create(Math.Atan2(y[0], x[0]), Math.Atan2(y[1], x[1]));
+    }
+
     // SIToFP
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
