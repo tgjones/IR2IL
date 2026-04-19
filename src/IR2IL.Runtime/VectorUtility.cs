@@ -167,6 +167,16 @@ public static class VectorUtility
     }
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    public static Vector512<int> SExtV16I8ToV16I32(Vector128<sbyte> vector)
+    {
+        // i8 → i16 → i32
+        var (i16lo, i16hi) = Vector128.Widen(vector);
+        var (i32lo_lo, i32lo_hi) = Vector128.Widen(i16lo);
+        var (i32hi_lo, i32hi_hi) = Vector128.Widen(i16hi);
+        return Vector512.Create(Vector256.Create(i32lo_lo, i32lo_hi), Vector256.Create(i32hi_lo, i32hi_hi));
+    }
+
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public static Vector512<long> SExtV16I8ToV16I64(Vector128<sbyte> vector)
     {
         // i8 → i16 → i32 → i64
@@ -353,6 +363,12 @@ public static class VectorUtility
     // Sinh
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    public static Vector64<float> SinhV2F32(Vector64<float> vector)
+    {
+        return Vector64.Create(MathF.Sinh(vector[0]), MathF.Sinh(vector[1]));
+    }
+
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public static Vector128<double> SinhV2F64(Vector128<double> vector)
     {
         return Vector128.Create(Math.Sinh(vector[0]), Math.Sinh(vector[1]));
@@ -378,6 +394,12 @@ public static class VectorUtility
     public static Vector64<float> TanhV2F32(Vector64<float> vector)
     {
         return Vector64.Create(MathF.Tanh(vector[0]), MathF.Tanh(vector[1]));
+    }
+
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    public static Vector128<double> TanhV2F64(Vector128<double> vector)
+    {
+        return Vector128.Create(Math.Tanh(vector[0]), Math.Tanh(vector[1]));
     }
 
     // Atan2
@@ -426,6 +448,13 @@ public static class VectorUtility
     public static Vector128<double> SIToFPV2I64ToV2F64(Vector128<long> vector)
     {
         return Vector128.ConvertToDouble(vector);
+    }
+
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    public static Vector64<float> SIToFPV2I64ToV2F32(Vector128<long> vector)
+    {
+        var doubles = Vector128.ConvertToDouble(vector);
+        return Vector64.Narrow(doubles.GetLower(), doubles.GetUpper());
     }
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
