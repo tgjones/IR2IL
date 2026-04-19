@@ -93,6 +93,7 @@ internal static class IntrinsicFunctions
         { "llvm.sinh.f32", StandardIntrinsicFunction.Create(typeof(MathF), nameof(MathF.Sinh)) },
         { "llvm.sinh.f64", StandardIntrinsicFunction.Create(typeof(Math), nameof(Math.Sinh)) },
         { "llvm.sinh.v2f64", StandardIntrinsicFunction.Create(typeof(VectorUtility), nameof(VectorUtility.SinhV2F64)) },
+        { "llvm.scmp.i32.i32", StandardIntrinsicFunction.Create(typeof(VectorUtility), nameof(VectorUtility.Scmp)) },
         { "llvm.smin.i32", StandardIntrinsicFunction.Create(typeof(Math), nameof(Math.Min), typeof(int), typeof(int)) },
         { "llvm.smax.i32", StandardIntrinsicFunction.Create(typeof(Math), nameof(Math.Max), typeof(int), typeof(int)) },
         { "llvm.smax.i64", StandardIntrinsicFunction.Create(typeof(Math), nameof(Math.Max), typeof(long), typeof(long)) },

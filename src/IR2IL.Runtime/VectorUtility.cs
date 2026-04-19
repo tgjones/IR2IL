@@ -764,4 +764,9 @@ public static class VectorUtility
         var (lower, upper) = Vector128.Widen(vector.AsUInt32());
         return Vector256.Create(lower.AsInt64(), upper.AsInt64());
     }
+
+    // Scmp / Ucmp
+
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    public static int Scmp(int a, int b) => a < b ? -1 : a > b ? 1 : 0;
 }
