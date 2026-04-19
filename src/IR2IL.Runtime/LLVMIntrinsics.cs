@@ -194,4 +194,16 @@ public static unsafe class LLVMIntrinsics
             return result;
         }
     }
+
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    public static float VectorReduceFAddV4F32(float acc, Vector128<float> vector)
+    {
+        return acc + Vector128.Sum(vector);
+    }
+
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    public static double VectorReduceFAddV2F64(double acc, Vector128<double> vector)
+    {
+        return acc + Vector128.Sum(vector);
+    }
 }

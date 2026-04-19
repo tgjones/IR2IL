@@ -125,6 +125,8 @@ internal static class IntrinsicFunctions
         { "llvm.vector.reduce.add.v16i64", StandardIntrinsicFunction.CreateGeneric(typeof(Vector1024), nameof(Vector1024.Sum), typeof(long)) },
 
         // Standard intrinsics using custom methods.
+        { "llvm.vector.reduce.fadd.v2f64", StandardIntrinsicFunction.Create(typeof(LLVMIntrinsics), nameof(Runtime.LLVMIntrinsics.VectorReduceFAddV2F64)) },
+        { "llvm.vector.reduce.fadd.v4f32", StandardIntrinsicFunction.Create(typeof(LLVMIntrinsics), nameof(Runtime.LLVMIntrinsics.VectorReduceFAddV4F32)) },
         { "llvm.vector.reduce.mul.v4i32", StandardIntrinsicFunction.Create(typeof(LLVMIntrinsics), nameof(Runtime.LLVMIntrinsics.VectorReduceMulV4I32)) },
         { "llvm.vector.reduce.mul.v16i8", StandardIntrinsicFunction.Create(typeof(LLVMIntrinsics), nameof(Runtime.LLVMIntrinsics.VectorReduceMulV16I8)) },
         { "llvm.vector.reduce.mul.v16i16", StandardIntrinsicFunction.Create(typeof(LLVMIntrinsics), nameof(Runtime.LLVMIntrinsics.VectorReduceMulV16I16)) },
