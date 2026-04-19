@@ -339,6 +339,12 @@ public static class VectorUtility
     // Tan
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    public static Vector64<float> TanV2F32(Vector64<float> vector)
+    {
+        return Vector64.Create(MathF.Tan(vector[0]), MathF.Tan(vector[1]));
+    }
+
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public static Vector128<double> TanV2F64(Vector128<double> vector)
     {
         return Vector128.Create(Math.Tan(vector[0]), Math.Tan(vector[1]));

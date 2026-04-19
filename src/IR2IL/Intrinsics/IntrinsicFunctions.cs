@@ -104,6 +104,7 @@ internal static class IntrinsicFunctions
         { "llvm.sqrt.v4f64", StandardIntrinsicFunction.CreateGeneric(typeof(Vector256), nameof(Vector256.Sqrt), typeof(double)) },
         { "llvm.tan.f32", StandardIntrinsicFunction.Create(typeof(MathF), nameof(MathF.Tan)) },
         { "llvm.tan.f64", StandardIntrinsicFunction.Create(typeof(Math), nameof(Math.Tan)) },
+        { "llvm.tan.v2f32", StandardIntrinsicFunction.Create(typeof(VectorUtility), nameof(VectorUtility.TanV2F32)) },
         { "llvm.tan.v2f64", StandardIntrinsicFunction.Create(typeof(VectorUtility), nameof(VectorUtility.TanV2F64)) },
         { "llvm.tanh.f32", StandardIntrinsicFunction.Create(typeof(MathF), nameof(MathF.Tanh)) },
         { "llvm.tanh.f64", StandardIntrinsicFunction.Create(typeof(Math), nameof(Math.Tanh)) },
