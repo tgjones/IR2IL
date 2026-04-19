@@ -10,6 +10,8 @@ internal static class IntrinsicFunctions
     public static readonly Dictionary<string, IntrinsicFunction> LLVMIntrinsics = new()
     {
         // Standard intrinsics using Base Class Library methods.
+        { "llvm.abs.i32", LLVMAbsIntIntrinsicFunction.Create(typeof(Math), typeof(int)) },
+        { "llvm.abs.i64", LLVMAbsIntIntrinsicFunction.Create(typeof(Math), typeof(long)) },
         { "llvm.acos.f32", StandardIntrinsicFunction.Create(typeof(MathF), nameof(MathF.Acos)) },
         { "llvm.acos.f64", StandardIntrinsicFunction.Create(typeof(Math), nameof(Math.Acos)) },
         { "llvm.asin.f32", StandardIntrinsicFunction.Create(typeof(MathF), nameof(MathF.Asin)) },
