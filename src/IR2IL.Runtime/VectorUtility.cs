@@ -336,6 +336,14 @@ public static class VectorUtility
         return Vector256.Create(Math.Atan(vector[0]), Math.Atan(vector[1]), Math.Atan(vector[2]), Math.Atan(vector[3]));
     }
 
+    // Sinh
+
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    public static Vector128<double> SinhV2F64(Vector128<double> vector)
+    {
+        return Vector128.Create(Math.Sinh(vector[0]), Math.Sinh(vector[1]));
+    }
+
     // Cosh
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
