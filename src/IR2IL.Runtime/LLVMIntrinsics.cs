@@ -120,6 +120,13 @@ public static unsafe class LLVMIntrinsics
     }
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    public static int VectorReduceAddV12I32(Vector512<int> vector)
+    {
+        // v12i32 is stored in a Vector512<int>; only elements 0-11 are valid.
+        return Vector256.Sum(vector.GetLower()) + Vector128.Sum(vector.GetUpper().GetLower());
+    }
+
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public static int VectorReduceMulV4I32(Vector128<int> vector)
     {
         if (Sse41.IsSupported)

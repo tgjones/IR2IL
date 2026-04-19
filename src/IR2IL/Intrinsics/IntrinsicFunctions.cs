@@ -124,6 +124,7 @@ internal static class IntrinsicFunctions
         { "llvm.vector.reduce.add.v8i16", StandardIntrinsicFunction.CreateGeneric(typeof(Vector128), nameof(Vector128.Sum), typeof(short)) },
         { "llvm.vector.reduce.add.v16i8", StandardIntrinsicFunction.CreateGeneric(typeof(Vector128), nameof(Vector128.Sum), typeof(sbyte)) },
         { "llvm.vector.reduce.add.v16i16", StandardIntrinsicFunction.CreateGeneric(typeof(Vector256), nameof(Vector256.Sum), typeof(short)) },
+        { "llvm.vector.reduce.add.v12i32", StandardIntrinsicFunction.Create(typeof(LLVMIntrinsics), nameof(Runtime.LLVMIntrinsics.VectorReduceAddV12I32)) },
         { "llvm.vector.reduce.add.v16i32", StandardIntrinsicFunction.CreateGeneric(typeof(Vector512), nameof(Vector512.Sum), typeof(int)) },
         { "llvm.vector.reduce.add.v16i64", StandardIntrinsicFunction.CreateGeneric(typeof(Vector1024), nameof(Vector1024.Sum), typeof(long)) },
 

@@ -644,9 +644,13 @@ internal sealed class FunctionILEmitter : ILEmitter
             // Emit scalar value.
             var scalarValue = sourceVector0.GetOperand(1);
             EmitValue(scalarValue);
+            var scalarValueType = TypeSystem.GetMsilVectorElementType(scalarValue.TypeOf);
+            if (scalarValue.TypeOf.Kind == LLVMTypeKind.LLVMPointerTypeKind)
+            {
+                ILGenerator.Emit(OpCodes.Conv_I);
+            }
 
             // Create vector from scalar value.
-            var scalarValueType = TypeSystem.GetMsilType(scalarValue.TypeOf);
             ILGenerator.Emit(
                 OpCodes.Call,
                 TypeSystem.GetNonGenericVectorType(instruction.TypeOf).GetMethodStrict("Create", [scalarValueType]));
@@ -752,10 +756,15 @@ internal sealed class FunctionILEmitter : ILEmitter
         // Value
         var valueOperand = instruction.GetOperand(1);
         EmitValue(valueOperand);
+        var valueType = TypeSystem.GetMsilVectorElementType(valueOperand.TypeOf);
+        if (valueOperand.TypeOf.Kind == LLVMTypeKind.LLVMPointerTypeKind)
+        {
+            ILGenerator.Emit(OpCodes.Conv_I);
+        }
 
         EmitVectorWithElement(
             TypeSystem.GetNonGenericVectorType(vectorOperand.TypeOf),
-            TypeSystem.GetMsilType(valueOperand.TypeOf));
+            valueType);
     }
 
     private void EmitVectorWithElement(Type nonGenericVectorType, Type valueType)
@@ -959,6 +968,11 @@ internal sealed class FunctionILEmitter : ILEmitter
                 // Nothing to do.
                 break;
 
+            case LLVMTypeKind.LLVMPointerTypeKind:
+                // nint and long are both pointer-sized; reinterpret so the result is Vector<long>.
+                ILGenerator.Emit(OpCodes.Call, nonGenericVectorType.GetMethodStrict(nameof(Vector128.AsInt64)).MakeGenericMethod(elementType));
+                break;
+
             default:
                 throw new NotImplementedException($"Vector comparison not implemented for element type {operand0.TypeOf.ElementType.Kind}: {instruction}");
         }
@@ -1063,6 +1077,16 @@ internal sealed class FunctionILEmitter : ILEmitter
                         var floatType = TypeSystem.GetMsilType(operand0.TypeOf);
                         var areUnorderedMethod = typeof(LLVMIntrinsics).GetMethodStrict(nameof(LLVMIntrinsics.AreUnordered), [floatType, floatType]);
                         ILGenerator.Emit(OpCodes.Call, areUnorderedMethod);
+                        break;
+                    }
+
+                    case LLVMRealPredicate.LLVMRealUEQ:
+                    {
+                        var floatType = TypeSystem.GetMsilType(operand0.TypeOf);
+                        var areOrderedAndNotEqualMethod = typeof(LLVMIntrinsics).GetMethodStrict(nameof(LLVMIntrinsics.AreOrderedAndNotEqual), [floatType, floatType]);
+                        ILGenerator.Emit(OpCodes.Call, areOrderedAndNotEqualMethod);
+                        ILGenerator.Emit(OpCodes.Ldc_I4_0);
+                        ILGenerator.Emit(OpCodes.Ceq);
                         break;
                     }
 
@@ -1712,8 +1736,22 @@ internal sealed class FunctionILEmitter : ILEmitter
             && condition.InstructionOpcode == LLVMOpcode.LLVMFCmp
             && condition.TypeOf.Kind == LLVMTypeKind.LLVMIntegerTypeKind)
         {
-            EmitValue(condition.GetOperand(0));
+            var op0 = condition.GetOperand(0);
+            var floatType = TypeSystem.GetMsilType(op0.TypeOf);
+            EmitValue(op0);
             EmitValue(condition.GetOperand(1));
+
+            if (condition.FCmpPredicate == LLVMRealPredicate.LLVMRealUNO)
+            {
+                ILGenerator.Emit(OpCodes.Call, typeof(LLVMIntrinsics).GetMethodStrict(nameof(LLVMIntrinsics.AreUnordered), [floatType, floatType]));
+                return OpCodes.Brtrue;
+            }
+
+            if (condition.FCmpPredicate == LLVMRealPredicate.LLVMRealUEQ)
+            {
+                ILGenerator.Emit(OpCodes.Call, typeof(LLVMIntrinsics).GetMethodStrict(nameof(LLVMIntrinsics.AreOrderedAndNotEqual), [floatType, floatType]));
+                return OpCodes.Brfalse;
+            }
 
             return condition.FCmpPredicate switch
             {

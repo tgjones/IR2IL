@@ -144,6 +144,12 @@ public static class VectorUtility
     }
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    public static Vector128<int> SExtV4I8ToV4I32(Vector32<sbyte> vector)
+    {
+        return Vector128.Create((int)vector[0], (int)vector[1], (int)vector[2], (int)vector[3]);
+    }
+
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public static Vector128<int> SExtV4I16ToV4I32(Vector64<short> vector)
     {
         var (lower, upper) = Vector64.Widen(vector);
@@ -614,6 +620,12 @@ public static class VectorUtility
     public static Vector128<float> UIToFPV4I32ToV4F32(Vector128<int> vector)
     {
         return Vector128.ConvertToSingle(vector.AsUInt32());
+    }
+
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    public static Vector256<float> UIToFPV8I32ToV8F32(Vector256<int> vector)
+    {
+        return Vector256.ConvertToSingle(vector.AsUInt32());
     }
 
     // URem

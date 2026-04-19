@@ -105,10 +105,12 @@ public static class PrintfHelper
             }
 
             // Length modifiers (l, ll, h, hh, z, t, L)
+            var lengthModStart = i;
             while (i < format.Length && "lhzLtq".Contains(format[i]))
             {
                 i++;
             }
+            var lengthMod = format[lengthModStart..i];
 
             if (i >= format.Length)
             {
@@ -123,13 +125,13 @@ public static class PrintfHelper
             {
                 case 'd':
                 case 'i':
-                    formatted = ToInt64(arg).ToString();
+                    formatted = ToInt64ByModifier(arg, lengthMod).ToString();
                     if (precision > formatted.Length) formatted = formatted.PadLeft(precision, '0');
                     sb.Append(ApplyWidth(formatted, width, flags, zeroPad: precision < 0));
                     break;
 
                 case 'u':
-                    formatted = ToUnsignedByType(arg).ToString();
+                    formatted = ToUnsignedByModifier(arg, lengthMod).ToString();
                     if (precision > formatted.Length) formatted = formatted.PadLeft(precision, '0');
                     sb.Append(ApplyWidth(formatted, width, flags, zeroPad: precision < 0));
                     break;
@@ -166,13 +168,13 @@ public static class PrintfHelper
                 }
 
                 case 'x':
-                    formatted = string.Format("{0:x}", ToUnsignedByType(arg));
+                    formatted = string.Format("{0:x}", ToUnsignedByModifier(arg, lengthMod));
                     if (precision > formatted.Length) formatted = formatted.PadLeft(precision, '0');
                     sb.Append(ApplyWidth(formatted, width, flags, zeroPad: precision < 0));
                     break;
 
                 case 'X':
-                    formatted = string.Format("{0:X}", ToUnsignedByType(arg));
+                    formatted = string.Format("{0:X}", ToUnsignedByModifier(arg, lengthMod));
                     if (precision > formatted.Length) formatted = formatted.PadLeft(precision, '0');
                     sb.Append(ApplyWidth(formatted, width, flags, zeroPad: precision < 0));
                     break;
@@ -223,6 +225,36 @@ public static class PrintfHelper
         UIntPtr v => unchecked((ulong)v.ToUInt64()),
         _         => unchecked((ulong)Convert.ToInt64(arg)),
     };
+
+    // On Windows, C's `unsigned long` / `long` are 32-bit; `ll` gives 64-bit.
+    // On Linux/macOS, `l` is 64-bit. This matches the native C ABI for printf.
+    private static ulong ToUnsignedByModifier(object? arg, string modifier)
+    {
+        var full = ToUnsignedByType(arg);
+        return modifier switch
+        {
+            "ll" or "q" => full,
+            "z" or "t"  => full,
+            "hh"        => (byte)full,
+            "h"         => (ushort)full,
+            "l" when OperatingSystem.IsWindows() => (uint)full,
+            _           => full,
+        };
+    }
+
+    private static long ToInt64ByModifier(object? arg, string modifier)
+    {
+        var full = ToInt64(arg);
+        return modifier switch
+        {
+            "ll" or "q" => full,
+            "z" or "t"  => full,
+            "hh"        => (sbyte)full,
+            "h"         => (short)full,
+            "l" when OperatingSystem.IsWindows() => (int)full,
+            _           => full,
+        };
+    }
 
     // .NET may produce 3-digit exponents (e+003) but C requires at least 2 (e+03).
     // Find the exponent marker and strip leading zeros down to 2 digits.
