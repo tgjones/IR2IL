@@ -146,9 +146,10 @@ internal sealed class TypeSystem
             typeof(ValueType),
             packingSize);
 
-        for (var i = 0; i < typeRef.StructElementTypes.Length; i++)
+        var structElementTypes = typeRef.GetStructElementTypes();
+        for (var i = 0; i < structElementTypes.Length; i++)
         {
-            var structElementTypeRef = typeRef.StructElementTypes[i];
+            var structElementTypeRef = structElementTypes[i];
             structType.DefineField(
                 $"Field{i}",
                 GetMsilType(structElementTypeRef),

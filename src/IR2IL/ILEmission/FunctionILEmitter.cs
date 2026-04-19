@@ -39,7 +39,7 @@ internal sealed class FunctionILEmitter : ILEmitter
 
         // Figure out which instructions need their results stored in local variables,
         // and which can be pushed to the stack.
-        foreach (var basicBlock in _function.BasicBlocks)
+        foreach (var basicBlock in _function.GetBasicBlocks())
         {
             var blockInstructions = basicBlock.GetInstructions().ToList();
             for (var i = 0; i < blockInstructions.Count; i++)
@@ -48,9 +48,10 @@ internal sealed class FunctionILEmitter : ILEmitter
             }
         }
 
-        for (var i = 0; i < _function.Params.Length; i++)
+        var functionParams = _function.GetParams();
+        for (var i = 0; i < functionParams.Length; i++)
         {
-            var parameter = _function.Params[i];
+            var parameter = functionParams[i];
             var parameterIndex = i + 1;
 
             var parameterName = _function.GetParameterName(parameterIndex);
@@ -123,7 +124,7 @@ internal sealed class FunctionILEmitter : ILEmitter
 
     public void Compile()
     {
-        foreach (var basicBlock in _function.BasicBlocks)
+        foreach (var basicBlock in _function.GetBasicBlocks())
         {
             foreach (var instruction in basicBlock.GetInstructions())
             {
@@ -138,7 +139,7 @@ internal sealed class FunctionILEmitter : ILEmitter
             }
         }
 
-        foreach (var basicBlock in _function.BasicBlocks)
+        foreach (var basicBlock in _function.GetBasicBlocks())
         {
             var basicBlockLabel = GetOrCreateLabel(basicBlock);
             ILGenerator.MarkLabel(basicBlockLabel);
@@ -1782,7 +1783,7 @@ internal sealed class FunctionILEmitter : ILEmitter
         var isVarArg = functionType.IsFunctionVarArg;
         if (isVarArg)
         {
-            var parameters = functionType.ParamTypes;
+            var parameters = functionType.GetParamTypes();
             varArgsParameterTypes = new Type[operands.Length - 1 - parameters.Length];
             for (var i = 0; i < varArgsParameterTypes.Length; i++)
             {
@@ -1833,7 +1834,7 @@ internal sealed class FunctionILEmitter : ILEmitter
         // We implement them in managed code by parsing the format string + a call to Console.Write / Marshal.Copy.
         if (isVarArg && functionToCall.Name is "printf" or "fprintf" or "__sprintf_chk")
         {
-            var fixedParamTypes = functionType.ParamTypes.Select(t => TypeSystem.GetMsilType(t)).ToArray();
+            var fixedParamTypes = functionType.GetParamTypes().Select(t => TypeSystem.GetMsilType(t)).ToArray();
             var allParamTypes = fixedParamTypes.Concat(varArgsParameterTypes).ToArray();
             var overload = functionToCall.Name switch
             {
@@ -1853,7 +1854,7 @@ internal sealed class FunctionILEmitter : ILEmitter
 
     private unsafe void HandleDebugDeclare(LLVMValueRef instruction)
     {
-        var value = instruction.GetOperand(0).MDNodeOperands[0];
+        var value = instruction.GetOperand(0).GetMDNodeOperands()[0];
 
         var diLocalVariable = instruction.GetOperand(1);
         var diLocalVariableName = diLocalVariable.GetDILocalVariableName();

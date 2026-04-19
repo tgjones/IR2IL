@@ -30,7 +30,7 @@ internal static partial class LLVMExtensions
 
     public static string? GetParameterName(this LLVMValueRef function, int parameterIndex)
     {
-        foreach (var basicBlock in function.BasicBlocks)
+        foreach (var basicBlock in function.GetBasicBlocks())
         {
             foreach (var instruction in basicBlock.GetInstructions())
             {
@@ -331,7 +331,7 @@ internal static partial class LLVMExtensions
             throw new InvalidOperationException();
         }
 
-        return value.MDNodeOperands[1].GetMDString(out _);
+        return value.GetMDNodeOperands()[1].GetMDString(out _);
     }
 
     [GeneratedRegex("arg: (\\d+),")]

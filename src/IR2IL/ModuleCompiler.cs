@@ -197,7 +197,7 @@ internal sealed class ModuleCompiler : IDisposable
                     function.Name,
                     functionType.IsFunctionVarArg ? CallingConventions.VarArgs : CallingConventions.Standard,
                     _typeSystem.GetMsilType(functionType.ReturnType),
-                    functionType.ParamTypes.Select(x => _typeSystem.GetMsilType(x)).ToArray());
+                    [.. functionType.GetParamTypes().Select(x => _typeSystem.GetMsilType(x))]);
         }
     }
 
@@ -205,7 +205,7 @@ internal sealed class ModuleCompiler : IDisposable
     {
         var functionType = (LLVMTypeRef)LLVM.GlobalGetValueType(function);
 
-        var parameters = function.Params;
+        var parameters = function.GetParams();
         var parameterTypes = new Type[parameters.Length];
         for (var i = 0; i < parameters.Length; i++)
         {

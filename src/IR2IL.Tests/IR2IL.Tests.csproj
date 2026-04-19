@@ -25,12 +25,12 @@
           Inputs="$(MSBuildThisFileFullPath)"
           Outputs="$(LlvmMarkerPath)">
     <PropertyGroup Condition="$([MSBuild]::IsOSPlatform('Windows'))">
-      <LlvmDownloadUrl>https://github.com/llvm/llvm-project/releases/download/llvmorg-16.0.4/LLVM-16.0.4-win64.exe</LlvmDownloadUrl>
+      <LlvmDownloadUrl>https://github.com/llvm/llvm-project/releases/download/llvmorg-20.1.2/LLVM-20.1.2-win64.exe</LlvmDownloadUrl>
       <ClangPathInArchive>bin\clang.exe</ClangPathInArchive>
     </PropertyGroup>
     <PropertyGroup Condition="$([MSBuild]::IsOSPlatform('OSX'))">
-      <LlvmDownloadUrl>https://github.com/llvm/llvm-project/releases/download/llvmorg-16.0.4/clang+llvm-16.0.4-arm64-apple-darwin22.0.tar.xz</LlvmDownloadUrl>
-      <ClangPathInArchive>clang+llvm-16.0.4-arm64-apple-darwin22.0/bin/clang</ClangPathInArchive>
+      <LlvmDownloadUrl>https://github.com/llvm/llvm-project/releases/download/llvmorg-20.1.2/LLVM-20.1.2-macOS-ARM64.tar.xz</LlvmDownloadUrl>
+      <ClangPathInArchive>LLVM-20.1.2-macOS-ARM64/bin/clang</ClangPathInArchive>
     </PropertyGroup>
 
     <Error Condition="'$(LlvmDownloadUrl)' == ''" Text="Unsupported platform: LlvmDownloadUrl is not set." />
@@ -45,7 +45,7 @@
 
     <MakeDir Condition="$([MSBuild]::IsOSPlatform('OSX'))" Directories="$(LlvmPath)" />
     <Exec Condition="$([MSBuild]::IsOSPlatform('OSX'))"
-          Command="tar -xJf &quot;$(DownloadedLlvmPath)&quot; --strip-components=1 -C &quot;$(LlvmPath)&quot; &quot;$(ClangPathInArchive)&quot; &quot;clang+llvm-16.0.4-arm64-apple-darwin22.0/bin/clang-16&quot; &quot;clang+llvm-16.0.4-arm64-apple-darwin22.0/lib/clang/16/include&quot;" />
+          Command="tar -xJf &quot;$(DownloadedLlvmPath)&quot; --strip-components=1 -C &quot;$(LlvmPath)&quot; &quot;$(ClangPathInArchive)&quot; &quot;LLVM-20.1.2-macOS-ARM64/bin/clang-20&quot; &quot;LLVM-20.1.2-macOS-ARM64/lib/clang/20/include&quot;" />
 
     <WriteLinesToFile File="$(LlvmMarkerPath)" Lines="Downloaded" />
   </Target>
