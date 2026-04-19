@@ -65,6 +65,13 @@ public static class VectorUtility
     }
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    public static Vector128<long> FPToSIV2F32ToV2I64(Vector64<float> vector)
+    {
+        var (lower, upper) = Vector64.Widen(vector);
+        return Vector128.ConvertToInt64(Vector128.Create(lower, upper));
+    }
+
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public static Vector128<int> FPToSIV4F64ToV4I32(Vector256<double> vector)
     {
         var longs = Vector256.ConvertToInt64(vector);
