@@ -211,15 +211,17 @@ public static class PrintfHelper
     // %x/%X in C operate on unsigned int (32-bit) by default, not unsigned long long.
     private static ulong ToUnsignedByType(object? arg) => arg switch
     {
-        byte v   => v,
-        sbyte v  => unchecked((byte)v),
-        short v  => unchecked((ushort)v),
-        ushort v => v,
-        int v    => unchecked((uint)v),
-        uint v   => v,
-        long v   => unchecked((ulong)v),
-        ulong v  => v,
-        _        => unchecked((ulong)Convert.ToInt64(arg)),
+        byte v    => v,
+        sbyte v   => unchecked((byte)v),
+        short v   => unchecked((ushort)v),
+        ushort v  => v,
+        int v     => unchecked((uint)v),
+        uint v    => v,
+        long v    => unchecked((ulong)v),
+        ulong v   => v,
+        IntPtr v  => unchecked((ulong)v.ToInt64()),
+        UIntPtr v => unchecked((ulong)v.ToUInt64()),
+        _         => unchecked((ulong)Convert.ToInt64(arg)),
     };
 
     // .NET may produce 3-digit exponents (e+003) but C requires at least 2 (e+03).
