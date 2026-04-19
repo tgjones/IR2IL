@@ -336,6 +336,20 @@ public static class VectorUtility
         return Vector256.Create(Math.Atan(vector[0]), Math.Atan(vector[1]), Math.Atan(vector[2]), Math.Atan(vector[3]));
     }
 
+    // Atan2
+
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    public static Vector64<float> Atan2V2F32(Vector64<float> y, Vector64<float> x)
+    {
+        return Vector64.Create(MathF.Atan2(y[0], x[0]), MathF.Atan2(y[1], x[1]));
+    }
+
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    public static Vector128<float> Atan2V4F32(Vector128<float> y, Vector128<float> x)
+    {
+        return Vector128.Create(MathF.Atan2(y[0], x[0]), MathF.Atan2(y[1], x[1]), MathF.Atan2(y[2], x[2]), MathF.Atan2(y[3], x[3]));
+    }
+
     // SIToFP
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
