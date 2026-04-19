@@ -86,8 +86,8 @@ public partial class CompilerTests
             out var llvmStandardOutput,
             out var llvmStandardError);
 
-        Assert.AreEqual(llvmStandardError, managedStandardError);
-        Assert.AreEqual(llvmStandardOutput, managedStandardOutput);
+        Assert.AreEqual(NormalizeLineEndings(llvmStandardError), NormalizeLineEndings(managedStandardError));
+        Assert.AreEqual(NormalizeLineEndings(llvmStandardOutput), NormalizeLineEndings(managedStandardOutput));
         Assert.AreEqual(llvmExitCode, managedExitCode);
 
         Console.WriteLine($"ExitCode: {managedExitCode}");
@@ -128,8 +128,8 @@ public partial class CompilerTests
             .ReadAllText(GetSourceFilePath(testName) + ".expected")
             .ReplaceLineEndings();
 
-        Assert.AreEqual("", managedStandardError);
-        Assert.AreEqual(nativeStandardOutput, managedStandardOutput);
+        Assert.AreEqual("", NormalizeLineEndings(managedStandardError));
+        Assert.AreEqual(NormalizeLineEndings(nativeStandardOutput), NormalizeLineEndings(managedStandardOutput));
         Assert.AreEqual(0, managedExitCode);
 
         Console.WriteLine($"Stdout: {managedStandardOutput}");
@@ -244,7 +244,7 @@ public partial class CompilerTests
             out var managedStandardOutput,
             out var managedStandardError);
 
-        Assert.AreEqual("", managedStandardError);
+        Assert.AreEqual("", NormalizeLineEndings(managedStandardError));
 
         var referenceOutputFilePath = Path.ChangeExtension(GetSourceFilePath(testName), ".reference_output");
         if (File.Exists(referenceOutputFilePath))
@@ -272,7 +272,7 @@ public partial class CompilerTests
             }
 
             var nativeStandardOutput = nativeStandardOutputBuilder.ToString();
-            Assert.AreEqual(nativeStandardOutput, managedStandardOutput);
+            Assert.AreEqual(NormalizeLineEndings(nativeStandardOutput), NormalizeLineEndings(managedStandardOutput));
             Assert.AreEqual(nativeExitCode, managedExitCode);
         }
 
@@ -315,8 +315,8 @@ public partial class CompilerTests
 
         Console.WriteLine($"Native:  {stopwatch.Elapsed}");
 
-        Assert.AreEqual(llvmExitCode, managedExitCode, managedStandardError);
-        Assert.AreEqual(llvmStandardOutput, managedStandardOutput);
+        Assert.AreEqual(llvmExitCode, managedExitCode, NormalizeLineEndings(managedStandardError));
+        Assert.AreEqual(NormalizeLineEndings(llvmStandardOutput), NormalizeLineEndings(managedStandardOutput));
 
         Console.WriteLine($"Stdout: {managedStandardOutput}");
     }
@@ -454,5 +454,10 @@ public partial class CompilerTests
         {
             throw new InvalidOperationException(standardOutput + Environment.NewLine + standardError);
         }
+    }
+
+    private static string NormalizeLineEndings(string text)
+    {
+        return text.Replace("\r\n", "\n");
     }
 }
