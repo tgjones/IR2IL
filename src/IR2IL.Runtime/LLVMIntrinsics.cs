@@ -65,6 +65,60 @@ public static unsafe class LLVMIntrinsics
         }
     }
 
+    public static bool IsFPClassF32(float value, int mask)
+    {
+        // llvm.is.fpclass bitmask: sNaN=0, qNaN=1, -Inf=2, -normal=3, -subnormal=4, -zero=5, +zero=6, +subnormal=7, +normal=8, +Inf=9
+        if ((mask & 0x003) != 0 && float.IsNaN(value)) return true;
+        if ((mask & 0x004) != 0 && float.IsNegativeInfinity(value)) return true;
+        if ((mask & 0x200) != 0 && float.IsPositiveInfinity(value)) return true;
+        if ((mask & 0x060) != 0 && value == 0.0f)
+        {
+            bool isNeg = float.IsNegative(value);
+            if ((mask & 0x020) != 0 && isNeg) return true;
+            if ((mask & 0x040) != 0 && !isNeg) return true;
+        }
+        if ((mask & 0x090) != 0 && float.IsSubnormal(value))
+        {
+            bool isNeg = float.IsNegative(value);
+            if ((mask & 0x010) != 0 && isNeg) return true;
+            if ((mask & 0x080) != 0 && !isNeg) return true;
+        }
+        if ((mask & 0x108) != 0 && float.IsNormal(value))
+        {
+            bool isNeg = float.IsNegative(value);
+            if ((mask & 0x008) != 0 && isNeg) return true;
+            if ((mask & 0x100) != 0 && !isNeg) return true;
+        }
+        return false;
+    }
+
+    public static bool IsFPClassF64(double value, int mask)
+    {
+        // llvm.is.fpclass bitmask: sNaN=0, qNaN=1, -Inf=2, -normal=3, -subnormal=4, -zero=5, +zero=6, +subnormal=7, +normal=8, +Inf=9
+        if ((mask & 0x003) != 0 && double.IsNaN(value)) return true;
+        if ((mask & 0x004) != 0 && double.IsNegativeInfinity(value)) return true;
+        if ((mask & 0x200) != 0 && double.IsPositiveInfinity(value)) return true;
+        if ((mask & 0x060) != 0 && value == 0.0)
+        {
+            bool isNeg = double.IsNegative(value);
+            if ((mask & 0x020) != 0 && isNeg) return true;
+            if ((mask & 0x040) != 0 && !isNeg) return true;
+        }
+        if ((mask & 0x090) != 0 && double.IsSubnormal(value))
+        {
+            bool isNeg = double.IsNegative(value);
+            if ((mask & 0x010) != 0 && isNeg) return true;
+            if ((mask & 0x080) != 0 && !isNeg) return true;
+        }
+        if ((mask & 0x108) != 0 && double.IsNormal(value))
+        {
+            bool isNeg = double.IsNegative(value);
+            if ((mask & 0x008) != 0 && isNeg) return true;
+            if ((mask & 0x100) != 0 && !isNeg) return true;
+        }
+        return false;
+    }
+
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public static int VectorReduceMulV4I32(Vector128<int> vector)
     {
