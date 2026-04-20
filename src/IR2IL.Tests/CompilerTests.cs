@@ -392,12 +392,21 @@ public partial class CompilerTests
         out string managedStandardOutput,
         out string managedStandardError)
     {
-        RunProgram(
-            "dotnet",
-            [managedExePath],
-            out managedExitCode,
-            out managedStandardOutput,
-            out managedStandardError);
+        var tempDir = Directory.CreateTempSubdirectory("ir2il_test_").FullName;
+        try
+        {
+            RunProgram(
+                "dotnet",
+                [managedExePath],
+                out managedExitCode,
+                out managedStandardOutput,
+                out managedStandardError,
+                workingDirectory: tempDir);
+        }
+        finally
+        {
+            Directory.Delete(tempDir, recursive: true);
+        }
     }
 
     private static void RunProgram(
@@ -405,7 +414,8 @@ public partial class CompilerTests
         string[] arguments,
         out int exitCode,
         out string standardOutput,
-        out string standardError)
+        out string standardError,
+        string? workingDirectory = null)
     {
         var startInfo = new ProcessStartInfo
         {
@@ -413,6 +423,7 @@ public partial class CompilerTests
             RedirectStandardOutput = true,
             RedirectStandardError = true,
             StandardOutputEncoding = Encoding.ASCII,
+            WorkingDirectory = workingDirectory ?? string.Empty,
         };
 
         foreach (var argument in arguments)

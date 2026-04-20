@@ -180,7 +180,22 @@ public static class PrintfHelper
                     break;
 
                 case 's':
-                    formatted = arg is IntPtr ptr ? Marshal.PtrToStringAnsi(ptr) ?? string.Empty : Convert.ToString(arg) ?? string.Empty;
+                    if (arg is IntPtr sptr)
+                    {
+                        // Use length-limited read when precision is set to avoid over-reading non-null-terminated buffers.
+                        formatted = precision >= 0
+                            ? Marshal.PtrToStringAnsi(sptr, precision) ?? string.Empty
+                            : Marshal.PtrToStringAnsi(sptr) ?? string.Empty;
+                        // C semantics: %.Ns stops at an embedded null if one appears before N chars.
+                        var nullIdx = formatted.IndexOf('\0');
+                        if (nullIdx >= 0) formatted = formatted[..nullIdx];
+                    }
+                    else
+                    {
+                        formatted = Convert.ToString(arg) ?? string.Empty;
+                        if (precision >= 0 && precision < formatted.Length)
+                            formatted = formatted[..precision];
+                    }
                     sb.Append(ApplyWidth(formatted, width, flags, zeroPad: false));
                     break;
 

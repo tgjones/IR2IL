@@ -417,9 +417,32 @@ internal abstract class ILEmitter
         {
             case LLVMTypeKind.LLVMArrayTypeKind:
             case LLVMTypeKind.LLVMStructTypeKind:
-            case LLVMTypeKind.LLVMVectorTypeKind:
                 ILGenerator.Emit(OpCodes.Stobj, TypeSystem.GetMsilType(type));
                 break;
+
+            case LLVMTypeKind.LLVMVectorTypeKind:
+            {
+                var msilVectorType = TypeSystem.GetMsilType(type);
+                var actualBits = TypeSystem.GetActualVectorSizeInBits(type);
+                var roundedBits = TypeSystem.RoundUpToTypeSize(actualBits);
+                if (actualBits != roundedBits)
+                {
+                    // The MSIL container type is larger than the true vector (e.g. <24 x float> = 768 bits
+                    // stored in Vector1024<float> = 1024 bits). Write only the actual bytes so we don't
+                    // overflow into adjacent allocations.  Stack on entry: [dest_ptr, value].
+                    var tmp = ILGenerator.DeclareLocal(msilVectorType);
+                    ILGenerator.Emit(OpCodes.Stloc, tmp);            // [dest_ptr]
+                    ILGenerator.Emit(OpCodes.Ldloca, tmp);           // [dest_ptr, &tmp]
+                    ILGenerator.Emit(OpCodes.Ldc_I4, actualBits / 8); // [dest_ptr, &tmp, count]
+                    ILGenerator.Emit(OpCodes.Conv_U);
+                    ILGenerator.Emit(OpCodes.Cpblk);
+                }
+                else
+                {
+                    ILGenerator.Emit(OpCodes.Stobj, msilVectorType);
+                }
+                break;
+            }
 
             case LLVMTypeKind.LLVMDoubleTypeKind:
                 ILGenerator.Emit(OpCodes.Stind_R8);

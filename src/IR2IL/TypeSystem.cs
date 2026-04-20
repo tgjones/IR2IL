@@ -315,6 +315,9 @@ internal sealed class TypeSystem
         }
     }
 
+    public int GetActualVectorSizeInBits(LLVMTypeRef vectorType) =>
+        (int)vectorType.VectorSize * RoundUpToTypeSize(GetSizeOfTypeInBits(vectorType.ElementType));
+
     public unsafe int GetSizeOfTypeInBits(LLVMTypeRef type) => (int)LLVM.SizeOfTypeInBits(
         LLVM.GetModuleDataLayout(_module), type);
 
