@@ -7,8 +7,9 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <PackageReference Include="LLVMSharp.Interop" Version="16.0.0" />
-    <PackageReference Include="libLLVM.runtime.win-x64" Version="16.0.6" />
+    <PackageReference Include="LLVMSharp.Interop" Version="20.1.2" />
+    <PackageReference Include="libLLVM.runtime.win-x64" Version="20.1.2" Condition="$([MSBuild]::IsOSPlatform('Windows'))" />
+    <PackageReference Include="libLLVM.runtime.osx-arm64" Version="20.1.2" Condition="$([MSBuild]::IsOSPlatform('OSX'))" />
   </ItemGroup>
 
   <ItemGroup>

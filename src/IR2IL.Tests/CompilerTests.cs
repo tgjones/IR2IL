@@ -4,8 +4,14 @@ using System.Diagnostics;
 using System.IO;
 using System.Linq;
 using System.Reflection;
+using System.Runtime.InteropServices;
 using System.Text;
 using System.Text.RegularExpressions;
+using System.Threading;
+using ICSharpCode.Decompiler;
+using ICSharpCode.Decompiler.CSharp;
+using ICSharpCode.Decompiler.Disassembler;
+using ICSharpCode.Decompiler.Metadata;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 
 [assembly: Parallelize(Scope = ExecutionScope.MethodLevel)]
@@ -17,7 +23,24 @@ public partial class CompilerTests
 {
     private static readonly string RepoRoot = Path.Combine(Environment.CurrentDirectory, "..", "..", "..", "..", "..");
     private static readonly string TestProgramsPath = Path.Combine(RepoRoot, "tests");
-    private static readonly string ClangPath = Path.Combine(RepoRoot, "build", "llvm", "bin", "clang.exe");
+    private static readonly string ClangPath = Path.Combine(RepoRoot, "build", "llvm", "bin", OperatingSystem.IsWindows() ? "clang.exe" : "clang");
+    private static readonly string[] ClangExtraArgs = GetClangExtraArgs();
+
+    private static string[] GetClangExtraArgs()
+    {
+        if (!OperatingSystem.IsMacOS())
+        {
+            return [];
+        }
+
+        RunProgram("xcrun", ["--show-sdk-path"], out var exitCode, out var stdout, out _);
+        if (exitCode != 0)
+        {
+            throw new InvalidOperationException("xcrun --show-sdk-path failed.");
+        }
+
+        return ["-isysroot", stdout.Trim()];
+    }
 
     private static IEnumerable<object[]> TestFiles(IEnumerable<string> testFiles)
     {
@@ -63,8 +86,8 @@ public partial class CompilerTests
             out var llvmStandardOutput,
             out var llvmStandardError);
 
-        Assert.AreEqual(llvmStandardError, managedStandardError);
-        Assert.AreEqual(llvmStandardOutput, managedStandardOutput);
+        Assert.AreEqual(NormalizeLineEndings(llvmStandardError), NormalizeLineEndings(managedStandardError));
+        Assert.AreEqual(NormalizeLineEndings(llvmStandardOutput), NormalizeLineEndings(managedStandardOutput));
         Assert.AreEqual(llvmExitCode, managedExitCode);
 
         Console.WriteLine($"ExitCode: {managedExitCode}");
@@ -76,6 +99,9 @@ public partial class CompilerTests
         .GetFiles(Path.Combine(TestProgramsPath, "c-testsuite"), "*.c", SearchOption.AllDirectories)
         .Where(x => Path.GetFileNameWithoutExtension(x) switch
         {
+            // These tests are not supported on non-Windows because they use varargs.
+            "00140" or "00186" or "00189" or "00204" when !RuntimeInformation.IsOSPlatform(OSPlatform.Windows) => false,
+
             // These tests are not supported on Windows because they use `extern int printf(...)`
             // which isn't compatible with Microsoft's C runtime.
             "00210" or "00211" or "00213" or "00214" or "00215" or "00217" or "00218" => false,
@@ -102,8 +128,8 @@ public partial class CompilerTests
             .ReadAllText(GetSourceFilePath(testName) + ".expected")
             .ReplaceLineEndings();
 
-        Assert.AreEqual("", managedStandardError);
-        Assert.AreEqual(nativeStandardOutput, managedStandardOutput);
+        Assert.AreEqual("", NormalizeLineEndings(managedStandardError));
+        Assert.AreEqual(NormalizeLineEndings(nativeStandardOutput), NormalizeLineEndings(managedStandardOutput));
         Assert.AreEqual(0, managedExitCode);
 
         Console.WriteLine($"Stdout: {managedStandardOutput}");
@@ -123,6 +149,9 @@ public partial class CompilerTests
             "0000_0192" or "0005_0058" or "0006_0000" or "0006_0009" or "0006_0010" or "0006_0011" => false,
             "0006_0024" or "0006_0025" or "0006_0026" => false,
 
+            // These tests don't run on macOS because OpenMP isn't installed by default.
+            "0002_0185" when RuntimeInformation.IsOSPlatform(OSPlatform.OSX) => false,
+
             // These tests don't run correctly on MSVC because of _Generic differences.
             "0005_0005" => false,
 
@@ -133,10 +162,10 @@ public partial class CompilerTests
             "0005_0017" or "0005_0018" or "0005_0019" or "0005_0020" or "0005_0021" or "0005_0022" => false,
             "0005_0028" or "0005_0029" or "0005_0030" or "0005_0045" or "0005_0063" => false,
 
-            // These tests don't compile correctly on MSVC beacuse of align library differences.
+            // These tests don't compile correctly on MSVC because of align library differences.
             "0005_0032" or "0005_0033" => false,
 
-            // These tests don't execute correctly on MSVC beacuse of OpenMP differences.
+            // These tests don't execute correctly on MSVC because of OpenMP differences.
             "0005_0036" => false,
 
             // These tests don't execute correctly because quick_exit behaves differently when called from CoreCLR.
@@ -172,6 +201,9 @@ public partial class CompilerTests
 
             // These tests don't execute correctly on MSVC because of __intptr_t / intptr_t differences.
             "0011_0247" => false,
+
+            // These tests are not supported on non-Windows because they use varargs.
+            "0011_0178" or "0011_0251" when !RuntimeInformation.IsOSPlatform(OSPlatform.Windows) => false,
 
             // These tests don't execute correctly on MSVC because of __STDC_VERSION__ differences.
             "0017_0031" or "0017_0032" or "0017_0033" or "0017_0034" or "0017_0035" => false,
@@ -212,7 +244,7 @@ public partial class CompilerTests
             out var managedStandardOutput,
             out var managedStandardError);
 
-        Assert.AreEqual("", managedStandardError);
+        Assert.AreEqual("", NormalizeLineEndings(managedStandardError));
 
         var referenceOutputFilePath = Path.ChangeExtension(GetSourceFilePath(testName), ".reference_output");
         if (File.Exists(referenceOutputFilePath))
@@ -240,7 +272,7 @@ public partial class CompilerTests
             }
 
             var nativeStandardOutput = nativeStandardOutputBuilder.ToString();
-            Assert.AreEqual(nativeStandardOutput, managedStandardOutput);
+            Assert.AreEqual(NormalizeLineEndings(nativeStandardOutput), NormalizeLineEndings(managedStandardOutput));
             Assert.AreEqual(nativeExitCode, managedExitCode);
         }
 
@@ -283,8 +315,8 @@ public partial class CompilerTests
 
         Console.WriteLine($"Native:  {stopwatch.Elapsed}");
 
-        Assert.AreEqual(llvmExitCode, managedExitCode, managedStandardError);
-        Assert.AreEqual(llvmStandardOutput, managedStandardOutput);
+        Assert.AreEqual(llvmExitCode, managedExitCode, NormalizeLineEndings(managedStandardError));
+        Assert.AreEqual(NormalizeLineEndings(llvmStandardOutput), NormalizeLineEndings(managedStandardOutput));
 
         Console.WriteLine($"Stdout: {managedStandardOutput}");
     }
@@ -334,6 +366,23 @@ public partial class CompilerTests
         var outputPath = $"{fullTestName}.exe";
         Compiler.Compile(irPath, outputPath);
 
+        // Write IL to file for debugging purposes.
+        {
+            using var peFile = new PEFile(outputPath);
+            using var ilWriter = new StringWriter();
+            var disassembler = new ReflectionDisassembler(new PlainTextOutput(ilWriter), CancellationToken.None);
+            disassembler.WriteModuleContents(peFile);
+            File.WriteAllText($"{fullTestName}.il", ilWriter.ToString());
+        }
+
+        // ... and for an easier birds-eye-view, write decompiled C# to file.
+        var decompiler = new CSharpDecompiler(
+            outputPath,
+            new DecompilerSettings());
+        File.WriteAllText(
+            $"{fullTestName}.cs",
+            decompiler.DecompileWholeModuleAsString());
+
         return outputPath;
     }
 
@@ -343,12 +392,21 @@ public partial class CompilerTests
         out string managedStandardOutput,
         out string managedStandardError)
     {
-        RunProgram(
-            "dotnet",
-            [managedExePath],
-            out managedExitCode,
-            out managedStandardOutput,
-            out managedStandardError);
+        var tempDir = Directory.CreateTempSubdirectory("ir2il_test_").FullName;
+        try
+        {
+            RunProgram(
+                "dotnet",
+                [managedExePath],
+                out managedExitCode,
+                out managedStandardOutput,
+                out managedStandardError,
+                workingDirectory: tempDir);
+        }
+        finally
+        {
+            Directory.Delete(tempDir, recursive: true);
+        }
     }
 
     private static void RunProgram(
@@ -356,7 +414,8 @@ public partial class CompilerTests
         string[] arguments,
         out int exitCode,
         out string standardOutput,
-        out string standardError)
+        out string standardError,
+        string? workingDirectory = null)
     {
         var startInfo = new ProcessStartInfo
         {
@@ -364,6 +423,7 @@ public partial class CompilerTests
             RedirectStandardOutput = true,
             RedirectStandardError = true,
             StandardOutputEncoding = Encoding.ASCII,
+            WorkingDirectory = workingDirectory ?? string.Empty,
         };
 
         foreach (var argument in arguments)
@@ -396,7 +456,7 @@ public partial class CompilerTests
     {
         RunProgram(
             ClangPath,
-            arguments,
+            [..arguments, ..ClangExtraArgs],
             out var exitCode,
             out var standardOutput,
             out var standardError);
@@ -405,5 +465,10 @@ public partial class CompilerTests
         {
             throw new InvalidOperationException(standardOutput + Environment.NewLine + standardError);
         }
+    }
+
+    private static string NormalizeLineEndings(string text)
+    {
+        return text.Replace("\r\n", "\n");
     }
 }

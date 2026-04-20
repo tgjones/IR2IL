@@ -1,0 +1,298 @@
+using System.Runtime.InteropServices;
+using System.Text;
+
+namespace IR2IL.Runtime;
+
+public static class PrintfHelper
+{
+    public static unsafe int Puts(void* str)
+    {
+        Console.WriteLine(Marshal.PtrToStringAnsi((IntPtr)str) ?? string.Empty);
+        return 1;
+    }
+
+    public static int PutChar(int c)
+    {
+        Console.Write((char)c);
+        return c;
+    }
+
+    public static int PrintfCore(IntPtr format, object[] args)
+    {
+        var formatString = Marshal.PtrToStringAnsi(format) ?? string.Empty;
+        var output = FormatPrintf(formatString, args);
+        var bytes = Encoding.Latin1.GetBytes(output);
+        Console.OpenStandardOutput().Write(bytes);
+        return bytes.Length;
+    }
+
+    public static int SprintfChkCore(IntPtr buf, IntPtr format, object[] args)
+    {
+        var formatString = Marshal.PtrToStringAnsi(format) ?? string.Empty;
+        var output = FormatPrintf(formatString, args);
+        var bytes = Encoding.Latin1.GetBytes(output);
+        Marshal.Copy(bytes, 0, buf, bytes.Length);
+        Marshal.WriteByte(buf + bytes.Length, 0);
+        return bytes.Length;
+    }
+
+    public static int FprintfCore(IntPtr stream, IntPtr format, object[] args)
+    {
+        var formatString = Marshal.PtrToStringAnsi(format) ?? string.Empty;
+        var output = FormatPrintf(formatString, args);
+        // Route stderr (fd 2) to Console.Error; everything else (including stdout) to Console.Out.
+        var fd = Fileno(stream);
+        var bytes = Encoding.Latin1.GetBytes(output);
+        var outStream = fd == 2 ? Console.OpenStandardError() : Console.OpenStandardOutput();
+        outStream.Write(bytes);
+        return bytes.Length;
+    }
+
+    private static int Fileno(IntPtr stream)
+    {
+        if (OperatingSystem.IsWindows())
+            return FilenoWindows(stream);
+        return FilenoUnix(stream);
+    }
+
+    [DllImport("ucrtbase", EntryPoint = "_fileno")]
+    private static extern int FilenoWindows(IntPtr stream);
+
+    [DllImport("libc", EntryPoint = "fileno")]
+    private static extern int FilenoUnix(IntPtr stream);
+
+    private static string FormatPrintf(string format, object[] args)
+    {
+        var sb = new StringBuilder();
+        var argIndex = 0;
+        var i = 0;
+
+        while (i < format.Length)
+        {
+            if (format[i] != '%' || i + 1 >= format.Length)
+            {
+                sb.Append(format[i++]);
+                continue;
+            }
+
+            i++; // skip '%'
+
+            // Flags
+            var flagsStart = i;
+            while (i < format.Length && "-+ #0".Contains(format[i]))
+            {
+                i++;
+            }
+            var flags = format[flagsStart..i];
+
+            // Width
+            var widthStart = i;
+            while (i < format.Length && char.IsAsciiDigit(format[i]))
+            {
+                i++;
+            }
+            var width = i > widthStart ? int.Parse(format[widthStart..i]) : 0;
+
+            // Precision
+            int precision = -1;
+            if (i < format.Length && format[i] == '.')
+            {
+                i++;
+                int precStart = i;
+                while (i < format.Length && char.IsAsciiDigit(format[i]))
+                    i++;
+                precision = i > precStart ? int.Parse(format[precStart..i]) : 0;
+            }
+
+            // Length modifiers (l, ll, h, hh, z, t, L)
+            var lengthModStart = i;
+            while (i < format.Length && "lhzLtq".Contains(format[i]))
+            {
+                i++;
+            }
+            var lengthMod = format[lengthModStart..i];
+
+            if (i >= format.Length)
+            {
+                break;
+            }
+
+            var spec = format[i++];
+            var arg = argIndex < args.Length ? args[argIndex++] : null;
+
+            string formatted;
+            switch (spec)
+            {
+                case 'd':
+                case 'i':
+                    formatted = ToInt64ByModifier(arg, lengthMod).ToString();
+                    if (precision > formatted.Length) formatted = formatted.PadLeft(precision, '0');
+                    sb.Append(ApplyWidth(formatted, width, flags, zeroPad: precision < 0));
+                    break;
+
+                case 'u':
+                    formatted = ToUnsignedByModifier(arg, lengthMod).ToString();
+                    if (precision > formatted.Length) formatted = formatted.PadLeft(precision, '0');
+                    sb.Append(ApplyWidth(formatted, width, flags, zeroPad: precision < 0));
+                    break;
+
+                case 'f':
+                case 'F':
+                {
+                    var val = Convert.ToDouble(arg);
+                    formatted = precision >= 0 ? val.ToString("F" + precision) : val.ToString("F6");
+                    sb.Append(ApplyWidth(formatted, width, flags, zeroPad: true));
+                    break;
+                }
+
+                case 'g':
+                case 'G':
+                {
+                    var val = Convert.ToDouble(arg);
+                    int sigFigs = precision >= 0 ? (precision == 0 ? 1 : precision) : 6;
+                    formatted = val.ToString((spec == 'G' ? "G" : "G") + sigFigs);
+                    sb.Append(ApplyWidth(formatted, width, flags, zeroPad: true));
+                    break;
+                }
+
+                case 'e':
+                case 'E':
+                {
+                    int prec = precision >= 0 ? precision : 6;
+                    var val = Convert.ToDouble(arg);
+                    formatted = val.ToString((spec == 'e' ? "e" : "E") + prec);
+                    // C standard requires at least 2 exponent digits; .NET may produce 3 (e.g. e+003 → e+03)
+                    formatted = NormalizeExponent(formatted);
+                    sb.Append(ApplyWidth(formatted, width, flags, zeroPad: true));
+                    break;
+                }
+
+                case 'x':
+                    formatted = string.Format("{0:x}", ToUnsignedByModifier(arg, lengthMod));
+                    if (precision > formatted.Length) formatted = formatted.PadLeft(precision, '0');
+                    sb.Append(ApplyWidth(formatted, width, flags, zeroPad: precision < 0));
+                    break;
+
+                case 'X':
+                    formatted = string.Format("{0:X}", ToUnsignedByModifier(arg, lengthMod));
+                    if (precision > formatted.Length) formatted = formatted.PadLeft(precision, '0');
+                    sb.Append(ApplyWidth(formatted, width, flags, zeroPad: precision < 0));
+                    break;
+
+                case 's':
+                    if (arg is IntPtr sptr)
+                    {
+                        // Use length-limited read when precision is set to avoid over-reading non-null-terminated buffers.
+                        formatted = precision >= 0
+                            ? Marshal.PtrToStringAnsi(sptr, precision) ?? string.Empty
+                            : Marshal.PtrToStringAnsi(sptr) ?? string.Empty;
+                        // C semantics: %.Ns stops at an embedded null if one appears before N chars.
+                        var nullIdx = formatted.IndexOf('\0');
+                        if (nullIdx >= 0) formatted = formatted[..nullIdx];
+                    }
+                    else
+                    {
+                        formatted = Convert.ToString(arg) ?? string.Empty;
+                        if (precision >= 0 && precision < formatted.Length)
+                            formatted = formatted[..precision];
+                    }
+                    sb.Append(ApplyWidth(formatted, width, flags, zeroPad: false));
+                    break;
+
+                case 'c':
+                    sb.Append((char)Convert.ToInt32(arg));
+                    break;
+
+                case '%':
+                    sb.Append('%');
+                    argIndex--;
+                    break;
+
+                default:
+                    sb.Append('%');
+                    sb.Append(spec);
+                    break;
+            }
+        }
+
+        return sb.ToString();
+    }
+
+    private static long ToInt64(object? arg) => arg switch
+    {
+        IntPtr v => v.ToInt64(),
+        _ => Convert.ToInt64(arg),
+    };
+
+    // Converts a boxed integer to ulong preserving the value's natural unsigned width.
+    // %x/%X in C operate on unsigned int (32-bit) by default, not unsigned long long.
+    private static ulong ToUnsignedByType(object? arg) => arg switch
+    {
+        byte v    => v,
+        sbyte v   => unchecked((byte)v),
+        short v   => unchecked((ushort)v),
+        ushort v  => v,
+        int v     => unchecked((uint)v),
+        uint v    => v,
+        long v    => unchecked((ulong)v),
+        ulong v   => v,
+        IntPtr v  => unchecked((ulong)v.ToInt64()),
+        UIntPtr v => unchecked((ulong)v.ToUInt64()),
+        _         => unchecked((ulong)Convert.ToInt64(arg)),
+    };
+
+    // On Windows, C's `unsigned long` / `long` are 32-bit; `ll` gives 64-bit.
+    // On Linux/macOS, `l` is 64-bit. This matches the native C ABI for printf.
+    private static ulong ToUnsignedByModifier(object? arg, string modifier)
+    {
+        var full = ToUnsignedByType(arg);
+        return modifier switch
+        {
+            "ll" or "q" => full,
+            "z" or "t"  => full,
+            "hh"        => (byte)full,
+            "h"         => (ushort)full,
+            "l" when OperatingSystem.IsWindows() => (uint)full,
+            _           => full,
+        };
+    }
+
+    private static long ToInt64ByModifier(object? arg, string modifier)
+    {
+        var full = ToInt64(arg);
+        return modifier switch
+        {
+            "ll" or "q" => full,
+            "z" or "t"  => full,
+            "hh"        => (sbyte)full,
+            "h"         => (short)full,
+            "l" when OperatingSystem.IsWindows() => (int)full,
+            _           => full,
+        };
+    }
+
+    // .NET may produce 3-digit exponents (e+003) but C requires at least 2 (e+03).
+    // Find the exponent marker and strip leading zeros down to 2 digits.
+    private static string NormalizeExponent(string s)
+    {
+        var e = s.LastIndexOfAny(['e', 'E']);
+        if (e < 0 || e + 2 >= s.Length) return s;
+        var exp = s[(e + 2)..].TrimStart('0');
+        if (exp.Length < 2) exp = exp.PadLeft(2, '0');
+        return s[..(e + 2)] + exp;
+    }
+
+    private static string ApplyWidth(string value, int width, string flags, bool zeroPad)
+    {
+        if (width <= 0 || value.Length >= width)
+            return value;
+
+        if (flags.Contains('-'))
+            return value.PadRight(width);
+
+        if (zeroPad && flags.Contains('0'))
+            return value.PadLeft(width, '0');
+
+        return value.PadLeft(width);
+    }
+}

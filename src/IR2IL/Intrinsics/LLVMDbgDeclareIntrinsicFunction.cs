@@ -4,7 +4,7 @@ internal sealed class LLVMDbgDeclareIntrinsicFunction : IntrinsicFunction
 {
     public override void BuildCall(IntrinsicFunctionCallContext context)
     {
-        var value = context.Operands[0].MDNodeOperands[0];
+        var value = context.Operands[0].GetMDNodeOperands()[0];
 
         var diLocalVariable = context.Operands[1];
         var diLocalVariableName = diLocalVariable.GetDILocalVariableName();

@@ -10,6 +10,25 @@ public static class Vector1024
     internal const int Size = 128;
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    public static Vector1024<T> Create<T>(Vector512<T> lower, Vector512<T> upper)
+        where T : unmanaged
+    {
+        Unsafe.SkipInit(out Vector1024<T> result);
+        Unsafe.AsRef(in result._lower) = lower;
+        Unsafe.AsRef(in result._upper) = upper;
+        return result;
+    }
+
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    public static Vector1024<T> Add<T>(Vector1024<T> left, Vector1024<T> right)
+        where T : unmanaged, INumber<T>
+    {
+        return Create(
+            Vector512.Add(left.GetLower(), right.GetLower()),
+            Vector512.Add(left.GetUpper(), right.GetUpper()));
+    }
+
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public static T GetElement<T>(this Vector1024<T> vector, int index)
         where T : unmanaged
     {

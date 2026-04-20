@@ -75,7 +75,10 @@ internal abstract class ILEmitter
                 break;
 
             case LLVMValueKind.LLVMConstantIntValueKind:
-                EmitConstantIntegerValue(valueTypeRef.IntWidth, valueRef.ConstIntSExt);
+                if (valueTypeRef.IntWidth > 64)
+                    EmitWideConstantIntegerValue(valueRef);
+                else
+                    EmitConstantIntegerValue(valueTypeRef.IntWidth, valueRef.ConstIntSExt);
                 break;
 
             case LLVMValueKind.LLVMConstantExprValueKind:
@@ -117,8 +120,10 @@ internal abstract class ILEmitter
                 break;
 
             case LLVMValueKind.LLVMGlobalVariableValueKind:
-                var staticField = CompiledModule.GetGlobal(valueRef);
-                ILGenerator.Emit(OpCodes.Ldsflda, staticField);
+                var (staticField, isExternalGlobal) = CompiledModule.GetGlobal(valueRef);
+                // For internal globals, the static field IS the storage — push its address.
+                // For external globals, the field holds the resolved native address — push that value.
+                ILGenerator.Emit(isExternalGlobal ? OpCodes.Ldsfld : OpCodes.Ldsflda, staticField);
                 break;
 
             case LLVMValueKind.LLVMPoisonValueValueKind:
@@ -140,6 +145,10 @@ internal abstract class ILEmitter
                             case 16:
                             case 32:
                                 ILGenerator.Emit(OpCodes.Ldc_I4_0);
+                                break;
+
+                            case 64:
+                                ILGenerator.Emit(OpCodes.Ldc_I8, 0L);
                                 break;
 
                             default:
@@ -187,25 +196,48 @@ internal abstract class ILEmitter
         }
     }
 
+    // ConstIntSExt only returns the lower 64 bits; for i128+ constants use PrintToString
+    // which gives the full signed decimal, then parse as Int128.
+    private void EmitWideConstantIntegerValue(LLVMValueRef valueRef)
+    {
+        var text = valueRef.PrintToString();  // e.g. "i128 36893488147419103232" or "i128 -1"
+        var valueStr = text[(text.LastIndexOf(' ') + 1)..];
+        var value = Int128.Parse(valueStr);
+        var lower = (ulong)(UInt128)value;
+        var upper = (ulong)((UInt128)value >> 64);
+        ILGenerator.Emit(OpCodes.Ldc_I8, (long)upper);
+        ILGenerator.Emit(OpCodes.Ldc_I8, (long)lower);
+        ILGenerator.Emit(OpCodes.Newobj, typeof(Int128).GetConstructorStrict([typeof(ulong), typeof(ulong)]));
+    }
+
     protected void EmitConstantIntegerValue(uint sizeInBits, long value)
     {
         var roundedUpBits = TypeSystem.RoundUpToTypeSize((int)sizeInBits);
 
+        if (roundedUpBits == 128)
+        {
+            // Sign-extend the long value to 128 bits, then mask to sizeInBits.
+            var lower = (ulong)value;
+            var upper = value < 0 ? ulong.MaxValue : 0UL;
+
+            if (sizeInBits < 128)
+            {
+                var maskLower = sizeInBits >= 64 ? ulong.MaxValue : (1UL << (int)sizeInBits) - 1UL;
+                var maskUpper = sizeInBits <= 64 ? 0UL : (1UL << (int)(sizeInBits - 64)) - 1UL;
+                lower &= maskLower;
+                upper &= maskUpper;
+            }
+
+            ILGenerator.Emit(OpCodes.Ldc_I8, (long)upper);
+            ILGenerator.Emit(OpCodes.Ldc_I8, (long)lower);
+            ILGenerator.Emit(OpCodes.Newobj, typeof(Int128).GetConstructorStrict([typeof(ulong), typeof(ulong)]));
+            return;
+        }
+
         if (roundedUpBits > sizeInBits)
         {
-            var mask = (1 << (int)sizeInBits) - 1;
-            if (value >= 0)
-            {
-                value = value & mask;
-            }
-            else if (roundedUpBits == 8)
-            {
-                value = (byte)(sbyte)value & mask;
-            }
-            else
-            {
-
-            }
+            var mask = (1L << (int)sizeInBits) - 1;
+            value = value & mask;
         }
 
         switch (roundedUpBits)
@@ -385,9 +417,32 @@ internal abstract class ILEmitter
         {
             case LLVMTypeKind.LLVMArrayTypeKind:
             case LLVMTypeKind.LLVMStructTypeKind:
-            case LLVMTypeKind.LLVMVectorTypeKind:
                 ILGenerator.Emit(OpCodes.Stobj, TypeSystem.GetMsilType(type));
                 break;
+
+            case LLVMTypeKind.LLVMVectorTypeKind:
+            {
+                var msilVectorType = TypeSystem.GetMsilType(type);
+                var actualBits = TypeSystem.GetActualVectorSizeInBits(type);
+                var roundedBits = TypeSystem.RoundUpToTypeSize(actualBits);
+                if (actualBits != roundedBits)
+                {
+                    // The MSIL container type is larger than the true vector (e.g. <24 x float> = 768 bits
+                    // stored in Vector1024<float> = 1024 bits). Write only the actual bytes so we don't
+                    // overflow into adjacent allocations.  Stack on entry: [dest_ptr, value].
+                    var tmp = ILGenerator.DeclareLocal(msilVectorType);
+                    ILGenerator.Emit(OpCodes.Stloc, tmp);            // [dest_ptr]
+                    ILGenerator.Emit(OpCodes.Ldloca, tmp);           // [dest_ptr, &tmp]
+                    ILGenerator.Emit(OpCodes.Ldc_I4, actualBits / 8); // [dest_ptr, &tmp, count]
+                    ILGenerator.Emit(OpCodes.Conv_U);
+                    ILGenerator.Emit(OpCodes.Cpblk);
+                }
+                else
+                {
+                    ILGenerator.Emit(OpCodes.Stobj, msilVectorType);
+                }
+                break;
+            }
 
             case LLVMTypeKind.LLVMDoubleTypeKind:
                 ILGenerator.Emit(OpCodes.Stind_R8);
@@ -398,15 +453,21 @@ internal abstract class ILEmitter
                 break;
 
             case LLVMTypeKind.LLVMIntegerTypeKind:
-                ILGenerator.Emit(type.IntWidth switch
+                if (type.IntWidth > 64)
                 {
-                    1 => OpCodes.Stind_I1,
-                    8 => OpCodes.Stind_I1,
-                    16 => OpCodes.Stind_I2,
-                    32 => OpCodes.Stind_I4,
-                    64 => OpCodes.Stind_I8,
-                    _ => throw new NotImplementedException($"Indirect store not implemented for integer width {type.IntWidth}: {type}")
-                });
+                    ILGenerator.Emit(OpCodes.Stobj, TypeSystem.GetMsilType(type));
+                }
+                else
+                {
+                    ILGenerator.Emit(TypeSystem.RoundUpToTypeSize((int)type.IntWidth) switch
+                    {
+                        8 => OpCodes.Stind_I1,
+                        16 => OpCodes.Stind_I2,
+                        32 => OpCodes.Stind_I4,
+                        64 => OpCodes.Stind_I8,
+                        _ => throw new NotImplementedException($"Indirect store not implemented for integer width {type.IntWidth}: {type}")
+                    });
+                }
                 break;
 
             case LLVMTypeKind.LLVMPointerTypeKind:

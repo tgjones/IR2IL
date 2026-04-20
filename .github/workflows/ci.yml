@@ -2,24 +2,29 @@ name: CI
 
 on:
   push:
+    branches: [main]
   pull_request:
 
 jobs:
   build:
-    runs-on: windows-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [windows-latest, macos-latest]
+    runs-on: ${{ matrix.os }}
 
     steps:
     - name: Checkout
-      uses: actions/checkout@v4
+      uses: actions/checkout@v6
 
     - name: Cache downloaded LLVM zip
-      uses: actions/cache@v3
+      uses: actions/cache@v5
       with:
-        key: build-cache-${{ hashFiles('src/IR2IL.Tests/IR2IL.Tests.csproj') }}
+        key: build-cache-${{ runner.os }}-${{ hashFiles('src/IR2IL.Tests/IR2IL.Tests.csproj') }}
         path: build/cache
 
     - name: Install .NET
-      uses: actions/setup-dotnet@v4
+      uses: actions/setup-dotnet@v5
 
     - name: Build & Test Debug
       run: dotnet test src --configuration Debug

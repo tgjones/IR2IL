@@ -61,15 +61,23 @@ internal sealed class TypeSystem
         }
     }
 
-    public Type GetIntegerType(int intTypeWidth) => intTypeWidth switch
+    public Type GetIntegerType(int intTypeWidth)
     {
-        1 => typeof(bool),
-        8 => typeof(sbyte),
-        16 => typeof(short),
-        32 => typeof(int),
-        64 => typeof(long),
-        _ => throw new NotImplementedException($"Integer width {intTypeWidth} not implemented"),
-    };
+        if (intTypeWidth == 1)
+        {
+            return typeof(bool);
+        }
+        
+        return RoundUpToTypeSize(intTypeWidth) switch
+        {
+            8   => typeof(sbyte),
+            16  => typeof(short),
+            32  => typeof(int),
+            64  => typeof(long),
+            128 => typeof(Int128),
+            _ => throw new NotImplementedException($"Integer width {intTypeWidth} not implemented"),
+        };
+    }
 
     public Type GetMsilVectorType(LLVMTypeRef typeRef)
     {
@@ -83,7 +91,7 @@ internal sealed class TypeSystem
 
     public Type GetMsilVectorType(LLVMTypeRef elementTypeRef, int vectorSize)
     {
-        var vectorSizeInBits = vectorSize * RoundUpToTypeSize(GetSizeOfTypeInBits(elementTypeRef));
+        var vectorSizeInBits = RoundUpToTypeSize(vectorSize * RoundUpToTypeSize(GetSizeOfTypeInBits(elementTypeRef)));
         if (vectorSizeInBits > MaxVectorSize)
         {
             throw new NotImplementedException();
@@ -138,9 +146,10 @@ internal sealed class TypeSystem
             typeof(ValueType),
             packingSize);
 
-        for (var i = 0; i < typeRef.StructElementTypes.Length; i++)
+        var structElementTypes = typeRef.GetStructElementTypes();
+        for (var i = 0; i < structElementTypes.Length; i++)
         {
-            var structElementTypeRef = typeRef.StructElementTypes[i];
+            var structElementTypeRef = structElementTypes[i];
             structType.DefineField(
                 $"Field{i}",
                 GetMsilType(structElementTypeRef),
@@ -190,7 +199,7 @@ internal sealed class TypeSystem
             structType.SetCustomAttribute(customAttributeBuilder);
 
             structType.DefineField(
-                $"_element0",
+                "_element0",
                 elementType,
                 FieldAttributes.Private);
         }
@@ -222,7 +231,7 @@ internal sealed class TypeSystem
 
     public Type GetNonGenericVectorType(LLVMTypeRef vectorType)
     {
-        var vectorSizeInBits = vectorType.VectorSize * RoundUpToTypeSize(GetSizeOfTypeInBits(vectorType.ElementType));
+        var vectorSizeInBits = RoundUpToTypeSize((int)vectorType.VectorSize * RoundUpToTypeSize(GetSizeOfTypeInBits(vectorType.ElementType)));
         if (vectorSizeInBits > MaxVectorSize)
         {
             throw new NotImplementedException();
@@ -245,7 +254,7 @@ internal sealed class TypeSystem
 
     public Type GetGenericVectorType(LLVMTypeRef vectorElementType, int vectorSize)
     {
-        var vectorSizeInBits = vectorSize * RoundUpToTypeSize(GetSizeOfTypeInBits(vectorElementType));
+        var vectorSizeInBits = RoundUpToTypeSize(vectorSize * RoundUpToTypeSize(GetSizeOfTypeInBits(vectorElementType)));
         if (vectorSizeInBits > MaxVectorSize)
         {
             throw new NotImplementedException();
@@ -305,6 +314,9 @@ internal sealed class TypeSystem
             return 8;
         }
     }
+
+    public int GetActualVectorSizeInBits(LLVMTypeRef vectorType) =>
+        (int)vectorType.VectorSize * RoundUpToTypeSize(GetSizeOfTypeInBits(vectorType.ElementType));
 
     public unsafe int GetSizeOfTypeInBits(LLVMTypeRef type) => (int)LLVM.SizeOfTypeInBits(
         LLVM.GetModuleDataLayout(_module), type);

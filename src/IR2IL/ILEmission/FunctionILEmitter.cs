@@ -39,7 +39,7 @@ internal sealed class FunctionILEmitter : ILEmitter
 
         // Figure out which instructions need their results stored in local variables,
         // and which can be pushed to the stack.
-        foreach (var basicBlock in _function.BasicBlocks)
+        foreach (var basicBlock in _function.GetBasicBlocks())
         {
             var blockInstructions = basicBlock.GetInstructions().ToList();
             for (var i = 0; i < blockInstructions.Count; i++)
@@ -48,9 +48,10 @@ internal sealed class FunctionILEmitter : ILEmitter
             }
         }
 
-        for (var i = 0; i < _function.Params.Length; i++)
+        var functionParams = _function.GetParams();
+        for (var i = 0; i < functionParams.Length; i++)
         {
-            var parameter = _function.Params[i];
+            var parameter = functionParams[i];
             var parameterIndex = i + 1;
 
             var parameterName = _function.GetParameterName(parameterIndex);
@@ -123,7 +124,7 @@ internal sealed class FunctionILEmitter : ILEmitter
 
     public void Compile()
     {
-        foreach (var basicBlock in _function.BasicBlocks)
+        foreach (var basicBlock in _function.GetBasicBlocks())
         {
             foreach (var instruction in basicBlock.GetInstructions())
             {
@@ -138,7 +139,7 @@ internal sealed class FunctionILEmitter : ILEmitter
             }
         }
 
-        foreach (var basicBlock in _function.BasicBlocks)
+        foreach (var basicBlock in _function.GetBasicBlocks())
         {
             var basicBlockLabel = GetOrCreateLabel(basicBlock);
             ILGenerator.MarkLabel(basicBlockLabel);
@@ -254,6 +255,10 @@ internal sealed class FunctionILEmitter : ILEmitter
                 EmitExtractElement(instruction);
                 break;
 
+            case LLVMOpcode.LLVMExtractValue:
+                EmitExtractValue(instruction);
+                break;
+
             case LLVMOpcode.LLVMFreeze:
                 EmitFreeze(instruction);
                 break;
@@ -272,6 +277,10 @@ internal sealed class FunctionILEmitter : ILEmitter
 
             case LLVMOpcode.LLVMInsertElement:
                 EmitInsertElement(instruction);
+                break;
+
+            case LLVMOpcode.LLVMInsertValue:
+                EmitInsertValue(instruction);
                 break;
 
             case LLVMOpcode.LLVMLoad:
@@ -304,6 +313,10 @@ internal sealed class FunctionILEmitter : ILEmitter
 
             case LLVMOpcode.LLVMFPTrunc:
                 EmitConversion(instruction, Signedness.Unsigned);
+                break;
+
+            case LLVMOpcode.LLVMFRem:
+                EmitBinaryOperation(instruction, OpCodes.Rem, "SignedRemainder", Signedness.Signed);
                 break;
 
             case LLVMOpcode.LLVMIntToPtr:
@@ -505,6 +518,46 @@ internal sealed class FunctionILEmitter : ILEmitter
         ILGenerator.Emit(OpCodes.Call, getElementMethod);
     }
 
+    private void EmitExtractValue(LLVMValueRef instruction)
+    {
+        var aggregateOperand = instruction.GetOperand(0);
+        var aggregateType = aggregateOperand.TypeOf;
+        
+        var indices = instruction.GetIndices();
+
+        if (indices.Length != 1)
+        {
+            throw new NotSupportedException($"Only single index extractvalue is supported: {instruction}");
+        }
+
+        EmitValueAddress(aggregateOperand);
+
+        switch (aggregateType.Kind)
+        {
+            case LLVMTypeKind.LLVMArrayTypeKind:
+                var bufferType = TypeSystem.GetMsilType(aggregateType);
+                var elementType = TypeSystem.GetMsilType(aggregateType.ElementType);
+
+                // Get a ref to the target element via the InlineArrayElementRef helper.
+                ILGenerator.Emit(OpCodes.Ldc_I4, (int)indices[0]);
+                ILGenerator.Emit(OpCodes.Call, CompiledModule.GetOrCreateInlineArrayElementRef().MakeGenericMethod(bufferType, elementType));
+
+                // Load the value through the ref, then leave the modified aggregate as the result.
+                EmitLoadIndirect(aggregateType.ElementType);
+                break;
+
+            case LLVMTypeKind.LLVMStructTypeKind:
+                var structType = TypeSystem.GetMsilType(aggregateType);
+                var fieldIndex = indices[0];
+                var field = structType.GetFields()[fieldIndex];
+                ILGenerator.Emit(OpCodes.Ldfld, field);
+                break;
+            
+            default:
+                throw new NotSupportedException($"Unsupported aggregate type for extractvalue: {aggregateType}");
+        }
+    }
+
     private void EmitAlloca(LLVMValueRef instruction)
     {
         var numElements = instruction.GetOperand(0);
@@ -523,7 +576,13 @@ internal sealed class FunctionILEmitter : ILEmitter
                 break;
 
             case LLVMValueKind.LLVMInstructionValueKind:
+                var elementSizeInBytes = TypeSystem.GetSizeOfTypeInBytes(instruction.GetAllocatedType());
                 EmitValue(numElements);
+                if (elementSizeInBytes != 1)
+                {
+                    ILGenerator.Emit(OpCodes.Ldc_I8, (long)elementSizeInBytes);
+                    ILGenerator.Emit(OpCodes.Mul);
+                }
                 ILGenerator.Emit(OpCodes.Conv_U);
                 ILGenerator.Emit(OpCodes.Localloc);
                 EmitStoreResult(instruction);
@@ -585,9 +644,13 @@ internal sealed class FunctionILEmitter : ILEmitter
             // Emit scalar value.
             var scalarValue = sourceVector0.GetOperand(1);
             EmitValue(scalarValue);
+            var scalarValueType = TypeSystem.GetMsilVectorElementType(scalarValue.TypeOf);
+            if (scalarValue.TypeOf.Kind == LLVMTypeKind.LLVMPointerTypeKind)
+            {
+                ILGenerator.Emit(OpCodes.Conv_I);
+            }
 
             // Create vector from scalar value.
-            var scalarValueType = TypeSystem.GetMsilType(scalarValue.TypeOf);
             ILGenerator.Emit(
                 OpCodes.Call,
                 TypeSystem.GetNonGenericVectorType(instruction.TypeOf).GetMethodStrict("Create", [scalarValueType]));
@@ -693,10 +756,15 @@ internal sealed class FunctionILEmitter : ILEmitter
         // Value
         var valueOperand = instruction.GetOperand(1);
         EmitValue(valueOperand);
+        var valueType = TypeSystem.GetMsilVectorElementType(valueOperand.TypeOf);
+        if (valueOperand.TypeOf.Kind == LLVMTypeKind.LLVMPointerTypeKind)
+        {
+            ILGenerator.Emit(OpCodes.Conv_I);
+        }
 
         EmitVectorWithElement(
             TypeSystem.GetNonGenericVectorType(vectorOperand.TypeOf),
-            TypeSystem.GetMsilType(valueOperand.TypeOf));
+            valueType);
     }
 
     private void EmitVectorWithElement(Type nonGenericVectorType, Type valueType)
@@ -705,6 +773,42 @@ internal sealed class FunctionILEmitter : ILEmitter
             .GetStaticMethodStrict(nameof(Vector128.WithElement))
             .MakeGenericMethod(valueType);
         ILGenerator.Emit(OpCodes.Call, withElementMethod);
+    }
+
+    private void EmitInsertValue(LLVMValueRef instruction)
+    {
+        var aggregateOperand = instruction.GetOperand(0);
+        var aggregateType = aggregateOperand.TypeOf;
+
+        if (aggregateType.Kind != LLVMTypeKind.LLVMArrayTypeKind)
+        {
+            throw new NotSupportedException();
+        }
+
+        var indices = instruction.GetIndices();
+
+        if (indices.Length != 1)
+        {
+            throw new NotSupportedException($"Only single index insertvalue is supported: {instruction}");
+        }
+
+        var bufferType = TypeSystem.GetMsilType(aggregateType);
+        var elementType = TypeSystem.GetMsilType(aggregateType.ElementType);
+
+        // Store the aggregate to a local so we can take its address.
+        var aggregateLocal = ILGenerator.DeclareLocal(bufferType);
+        EmitValue(aggregateOperand);
+        ILGenerator.Emit(OpCodes.Stloc, aggregateLocal);
+
+        // Get a ref to the target element via the InlineArrayElementRef helper.
+        ILGenerator.Emit(OpCodes.Ldloca, aggregateLocal);
+        ILGenerator.Emit(OpCodes.Ldc_I4, (int)indices[0]);
+        ILGenerator.Emit(OpCodes.Call, CompiledModule.GetOrCreateInlineArrayElementRef().MakeGenericMethod(bufferType, elementType));
+
+        // Store the value through the ref, then leave the modified aggregate as the result.
+        EmitValue(instruction.GetOperand(1));
+        EmitStoreIndirect(aggregateType.ElementType);
+        ILGenerator.Emit(OpCodes.Ldloc, aggregateLocal);
     }
 
     private void EmitICmp(LLVMValueRef instruction)
@@ -716,6 +820,55 @@ internal sealed class FunctionILEmitter : ILEmitter
 
         switch (operand0.TypeOf.Kind)
         {
+            case LLVMTypeKind.LLVMIntegerTypeKind when operand0.TypeOf.IntWidth > 64:
+                // Int128 is a struct — IL Ceq/Clt/Cgt don't work; use Int128/UInt128 operators.
+                switch (instruction.ICmpPredicate)
+                {
+                    case LLVMIntPredicate.LLVMIntEQ:
+                        ILGenerator.Emit(OpCodes.Call, typeof(Int128).GetMethodStrict("op_Equality", [typeof(Int128), typeof(Int128)]));
+                        break;
+
+                    case LLVMIntPredicate.LLVMIntNE:
+                        ILGenerator.Emit(OpCodes.Call, typeof(Int128).GetMethodStrict("op_Inequality", [typeof(Int128), typeof(Int128)]));
+                        break;
+
+                    case LLVMIntPredicate.LLVMIntSGE:
+                        ILGenerator.Emit(OpCodes.Call, typeof(Int128).GetMethodStrict("op_GreaterThanOrEqual", [typeof(Int128), typeof(Int128)]));
+                        break;
+
+                    case LLVMIntPredicate.LLVMIntSGT:
+                        ILGenerator.Emit(OpCodes.Call, typeof(Int128).GetMethodStrict("op_GreaterThan", [typeof(Int128), typeof(Int128)]));
+                        break;
+
+                    case LLVMIntPredicate.LLVMIntSLE:
+                        ILGenerator.Emit(OpCodes.Call, typeof(Int128).GetMethodStrict("op_LessThanOrEqual", [typeof(Int128), typeof(Int128)]));
+                        break;
+
+                    case LLVMIntPredicate.LLVMIntSLT:
+                        ILGenerator.Emit(OpCodes.Call, typeof(Int128).GetMethodStrict("op_LessThan", [typeof(Int128), typeof(Int128)]));
+                        break;
+
+                    case LLVMIntPredicate.LLVMIntUGE:
+                        ILGenerator.Emit(OpCodes.Call, typeof(WideIntegerHelper).GetStaticMethodStrict(nameof(WideIntegerHelper.UgeInt128)));
+                        break;
+
+                    case LLVMIntPredicate.LLVMIntUGT:
+                        ILGenerator.Emit(OpCodes.Call, typeof(WideIntegerHelper).GetStaticMethodStrict(nameof(WideIntegerHelper.UgtInt128)));
+                        break;
+
+                    case LLVMIntPredicate.LLVMIntULE:
+                        ILGenerator.Emit(OpCodes.Call, typeof(WideIntegerHelper).GetStaticMethodStrict(nameof(WideIntegerHelper.UleInt128)));
+                        break;
+
+                    case LLVMIntPredicate.LLVMIntULT:
+                        ILGenerator.Emit(OpCodes.Call, typeof(WideIntegerHelper).GetStaticMethodStrict(nameof(WideIntegerHelper.UltInt128)));
+                        break;
+
+                    default:
+                        throw new NotImplementedException($"Integer comparison predicate {instruction.ICmpPredicate} not implemented for i128: {instruction}");
+                }
+                break;
+
             case LLVMTypeKind.LLVMIntegerTypeKind:
             case LLVMTypeKind.LLVMPointerTypeKind:
                 switch (instruction.ICmpPredicate)
@@ -815,6 +968,11 @@ internal sealed class FunctionILEmitter : ILEmitter
                 // Nothing to do.
                 break;
 
+            case LLVMTypeKind.LLVMPointerTypeKind:
+                // nint and long are both pointer-sized; reinterpret so the result is Vector<long>.
+                ILGenerator.Emit(OpCodes.Call, nonGenericVectorType.GetMethodStrict(nameof(Vector128.AsInt64)).MakeGenericMethod(elementType));
+                break;
+
             default:
                 throw new NotImplementedException($"Vector comparison not implemented for element type {operand0.TypeOf.ElementType.Kind}: {instruction}");
         }
@@ -884,6 +1042,14 @@ internal sealed class FunctionILEmitter : ILEmitter
                         ILGenerator.Emit(OpCodes.Clt);
                         break;
 
+                    case LLVMRealPredicate.LLVMRealONE:
+                    {
+                        var floatType = TypeSystem.GetMsilType(operand0.TypeOf);
+                        var areOrderedAndNotEqualMethod = typeof(LLVMIntrinsics).GetMethodStrict(nameof(LLVMIntrinsics.AreOrderedAndNotEqual), [floatType, floatType]);
+                        ILGenerator.Emit(OpCodes.Call, areOrderedAndNotEqualMethod);
+                        break;
+                    }
+
                     case LLVMRealPredicate.LLVMRealUGE:
                         ILGenerator.Emit(OpCodes.Clt_Un);
                         ILGenerator.Emit(OpCodes.Ldc_I4_0);
@@ -905,6 +1071,24 @@ internal sealed class FunctionILEmitter : ILEmitter
                         ILGenerator.Emit(OpCodes.Ldc_I4_0);
                         ILGenerator.Emit(OpCodes.Ceq);
                         break;
+
+                    case LLVMRealPredicate.LLVMRealUNO:
+                    {
+                        var floatType = TypeSystem.GetMsilType(operand0.TypeOf);
+                        var areUnorderedMethod = typeof(LLVMIntrinsics).GetMethodStrict(nameof(LLVMIntrinsics.AreUnordered), [floatType, floatType]);
+                        ILGenerator.Emit(OpCodes.Call, areUnorderedMethod);
+                        break;
+                    }
+
+                    case LLVMRealPredicate.LLVMRealUEQ:
+                    {
+                        var floatType = TypeSystem.GetMsilType(operand0.TypeOf);
+                        var areOrderedAndNotEqualMethod = typeof(LLVMIntrinsics).GetMethodStrict(nameof(LLVMIntrinsics.AreOrderedAndNotEqual), [floatType, floatType]);
+                        ILGenerator.Emit(OpCodes.Call, areOrderedAndNotEqualMethod);
+                        ILGenerator.Emit(OpCodes.Ldc_I4_0);
+                        ILGenerator.Emit(OpCodes.Ceq);
+                        break;
+                    }
 
                     default:
                         throw new NotImplementedException($"Float comparison predicate {instruction.FCmpPredicate} not implemented: {instruction}");
@@ -1056,6 +1240,13 @@ internal sealed class FunctionILEmitter : ILEmitter
                         break;
                 }
 
+                // For narrowing from a wide integer (stored as Int128), extract the lower 64 bits first.
+                // TODO: This will need to be changed if/when we support widening to 128 bits.
+                if (fromType.Kind == LLVMTypeKind.LLVMIntegerTypeKind && fromType.IntWidth > 64)
+                {
+                    ILGenerator.Emit(OpCodes.Call, typeof(WideIntegerHelper).GetStaticMethodStrict(nameof(WideIntegerHelper.Int128ToLong)));
+                }
+
                 EmitIntegerConversion((int)toType.IntWidth, signedness);
                 break;
 
@@ -1113,6 +1304,16 @@ internal sealed class FunctionILEmitter : ILEmitter
                 ILGenerator.Emit(OpCodes.Conv_U8);
                 break;
 
+            case (128, Signedness.Signed):
+                ILGenerator.Emit(OpCodes.Conv_I8);
+                ILGenerator.Emit(OpCodes.Call, typeof(Int128).GetMethodStrict("op_Implicit", [typeof(long)]));
+                break;
+
+            case (128, Signedness.Unsigned):
+                ILGenerator.Emit(OpCodes.Conv_U8);
+                ILGenerator.Emit(OpCodes.Call, typeof(Int128).GetMethodStrict("op_Implicit", [typeof(ulong)]));
+                break;
+
             default:
                 throw new NotImplementedException($"Integer conversion not implemented to int width {bits} {signedness}");
         }
@@ -1134,6 +1335,12 @@ internal sealed class FunctionILEmitter : ILEmitter
         if (instruction.OperandCount != operandCount)
         {
             throw new InvalidOperationException();
+        }
+
+        if (instruction.TypeOf.Kind == LLVMTypeKind.LLVMIntegerTypeKind && instruction.TypeOf.IntWidth > 64)
+        {
+            EmitWideIntegerBinaryOp(instruction);
+            return;
         }
 
         var isVectorShiftWithVectorCount = false;
@@ -1218,8 +1425,17 @@ internal sealed class FunctionILEmitter : ILEmitter
         {
             case LLVMTypeKind.LLVMDoubleTypeKind:
             case LLVMTypeKind.LLVMFloatTypeKind:
+                ILGenerator.Emit(scalarOpCode);
+                break;
+
             case LLVMTypeKind.LLVMIntegerTypeKind:
                 ILGenerator.Emit(scalarOpCode);
+                var resultWidth = (int)instruction.TypeOf.IntWidth;
+                if (resultWidth != TypeSystem.RoundUpToTypeSize(resultWidth))
+                {
+                    EmitConstantIntegerValue((uint)resultWidth, -1);
+                    ILGenerator.Emit(OpCodes.And);
+                }
                 break;
 
             case LLVMTypeKind.LLVMVectorTypeKind:
@@ -1309,6 +1525,114 @@ internal sealed class FunctionILEmitter : ILEmitter
         EmitUnaryOrBinaryOperation(instruction, scalarOpCode, vectorMethodName, 2, signedness);
     }
 
+    private void EmitWideIntegerBinaryOp(LLVMValueRef instruction)
+    {
+        var resultWidth = (int)instruction.TypeOf.IntWidth;
+        var opcode = instruction.InstructionOpcode;
+
+        var lhs = instruction.GetOperand(0);
+        var rhs = instruction.GetOperand(1);
+
+        switch (opcode)
+        {
+            case LLVMOpcode.LLVMLShr:
+                // Use helper for logical (unsigned) right shift via UInt128.
+                EmitValue(lhs);
+                EmitShiftAmount(rhs);
+                ILGenerator.Emit(OpCodes.Call, typeof(WideIntegerHelper).GetStaticMethodStrict(nameof(WideIntegerHelper.LshrInt128)));
+                break;
+
+            case LLVMOpcode.LLVMAShr:
+                EmitValue(lhs);
+                EmitShiftAmount(rhs);
+                ILGenerator.Emit(OpCodes.Call, typeof(Int128).GetMethodStrict("op_RightShift", [typeof(Int128), typeof(int)]));
+                break;
+
+            case LLVMOpcode.LLVMShl:
+                EmitValue(lhs);
+                EmitShiftAmount(rhs);
+                ILGenerator.Emit(OpCodes.Call, typeof(Int128).GetMethodStrict("op_LeftShift", [typeof(Int128), typeof(int)]));
+                break;
+
+            case LLVMOpcode.LLVMAdd:
+            case LLVMOpcode.LLVMFAdd:
+                EmitValue(lhs);
+                EmitValue(rhs);
+                ILGenerator.Emit(OpCodes.Call, typeof(Int128).GetMethodStrict("op_Addition", [typeof(Int128), typeof(Int128)]));
+                break;
+
+            case LLVMOpcode.LLVMSub:
+            case LLVMOpcode.LLVMFSub:
+                EmitValue(lhs);
+                EmitValue(rhs);
+                ILGenerator.Emit(OpCodes.Call, typeof(Int128).GetMethodStrict("op_Subtraction", [typeof(Int128), typeof(Int128)]));
+                break;
+
+            case LLVMOpcode.LLVMMul:
+            case LLVMOpcode.LLVMFMul:
+                EmitValue(lhs);
+                EmitValue(rhs);
+                ILGenerator.Emit(OpCodes.Call, typeof(Int128).GetMethodStrict("op_Multiply", [typeof(Int128), typeof(Int128)]));
+                break;
+
+            case LLVMOpcode.LLVMAnd:
+                EmitValue(lhs);
+                EmitValue(rhs);
+                ILGenerator.Emit(OpCodes.Call, typeof(Int128).GetMethodStrict("op_BitwiseAnd", [typeof(Int128), typeof(Int128)]));
+                break;
+
+            case LLVMOpcode.LLVMOr:
+                EmitValue(lhs);
+                EmitValue(rhs);
+                ILGenerator.Emit(OpCodes.Call, typeof(Int128).GetMethodStrict("op_BitwiseOr", [typeof(Int128), typeof(Int128)]));
+                break;
+
+            case LLVMOpcode.LLVMXor:
+                EmitValue(lhs);
+                EmitValue(rhs);
+                ILGenerator.Emit(OpCodes.Call, typeof(Int128).GetMethodStrict("op_ExclusiveOr", [typeof(Int128), typeof(Int128)]));
+                break;
+
+            default:
+                throw new NotImplementedException($"Wide integer binary op {opcode} not implemented");
+        }
+
+        // Mask result for non-power-of-2 widths.
+        if (resultWidth != TypeSystem.RoundUpToTypeSize(resultWidth))
+        {
+            EmitConstantIntegerValue((uint)resultWidth, -1);
+            ILGenerator.Emit(OpCodes.Call, typeof(Int128).GetMethodStrict("op_BitwiseAnd", [typeof(Int128), typeof(Int128)]));
+        }
+    }
+
+    private void EmitShiftAmount(LLVMValueRef operand)
+    {
+        // Shift amount must be an int for Int128/UInt128 shift operators.
+        if (operand.TypeOf.Kind == LLVMTypeKind.LLVMIntegerTypeKind &&
+            operand.TypeOf.IntWidth > 64)
+        {
+            // Wide integer shift count: emit directly as i32 to avoid pushing an Int128 struct.
+            if (operand.Kind == LLVMValueKind.LLVMConstantIntValueKind)
+            {
+                ILGenerator.Emit(OpCodes.Ldc_I4, (int)operand.ConstIntSExt);
+            }
+            else
+            {
+                EmitValue(operand);
+                ILGenerator.Emit(OpCodes.Call, typeof(WideIntegerHelper).GetStaticMethodStrict(nameof(WideIntegerHelper.Int128ToLong)));
+                ILGenerator.Emit(OpCodes.Conv_I4);
+            }
+            return;
+        }
+
+        EmitValue(operand);
+        if (operand.TypeOf.Kind == LLVMTypeKind.LLVMIntegerTypeKind &&
+            TypeSystem.RoundUpToTypeSize((int)operand.TypeOf.IntWidth) != 32)
+        {
+            ILGenerator.Emit(OpCodes.Conv_I4);
+        }
+    }
+
     private void EmitBr(LLVMValueRef instruction)
     {
         if (instruction.IsConditional)
@@ -1352,6 +1676,48 @@ internal sealed class FunctionILEmitter : ILEmitter
             EmitValue(condition.GetOperand(0));
             EmitValue(condition.GetOperand(1));
 
+            // Int128 is a struct — Beq/Blt/etc. don't work; use Int128/UInt128 operators then Brtrue.
+            if (condition.GetOperand(0).TypeOf.Kind == LLVMTypeKind.LLVMIntegerTypeKind &&
+                condition.GetOperand(0).TypeOf.IntWidth > 64)
+            {
+                switch (condition.ICmpPredicate)
+                {
+                    case LLVMIntPredicate.LLVMIntEQ:
+                        ILGenerator.Emit(OpCodes.Call, typeof(Int128).GetMethodStrict("op_Equality", [typeof(Int128), typeof(Int128)]));
+                        break;
+                    case LLVMIntPredicate.LLVMIntNE:
+                        ILGenerator.Emit(OpCodes.Call, typeof(Int128).GetMethodStrict("op_Inequality", [typeof(Int128), typeof(Int128)]));
+                        break;
+                    case LLVMIntPredicate.LLVMIntSGE:
+                        ILGenerator.Emit(OpCodes.Call, typeof(Int128).GetMethodStrict("op_GreaterThanOrEqual", [typeof(Int128), typeof(Int128)]));
+                        break;
+                    case LLVMIntPredicate.LLVMIntSGT:
+                        ILGenerator.Emit(OpCodes.Call, typeof(Int128).GetMethodStrict("op_GreaterThan", [typeof(Int128), typeof(Int128)]));
+                        break;
+                    case LLVMIntPredicate.LLVMIntSLE:
+                        ILGenerator.Emit(OpCodes.Call, typeof(Int128).GetMethodStrict("op_LessThanOrEqual", [typeof(Int128), typeof(Int128)]));
+                        break;
+                    case LLVMIntPredicate.LLVMIntSLT:
+                        ILGenerator.Emit(OpCodes.Call, typeof(Int128).GetMethodStrict("op_LessThan", [typeof(Int128), typeof(Int128)]));
+                        break;
+                    case LLVMIntPredicate.LLVMIntUGE:
+                        ILGenerator.Emit(OpCodes.Call, typeof(WideIntegerHelper).GetStaticMethodStrict(nameof(WideIntegerHelper.UgeInt128)));
+                        break;
+                    case LLVMIntPredicate.LLVMIntUGT:
+                        ILGenerator.Emit(OpCodes.Call, typeof(WideIntegerHelper).GetStaticMethodStrict(nameof(WideIntegerHelper.UgtInt128)));
+                        break;
+                    case LLVMIntPredicate.LLVMIntULE:
+                        ILGenerator.Emit(OpCodes.Call, typeof(WideIntegerHelper).GetStaticMethodStrict(nameof(WideIntegerHelper.UleInt128)));
+                        break;
+                    case LLVMIntPredicate.LLVMIntULT:
+                        ILGenerator.Emit(OpCodes.Call, typeof(WideIntegerHelper).GetStaticMethodStrict(nameof(WideIntegerHelper.UltInt128)));
+                        break;
+                    default:
+                        throw new NotImplementedException($"Branch condition i128 comparison {condition.ICmpPredicate} not implemented: {condition}");
+                }
+                return OpCodes.Brtrue;
+            }
+
             return condition.ICmpPredicate switch
             {
                 LLVMIntPredicate.LLVMIntEQ => OpCodes.Beq,
@@ -1370,8 +1736,22 @@ internal sealed class FunctionILEmitter : ILEmitter
             && condition.InstructionOpcode == LLVMOpcode.LLVMFCmp
             && condition.TypeOf.Kind == LLVMTypeKind.LLVMIntegerTypeKind)
         {
-            EmitValue(condition.GetOperand(0));
+            var op0 = condition.GetOperand(0);
+            var floatType = TypeSystem.GetMsilType(op0.TypeOf);
+            EmitValue(op0);
             EmitValue(condition.GetOperand(1));
+
+            if (condition.FCmpPredicate == LLVMRealPredicate.LLVMRealUNO)
+            {
+                ILGenerator.Emit(OpCodes.Call, typeof(LLVMIntrinsics).GetMethodStrict(nameof(LLVMIntrinsics.AreUnordered), [floatType, floatType]));
+                return OpCodes.Brtrue;
+            }
+
+            if (condition.FCmpPredicate == LLVMRealPredicate.LLVMRealUEQ)
+            {
+                ILGenerator.Emit(OpCodes.Call, typeof(LLVMIntrinsics).GetMethodStrict(nameof(LLVMIntrinsics.AreOrderedAndNotEqual), [floatType, floatType]));
+                return OpCodes.Brfalse;
+            }
 
             return condition.FCmpPredicate switch
             {
@@ -1430,7 +1810,6 @@ internal sealed class FunctionILEmitter : ILEmitter
             }
         }
 
-
         for (var i = 0; i < operands.Length - 1; i++)
         {
             EmitValue(operands[i]);
@@ -1442,7 +1821,7 @@ internal sealed class FunctionILEmitter : ILEmitter
         var isVarArg = functionType.IsFunctionVarArg;
         if (isVarArg)
         {
-            var parameters = functionType.ParamTypes;
+            var parameters = functionType.GetParamTypes();
             varArgsParameterTypes = new Type[operands.Length - 1 - parameters.Length];
             for (var i = 0; i < varArgsParameterTypes.Length; i++)
             {
@@ -1489,6 +1868,22 @@ internal sealed class FunctionILEmitter : ILEmitter
 
         var method = CompiledModule.GetFunction(functionToCall);
 
+        // Special handling for printf/fprintf/__sprintf_chk: variadic calling convention doesn't work on non-Windows.
+        // We implement them in managed code by parsing the format string + a call to Console.Write / Marshal.Copy.
+        if (isVarArg && functionToCall.Name is "printf" or "fprintf" or "__sprintf_chk")
+        {
+            var fixedParamTypes = functionType.GetParamTypes().Select(t => TypeSystem.GetMsilType(t)).ToArray();
+            var allParamTypes = fixedParamTypes.Concat(varArgsParameterTypes).ToArray();
+            var overload = functionToCall.Name switch
+            {
+                "fprintf" => CompiledModule.GetOrCreateFprintfOverload(allParamTypes),
+                "__sprintf_chk" => CompiledModule.GetOrCreateSprintfChkOverload(allParamTypes),
+                _ => CompiledModule.GetOrCreatePrintfOverload(allParamTypes),
+            };
+            ILGenerator.Emit(OpCodes.Call, overload);
+            return;
+        }
+
         ILGenerator.EmitCall(
             OpCodes.Call,
             method,
@@ -1497,7 +1892,7 @@ internal sealed class FunctionILEmitter : ILEmitter
 
     private unsafe void HandleDebugDeclare(LLVMValueRef instruction)
     {
-        var value = instruction.GetOperand(0).MDNodeOperands[0];
+        var value = instruction.GetOperand(0).GetMDNodeOperands()[0];
 
         var diLocalVariable = instruction.GetOperand(1);
         var diLocalVariableName = diLocalVariable.GetDILocalVariableName();
@@ -1538,13 +1933,22 @@ internal sealed class FunctionILEmitter : ILEmitter
         // TODO: If every operand is const, call GetElementPtrConst
 
         var pointer = instruction.GetOperand(0);
+        var firstIndex = instruction.GetOperand(1);
+
+        // When the first index is a vector, the result is a vector of pointers.
+        if (firstIndex.TypeOf.Kind == LLVMTypeKind.LLVMVectorTypeKind)
+        {
+            EmitVectorGetElementPtr(instruction, pointer, firstIndex);
+            return;
+        }
+
         EmitValue(pointer);
 
         var sourceElementType = (LLVMTypeRef)LLVM.GetGEPSourceElementType(instruction);
         var currentType = sourceElementType;
 
         // First index operand always indexes into the source element pointer type.
-        EmitIndexedPtr(instruction.GetOperand(1), currentType);
+        EmitIndexedPtr(firstIndex, currentType);
 
         for (var i = 2u; i < instruction.OperandCount; i++)
         {
@@ -1587,6 +1991,65 @@ internal sealed class FunctionILEmitter : ILEmitter
                     throw new NotImplementedException($"GetElementPtr not implemented for index {index} for type {currentType}: {instruction}");
             }
         }
+    }
+
+    private unsafe void EmitVectorGetElementPtr(LLVMValueRef instruction, LLVMValueRef pointer, LLVMValueRef indexVector)
+    {
+        var sourceElementType = (LLVMTypeRef)LLVM.GetGEPSourceElementType(instruction);
+        var sizeInBytes = TypeSystem.GetSizeOfTypeInBytes(sourceElementType);
+        var vectorSize = (int)indexVector.TypeOf.VectorSize;
+
+        // Store base pointer to a local so we can reuse it.
+        var baseLocal = ILGenerator.DeclareLocal(typeof(void*));
+        EmitValue(pointer);
+        ILGenerator.Emit(OpCodes.Stloc, baseLocal);
+
+        // Store the index vector to a local so we can extract individual elements.
+        var indexVectorLocal = ILGenerator.DeclareLocal(TypeSystem.GetMsilType(indexVector.TypeOf));
+        EmitValue(indexVector);
+        ILGenerator.Emit(OpCodes.Stloc, indexVectorLocal);
+
+        // Create a zero-initialised result vector local.
+        var resultType = TypeSystem.GetMsilType(instruction.TypeOf);
+        var resultLocal = ILGenerator.DeclareLocal(resultType);
+        ILGenerator.Emit(OpCodes.Ldloca, resultLocal);
+        ILGenerator.Emit(OpCodes.Initobj, resultType);
+
+        var indexElementSizeInBytes = TypeSystem.GetSizeOfTypeInBytes(indexVector.TypeOf.ElementType);
+        var resultElementSizeInBytes = TypeSystem.GetSizeOfTypeInBytes(instruction.TypeOf.ElementType);
+
+        for (var i = 0; i < vectorSize; i++)
+        {
+            // Push address of resultLocal[i].
+            ILGenerator.Emit(OpCodes.Ldloca, resultLocal);
+            ILGenerator.Emit(OpCodes.Ldc_I4, i * resultElementSizeInBytes);
+            ILGenerator.Emit(OpCodes.Conv_U);
+            ILGenerator.Emit(OpCodes.Add);
+
+            // Compute base + indices[i] * sizeInBytes.
+            ILGenerator.Emit(OpCodes.Ldloc, baseLocal);
+
+            ILGenerator.Emit(OpCodes.Ldloca, indexVectorLocal);
+            ILGenerator.Emit(OpCodes.Ldc_I4, i * indexElementSizeInBytes);
+            ILGenerator.Emit(OpCodes.Conv_U);
+            ILGenerator.Emit(OpCodes.Add);
+            EmitLoadIndirect(indexVector.TypeOf.ElementType);
+            ILGenerator.Emit(OpCodes.Conv_I8);
+
+            if (sizeInBytes != 1)
+            {
+                ILGenerator.Emit(OpCodes.Ldc_I8, (long)sizeInBytes);
+                ILGenerator.Emit(OpCodes.Mul);
+            }
+
+            ILGenerator.Emit(OpCodes.Conv_U);
+            ILGenerator.Emit(OpCodes.Add);
+
+            // Store the computed pointer into resultLocal[i].
+            ILGenerator.Emit(OpCodes.Stind_I);
+        }
+
+        ILGenerator.Emit(OpCodes.Ldloc, resultLocal);
     }
 
     private void EmitIndexedPtr(LLVMValueRef index, LLVMTypeRef currentType)
@@ -1875,6 +2338,22 @@ internal sealed class FunctionILEmitter : ILEmitter
         }
     }
 
+    private void EmitValueAddress(LLVMValueRef valueRef)
+    {
+        if (Locals.TryGetValue(valueRef, out var local))
+        {
+            ILGenerator.Emit(OpCodes.Ldloca, local);
+        }
+        else if (Parameters.TryGetValue(valueRef, out var parameter))
+        {
+            ILGenerator.Emit(OpCodes.Ldarga, parameter.Position - 1);
+        }
+        else
+        {
+            throw new InvalidOperationException($"Unexpected value for address: {valueRef}");
+        }
+    }
+
     private void EmitValue(LLVMValueRef valueRef)
     {
         if (valueRef.IsConstant)
@@ -1946,9 +2425,8 @@ internal sealed class FunctionILEmitter : ILEmitter
                 break;
 
             case LLVMTypeKind.LLVMIntegerTypeKind:
-                switch (typeRef.IntWidth)
+                switch (TypeSystem.RoundUpToTypeSize((int)typeRef.IntWidth))
                 {
-                    case 1:
                     case 8:
                         ILGenerator.Emit(OpCodes.Ldind_I1);
                         break;
@@ -1965,6 +2443,13 @@ internal sealed class FunctionILEmitter : ILEmitter
                         ILGenerator.Emit(OpCodes.Ldind_I8);
                         break;
 
+                    case 128:
+                        ILGenerator.Emit(OpCodes.Ldc_I4, ((int)typeRef.IntWidth + 7) / 8);
+                        ILGenerator.EmitCall(OpCodes.Call,
+                            typeof(WideIntegerHelper).GetStaticMethodStrict(nameof(WideIntegerHelper.LoadWideInt)),
+                            null);
+                        break;
+
                     default:
                         throw new NotImplementedException($"Int width {typeRef.IntWidth} not implemented: {typeRef}");
                 }
@@ -1974,6 +2459,8 @@ internal sealed class FunctionILEmitter : ILEmitter
                 ILGenerator.Emit(OpCodes.Ldind_I);
                 break;
 
+            case LLVMTypeKind.LLVMArrayTypeKind:
+            case LLVMTypeKind.LLVMStructTypeKind:
             case LLVMTypeKind.LLVMVectorTypeKind:
                 ILGenerator.Emit(OpCodes.Ldobj, TypeSystem.GetMsilType(typeRef));
                 break;

@@ -109,6 +109,9 @@ public static class Vector32
     }
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    public static Vector32<short> Create(short value) => Create(value, value);
+
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public static Vector32<short> Create(short e0, short e1)
     {
         Unsafe.SkipInit(out Vector32<short> result);
@@ -123,6 +126,21 @@ public static class Vector32
         Unsafe.SkipInit(out Vector32<ushort> result);
         result.SetElementUnsafe(0, e0);
         result.SetElementUnsafe(1, e1);
+        return result;
+    }
+
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    public static uint ExtractMostSignificantBits<T>(this Vector32<T> vector)
+        where T : unmanaged
+    {
+        uint result = 0;
+        for (int index = 0; index < Vector32<T>.Count; index++)
+        {
+            T element = vector.GetElementUnsafe(index);
+            ref byte elementBytes = ref Unsafe.As<T, byte>(ref element);
+            byte msbByte = Unsafe.Add(ref elementBytes, Unsafe.SizeOf<T>() - 1);
+            result |= (uint)(msbByte >> 7) << index;
+        }
         return result;
     }
 

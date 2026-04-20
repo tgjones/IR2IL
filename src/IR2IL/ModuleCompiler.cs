@@ -7,6 +7,7 @@ using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
 using IR2IL.Helpers;
 using IR2IL.ILEmission;
+using IR2IL.Runtime;
 using LLVMSharp.Interop;
 
 namespace IR2IL;
@@ -46,6 +47,7 @@ internal sealed class ModuleCompiler : IDisposable
 
         var compiledModule = new CompiledModule(
             _typeSystem,
+            _typeBuilder,
             compiledGlobalVariables,
             compiledFunctions);
 
@@ -80,6 +82,21 @@ internal sealed class ModuleCompiler : IDisposable
             {
                 case LLVMValueKind.LLVMGlobalVariableValueKind:
                     var valueType = (LLVMTypeRef)LLVM.GlobalGetValueType(global);
+
+                    if (global.IsDeclaration)
+                    {
+                        // External global: storage lives in a native library.
+                        // We create a nint field to hold the resolved address, populated at startup
+                        // via NativeLibrary.GetExport.
+                        var externalField = _typeBuilder.DefineField(
+                            global.Name.Replace(".", string.Empty),
+                            typeof(nint),
+                            FieldAttributes.Private | FieldAttributes.Static);
+
+                        result.Add(new CompiledGlobalVariable(global, valueType, default, externalField, IsExternal: true));
+                        break;
+                    }
+
                     var globalValue = global.GetOperand(0);
 
                     var globalType = _typeSystem.GetMsilType(valueType);
@@ -161,6 +178,10 @@ internal sealed class ModuleCompiler : IDisposable
         {
             // TODO: More math library functions.
             // TODO: Validate parameter types are expected.
+            case "puts":
+                return typeof(PrintfHelper).GetMethodStrict(nameof(PrintfHelper.Puts), [typeof(void*)]);
+            case "putchar":
+                return typeof(PrintfHelper).GetMethodStrict(nameof(PrintfHelper.PutChar), [typeof(int)]);
             case "exp10":
                 return typeof(double).GetMethodStrict(nameof(double.Exp10));
             case "exp10f":
@@ -176,7 +197,7 @@ internal sealed class ModuleCompiler : IDisposable
                     function.Name,
                     functionType.IsFunctionVarArg ? CallingConventions.VarArgs : CallingConventions.Standard,
                     _typeSystem.GetMsilType(functionType.ReturnType),
-                    functionType.ParamTypes.Select(x => _typeSystem.GetMsilType(x)).ToArray());
+                    [.. functionType.GetParamTypes().Select(x => _typeSystem.GetMsilType(x))]);
         }
     }
 
@@ -184,7 +205,7 @@ internal sealed class ModuleCompiler : IDisposable
     {
         var functionType = (LLVMTypeRef)LLVM.GlobalGetValueType(function);
 
-        var parameters = function.Params;
+        var parameters = function.GetParams();
         var parameterTypes = new Type[parameters.Length];
         for (var i = 0; i < parameters.Length; i++)
         {
@@ -212,9 +233,32 @@ internal sealed class ModuleCompiler : IDisposable
         Type returnType,
         Type[] parameterTypes)
     {
-        var libraryName = name.StartsWith("omp_") // TODO: Complete hack
-            ? "vcomp140.dll"
-            : "ucrtbase.dll";
+        string libraryName;
+        CallingConvention callingConvention;
+        if (OperatingSystem.IsWindows())
+        {
+            libraryName = name.StartsWith("omp_") // TODO: Complete hack
+                ? "vcomp140.dll"
+                : "ucrtbase.dll";
+            callingConvention = CallingConvention.Winapi;
+        }
+        else
+        {
+            libraryName = name.StartsWith("omp_") // TODO: Complete hack
+                ? "libomp"
+                : "libc";
+            callingConvention = CallingConvention.Cdecl;
+        }
+
+        // LLVMSharp preserves the \x01 sentinel byte from LLVM's \01 escape (e.g. "\01_fopen" arrives
+        // as "\x01_fopen"). The \x01 byte followed by '_' encodes the Mach-O convention of prefixing
+        // C names with '_'; strip both to recover the plain C name for dlsym (e.g. "fopen").
+        // StringComparison.Ordinal is required: the default cultural comparison treats \u0001 as a
+        // zero-weight character.
+        if (!OperatingSystem.IsWindows() && name.StartsWith("\x01_", StringComparison.Ordinal))
+        {
+            name = name[2..];
+        }
 
         var methodInfo = _typeBuilder.DefinePInvokeMethod(
             name,
@@ -223,7 +267,7 @@ internal sealed class ModuleCompiler : IDisposable
             callingConventions,
             returnType,
             parameterTypes,
-            CallingConvention.Winapi,
+            callingConvention,
             CharSet.None);
 
         methodInfo.SetImplementationFlags(MethodImplAttributes.IL | MethodImplAttributes.Managed | MethodImplAttributes.PreserveSig);
