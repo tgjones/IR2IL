@@ -14,7 +14,7 @@ Legend: **[bug]** = confirmed or near-certain wrong behaviour, **[gap]** = unsup
 | Arbitrary | 18 | 51 s | 2.8 s |
 | **Total** | **5022, all passing** | | wall clock **6 min 19 s** (user 423 s, **sys 456 s**) |
 
-System CPU time is higher than user time, which suggests process creation and file I/O dominate (three or four process launches plus IL/C# dumps per test), not the compiler itself. See §5.
+System CPU time is higher than user time, which suggests process creation and file I/O dominate (three or four process launches plus IL/C# dumps per test), not the compiler itself. See §1.
 
 ---
 
@@ -23,7 +23,34 @@ System CPU time is higher than user time, which suggests process creation and fi
 - [x] **[bug] The build is broken on current .NET 10 SDKs.** `src/IR2IL/IR2IL.csproj` sets `<LangVersion>preview</LangVersion>`. With SDK 10.0.402 (allowed by `global.json`'s `rollForward: latestMinor`), the preview "unsafe evolution" rules apply and the build fails with 9 × `CS9363` (pointer conversion operators such as `LLVMValueRef(LLVMOpaqueValue*)` must be used in an unsafe context) in `LLVMExtensions.cs` and `FunctionILEmitter.cs`. Building with `-p:LangVersion=latest` works. Fix: drop `preview` (nothing seems to need it), or add `unsafe` to the affected members. CI will break as soon as its runner image picks up the newer SDK.
 - [x] **[bug] The compiler copies `IR2IL.Runtime.dll` from the current directory** (`Compiler.Save`: `File.Copy("IR2IL.Runtime.dll", …)`). That only works when the process's working directory is the compiler's output folder (true for the tests, false for `IR2IL in.ll out.exe` run from anywhere else). Use `typeof(PrintfHelper).Assembly.Location`.
 
-## 1. Correctness
+## 1. Test suite
+
+### Speed
+Each test case currently:
+1. spawns `clang` to produce `.ll`
+2. compiles it
+3. disassembles the output with ICSharpCode.Decompiler to `.il`
+4. **decompiles the whole module to C#**
+5. spawns a fresh `dotnet` process to run it
+
+`Arbitrary` and `Benchmark` also spawn `clang` a second time to build and run a native binary.
+
+- [ ] **Make the `.il`/`.cs` dumps opt-in** (e.g. `IR2IL_DUMP=1`). Whole-module C# decompilation is probably the single most expensive step and is only needed when debugging a failure. Could also be done automatically *on failure*.
+- [ ] **Cache clang output.** Key `.ll` (and native binaries) on (source hash, opt level, clang version) under `build/cache`. The clang toolchain is pinned, so this is safe and saves two process launches per test on re-runs.
+- [ ] **Avoid one `dotnet` process start per test.** Run compiled assemblies in a small pool of long-lived worker processes, with the assembly loaded into a collectible `AssemblyLoadContext` and stdout/stderr redirected. Fall back to a fresh process for tests that call `exit`/`abort`.
+- [ ] **Move `Benchmark` out of the default run** (`[TestCategory("Benchmark")]`, filtered out in CI). The timings are meaningless when run in parallel with 5,000 other tests, and the tests also compile with clang twice.
+- [ ] **CI runs the whole suite twice** (Debug and Release) on both OSes. Consider Release-only on PRs, or splitting the suites across matrix jobs.
+- [ ] **Add a timeout to `RunProgram`** and kill the process tree on expiry. Today a miscompiled infinite loop hangs the whole run.
+- [ ] Consider moving to MSTest 4 / Microsoft.Testing.Platform (`MSTest` is pinned at 3.6.2) for faster discovery and better parallelism control.
+
+### Coverage and visibility
+- [ ] **Add small hand-written `.ll` tests per instruction/intrinsic** (with expected output) that run without clang. They'd be fast and precise, and could cover the bugs listed above: ULE, unsigned vector compares, negative const GEPs, `i40` signed compares, `fcmp` NaN cases, and load/store reordering.
+- [ ] **Expand the Fujitsu suite beyond directory `0020`.** Only about 2.6k of its 21k C files are used (`<= 0020` filter). Add directories one at a time and track the pass rate per directory.
+- [ ] **Make excluded tests visible.** Move the large `switch` ignore lists in `CompilerTests.cs` into a data file (test id, platform, reason). Report excluded tests as `Inconclusive`/skipped rather than silently dropping them, so tests that start passing get noticed and the reasons stay reviewable.
+- [ ] **Re-check stale exclusions.** Several ignore comments mention MSVC-specific problems but apply on all platforms (e.g. `0005_0005`, `0005_0006`, `0014_*` bitfields, `0016_*`/`0018_*` `_Complex`), so they could run on macOS. Similarly, `0021_*` (`extern int printf(...)`) is excluded everywhere but the comment is Windows-specific.
+- [ ] Run tests at `-O1`/`-O2`/`-Os` as well as `-O0`/`-O3` once the suite is faster; each level exercises different IR shapes.
+
+## 2. Correctness
 
 ### Instruction scheduling / stack inlining
 - [ ] **[bug] Side-effect analysis can move loads past stores.** `LLVMExtensions.HasNoSideEffects` returns `true` for `load` and for *every* intrinsic call (including `memcpy`, `memset`, `va_start`). `CanPushToStack` only checks for intervening side effects when the *inlined instruction itself* is a load. So in
@@ -66,7 +93,7 @@ System CPU time is higher than user time, which suggests process creation and fi
 - [ ] `AnonymousStructIndex` is a mutable `static`, shared across concurrent compilations in the test host. Make it per-`TypeSystem` so output is deterministic.
 - [ ] **[gap]** Opaque structs (`IsOpaqueStruct` throws). Scalable vectors, target extension types and non-zero address spaces are also unsupported.
 
-## 2. IR coverage (instructions, constants, intrinsics)
+## 3. IR coverage (instructions, constants, intrinsics)
 
 ### Instructions not yet implemented
 - [ ] `cmpxchg`, `fence`, `atomicrmw` other than integer `add` (`xchg`, `sub`, `and`, `or`, `xor`, `max`/`min`/`umax`/`umin`, `fadd`) → `Interlocked.*`/`Volatile.*`
@@ -94,7 +121,7 @@ System CPU time is higher than user time, which suggests process creation and fi
   - [ ] Misc: `trap`/`debugtrap` (throw), `expect`, `prefetch` (no-op), `memcpy.inline`/`memset.inline`, `memcpy`/`memset` with an `i32` length, `abs` on vectors
 - [ ] The `isvolatile` flag of `memcpy`/`memset` is ignored (TODO in the intrinsic class).
 
-## 3. Performance of generated IL
+## 4. Performance of generated IL
 
 - [ ] **Promote allocas that never have their address exposed to plain locals.** `EmitStore` already uses `stloc` for primitive allocas, but loads go through `ldloca` + `ldind`, which marks the local address-exposed so the JIT won't enregister it. This dominates `-O0` code. Use `ldloc` for direct loads too, and only fall back to `ldloca` when the alloca escapes (passed to a call, stored, or used in a GEP).
 - [ ] **Reuse locals.** Every non-inlined SSA value gets its own `LocalBuilder`. Large functions exceed the JIT's tracked-locals limit (`JitMaxLocalsToTrack`, default 1024), after which locals aren't enregistered. Allocate locals by (type, liveness interval) and reuse them.
@@ -104,7 +131,7 @@ System CPU time is higher than user time, which suggests process creation and fi
 - [ ] **Experiment with runtimeconfig knobs** for compiled programs (`TieredPGO`, `TieredCompilation.QuickJitForLoops`, `ReadyToRun` / NativeAOT of the output) and record the effect in the benchmark suite.
 - [ ] **Branchless `select`.** Scalar `select` always emits a branch diamond. For simple operands, emit a form the JIT can if-convert, or use `ConditionalSelect` for vectors (already done).
 
-## 4. Compiler performance and code health
+## 5. Compiler performance and code health
 
 - [ ] **[perf] Cache reflection lookups.** Many hot emission paths call `typeof(X).GetMethodStrict(...)` per instruction (all the `Int128` operators, `Interlocked.Add`, `Unsafe.BitCast`, vector methods). Move them into `static readonly` fields or a memoizing cache.
 - [ ] **[perf] `TypeSystem.GetStructFieldOffset` creates and disposes an `LLVMTargetDataRef` on every call.** Create it once per module.
@@ -125,33 +152,6 @@ System CPU time is higher than user time, which suggests process creation and fi
 - [ ] **[cleanup]** `runtimeconfig.json` hard-codes `10.0.0` (TODO in `Compiler.Save`). Derive it from `Environment.Version`.
 - [ ] **[ux]** `Program.Main` indexes `args[0]`/`args[1]` without validation. Add usage text, `--keep-il`/`--decompile` options, and error messages that include the offending IR instruction and source location (debug info is already available).
 - [ ] **[ux]** Emit a warning when compiling something knowingly approximated (e.g. `stacksave`), rather than silently.
-
-## 5. Test suite
-
-### Speed
-Each test case currently:
-1. spawns `clang` to produce `.ll`
-2. compiles it
-3. disassembles the output with ICSharpCode.Decompiler to `.il`
-4. **decompiles the whole module to C#**
-5. spawns a fresh `dotnet` process to run it
-
-`Arbitrary` and `Benchmark` also spawn `clang` a second time to build and run a native binary.
-
-- [ ] **Make the `.il`/`.cs` dumps opt-in** (e.g. `IR2IL_DUMP=1`). Whole-module C# decompilation is probably the single most expensive step and is only needed when debugging a failure. Could also be done automatically *on failure*.
-- [ ] **Cache clang output.** Key `.ll` (and native binaries) on (source hash, opt level, clang version) under `build/cache`. The clang toolchain is pinned, so this is safe and saves two process launches per test on re-runs.
-- [ ] **Avoid one `dotnet` process start per test.** Run compiled assemblies in a small pool of long-lived worker processes, with the assembly loaded into a collectible `AssemblyLoadContext` and stdout/stderr redirected. Fall back to a fresh process for tests that call `exit`/`abort`.
-- [ ] **Move `Benchmark` out of the default run** (`[TestCategory("Benchmark")]`, filtered out in CI). The timings are meaningless when run in parallel with 5,000 other tests, and the tests also compile with clang twice.
-- [ ] **CI runs the whole suite twice** (Debug and Release) on both OSes. Consider Release-only on PRs, or splitting the suites across matrix jobs.
-- [ ] **Add a timeout to `RunProgram`** and kill the process tree on expiry. Today a miscompiled infinite loop hangs the whole run.
-- [ ] Consider moving to MSTest 4 / Microsoft.Testing.Platform (`MSTest` is pinned at 3.6.2) for faster discovery and better parallelism control.
-
-### Coverage and visibility
-- [ ] **Add small hand-written `.ll` tests per instruction/intrinsic** (with expected output) that run without clang. They'd be fast and precise, and could cover the bugs listed above: ULE, unsigned vector compares, negative const GEPs, `i40` signed compares, `fcmp` NaN cases, and load/store reordering.
-- [ ] **Expand the Fujitsu suite beyond directory `0020`.** Only about 2.6k of its 21k C files are used (`<= 0020` filter). Add directories one at a time and track the pass rate per directory.
-- [ ] **Make excluded tests visible.** Move the large `switch` ignore lists in `CompilerTests.cs` into a data file (test id, platform, reason). Report excluded tests as `Inconclusive`/skipped rather than silently dropping them, so tests that start passing get noticed and the reasons stay reviewable.
-- [ ] **Re-check stale exclusions.** Several ignore comments mention MSVC-specific problems but apply on all platforms (e.g. `0005_0005`, `0005_0006`, `0014_*` bitfields, `0016_*`/`0018_*` `_Complex`), so they could run on macOS. Similarly, `0021_*` (`extern int printf(...)`) is excluded everywhere but the comment is Windows-specific.
-- [ ] Run tests at `-O1`/`-O2`/`-Os` as well as `-O0`/`-O3` once the suite is faster; each level exercises different IR shapes.
 
 ## 6. Platform and tooling
 
