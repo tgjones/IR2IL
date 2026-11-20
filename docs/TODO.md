@@ -41,7 +41,7 @@ Each test case currently:
 - [x] **`Benchmark` stays in the default run, but is now tagged `[TestCategory("Benchmark")]`.** Decided not to filter it out of CI: the tests also assert that output and exit code match the native binary, so they give useful coverage on larger, more realistic code, and they cost only ~2% of total test time. The timings they print are only indicative, since they run in parallel with other tests. Run them alone with `dotnet test src --filter "TestCategory=Benchmark"`.
 - [x] **CI runs the whole suite once, in Release only.** Debug was dropped: the IL under test comes from `Reflection.Emit`, not from the build configuration, and Debug only adds `Debug.Assert`s in `IR2IL.Runtime` and different optimisations, which is marginal value for doubling the CI time. Run Debug locally if needed.
 - [x] **Add a timeout to `RunProgram`** and kill the process tree on expiry. Today a miscompiled infinite loop hangs the whole run.
-- [ ] Consider moving to MSTest 4 / Microsoft.Testing.Platform (`MSTest` is pinned at 3.6.2) for faster discovery and better parallelism control.
+- [x] Moved to MSTest 4.5.3 with Microsoft.Testing.Platform (`MSTest.Sdk`, opted in via `global.json`). Measured on the 414-test `CTestSuite`: run time unchanged (~6 s), discovery ~0.4 s faster. Kept for the future direction of .NET testing and extensions such as `--hangdump`.
 
 ### Coverage and visibility
 - [ ] **Add small hand-written `.ll` tests per instruction/intrinsic** (with expected output) that run without clang. They'd be fast and precise, and could cover the bugs listed above: ULE, unsigned vector compares, negative const GEPs, `i40` signed compares, `fcmp` NaN cases, and load/store reordering.

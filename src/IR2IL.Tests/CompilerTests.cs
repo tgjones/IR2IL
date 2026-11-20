@@ -94,7 +94,7 @@ public partial class CompilerTests
         .Concat(Directory.GetFiles(Path.Combine(TestProgramsPath, "arbitrary"), "*.cpp", SearchOption.AllDirectories)));
 
     [TestMethod]
-    [DynamicData(nameof(TestDataArbitrary), DynamicDataSourceType.Method, DynamicDataDisplayName = nameof(TestDataDisplayName))]
+    [DynamicData(nameof(TestDataArbitrary), DynamicDataDisplayName = nameof(TestDataDisplayName))]
     public void Arbitrary(string testName, string optimizationLevel)
     {
         CompileAndExecuteManaged(
@@ -143,7 +143,7 @@ public partial class CompilerTests
         }));
 
     [TestMethod]
-    [DynamicData(nameof(TestDataCTestSuite), DynamicDataSourceType.Method, DynamicDataDisplayName = nameof(TestDataDisplayName))]
+    [DynamicData(nameof(TestDataCTestSuite), DynamicDataDisplayName = nameof(TestDataDisplayName))]
     public void CTestSuite(string testName, string optimizationLevel)
     {
         CompileAndExecuteManaged(
@@ -263,7 +263,7 @@ public partial class CompilerTests
     private static partial Regex FujitsuCompilerTestSuiteExitCodeRegex();
 
     [TestMethod]
-    [DynamicData(nameof(TestDataFujitsuCompilerTestSuite), DynamicDataSourceType.Method, DynamicDataDisplayName = nameof(TestDataDisplayName))]
+    [DynamicData(nameof(TestDataFujitsuCompilerTestSuite), DynamicDataDisplayName = nameof(TestDataDisplayName))]
     public void FujitsuCompilerTestSuite(string testName, string optimizationLevel)
     {
         CompileAndExecuteManaged(
@@ -314,7 +314,7 @@ public partial class CompilerTests
 
     [TestMethod]
     [TestCategory("Benchmark")]
-    [DynamicData(nameof(TestDataBenchmarks), DynamicDataSourceType.Method, DynamicDataDisplayName = nameof(TestDataDisplayName))]
+    [DynamicData(nameof(TestDataBenchmarks), DynamicDataDisplayName = nameof(TestDataDisplayName))]
     public void Benchmark(string testName, string optimizationLevel)
     {
         var managedExePath = CompileManaged(testName, optimizationLevel);
@@ -374,7 +374,7 @@ public partial class CompilerTests
 
             var stopwatch = Stopwatch.StartNew();
 
-            Assert.ThrowsException<TimeoutException>(() => ExecuteManaged(
+            Assert.Throws<TimeoutException>(() => ExecuteManaged(
                 exePath,
                 out _,
                 out _,

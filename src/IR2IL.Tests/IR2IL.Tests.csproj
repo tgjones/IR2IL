@@ -1,4 +1,4 @@
-<Project Sdk="Microsoft.NET.Sdk">
+<Project Sdk="MSTest.Sdk/4.5.3">
 
   <PropertyGroup>
     <IsPackable>false</IsPackable>
@@ -7,7 +7,6 @@
 
   <ItemGroup>
     <PackageReference Include="ICSharpCode.Decompiler" Version="10.0.0.8330" />
-    <PackageReference Include="MSTest" Version="3.6.2" />
   </ItemGroup>
 
   <ItemGroup>
