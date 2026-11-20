@@ -41,9 +41,9 @@ public sealed partial class Compiler
 
         var targetFrameworkAttributeBuilder = new CustomAttributeBuilder(
             typeof(TargetFrameworkAttribute).GetConstructorStrict([typeof(string)]),
-            [".NETCoreApp,Version=v10.0"],
+            [".NETCoreApp,Version=v11.0"],
             [typeof(TargetFrameworkAttribute).GetPropertyStrict(nameof(TargetFrameworkAttribute.FrameworkDisplayName))],
-            [".NET 10.0"]);
+            [".NET 11.0"]);
         _assemblyBuilder.SetCustomAttribute(targetFrameworkAttributeBuilder);
 
         _moduleBuilder = _assemblyBuilder.DefineDynamicModule(outputName);
@@ -108,10 +108,10 @@ public sealed partial class Compiler
             """
             {
               "runtimeOptions": {
-                "tfm": "net10.0",
+                "tfm": "net11.0",
                 "framework": {
                   "name": "Microsoft.NETCore.App",
-                  "version": "10.0.0"
+                  "version": "11.0.0"
                 },
                 "configProperties": {
                   "System.Runtime.Serialization.EnableUnsafeBinaryFormatterSerialization": false
