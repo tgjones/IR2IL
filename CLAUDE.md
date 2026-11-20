@@ -19,6 +19,8 @@ dotnet test src --filter "Name~fibonacci"
 dotnet test src --filter "Name~Arbitrary"
 ```
 
+Each test's `.il` and decompiled `.cs` dumps (under `src/IR2IL.Tests/bin/<config>/<tfm>/output/`) are only written when the test fails. Set `IR2IL_DUMP=1` to write them for every test.
+
 List available tests:
 
 ```bash

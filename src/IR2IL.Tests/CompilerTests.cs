@@ -26,6 +26,34 @@ public partial class CompilerTests
     private static readonly string ClangPath = Path.Combine(RepoRoot, "build", "llvm", "bin", OperatingSystem.IsWindows() ? "clang.exe" : "clang");
     private static readonly string[] ClangExtraArgs = GetClangExtraArgs();
 
+    /// <summary>
+    /// Set <c>IR2IL_DUMP=1</c> to always write the disassembled IL (.il) and decompiled C# (.cs) next to
+    /// each compiled test. Without it they are only written when a test fails, because decompiling the
+    /// whole module is expensive.
+    /// </summary>
+    private static readonly bool AlwaysDump = Environment.GetEnvironmentVariable("IR2IL_DUMP") is "1" or "true";
+
+    // Path of the managed executable compiled by the current test, if any.
+    private string? _compiledOutputPath;
+
+    public TestContext TestContext { get; set; } = null!;
+
+    [TestCleanup]
+    public void WriteDebugDumpsIfNeeded()
+    {
+        if (_compiledOutputPath == null || !File.Exists(_compiledOutputPath))
+        {
+            return;
+        }
+
+        if (!AlwaysDump && TestContext.CurrentTestOutcome == UnitTestOutcome.Passed)
+        {
+            return;
+        }
+
+        WriteDebugDumps(_compiledOutputPath);
+    }
+
     private static string[] GetClangExtraArgs()
     {
         if (!OperatingSystem.IsMacOS())
@@ -332,7 +360,7 @@ public partial class CompilerTests
 
     private static string GetSourceFilePath(string testName) => Path.Combine(TestProgramsPath, testName);
 
-    private static void CompileAndExecuteManaged(
+    private void CompileAndExecuteManaged(
         string testName,
         string optimizationLevel,
         out int managedExitCode,
@@ -354,7 +382,7 @@ public partial class CompilerTests
             managedStandardOutput);
     }
 
-    private static string CompileManaged(string testName, string optimizationLevel)
+    private string CompileManaged(string testName, string optimizationLevel)
     {
         var fullTestName = GetOutputPath(testName, optimizationLevel);
 
@@ -365,6 +393,15 @@ public partial class CompilerTests
 
         var outputPath = $"{fullTestName}.exe";
         Compiler.Compile(irPath, outputPath);
+
+        _compiledOutputPath = outputPath;
+
+        return outputPath;
+    }
+
+    private static void WriteDebugDumps(string outputPath)
+    {
+        var fullTestName = Path.ChangeExtension(outputPath, null);
 
         // Write IL to file for debugging purposes.
         {
@@ -382,8 +419,6 @@ public partial class CompilerTests
         File.WriteAllText(
             $"{fullTestName}.cs",
             decompiler.DecompileWholeModuleAsString());
-
-        return outputPath;
     }
 
     private static void ExecuteManaged(
