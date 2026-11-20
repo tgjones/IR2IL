@@ -105,7 +105,7 @@ public partial class CompilerTests
 
         // Compile to executable binary.
         var binaryPath = GetOutputPath(testName, optimizationLevel) + "_native.exe";
-        RunClang([GetSourceFilePath(testName), "-o", binaryPath, $"-{optimizationLevel}"]);
+        RunClangCached(GetSourceFilePath(testName), binaryPath, $"-{optimizationLevel}");
 
         RunProgram(
             binaryPath,
@@ -319,7 +319,7 @@ public partial class CompilerTests
 
         // Compile to executable binary.
         var binaryPath = GetOutputPath(testName, optimizationLevel) + "_native.exe";
-        RunClang([GetSourceFilePath(testName), "-o", binaryPath, $"-{optimizationLevel}"]);
+        RunClangCached(GetSourceFilePath(testName), binaryPath, $"-{optimizationLevel}");
 
         var stopwatch = Stopwatch.StartNew();
 
@@ -389,7 +389,7 @@ public partial class CompilerTests
         var irPath = fullTestName + ".ll";
 
         // Compile to LLVM IR.
-        RunClang([GetSourceFilePath(testName), "-g", "-o", irPath, "-emit-llvm", "-S", $"-{optimizationLevel}"]);
+        RunClangCached(GetSourceFilePath(testName), irPath, "-g", "-emit-llvm", "-S", $"-{optimizationLevel}");
 
         var outputPath = $"{fullTestName}.exe";
         Compiler.Compile(irPath, outputPath);
@@ -485,6 +485,60 @@ public partial class CompilerTests
 
         standardOutput = standardOutputTask.Result;
         standardError = standardErrorTask.Result;
+    }
+
+    private static readonly string ClangCachePath = Path.Combine(RepoRoot, "build", "cache", "clang");
+
+    // Identifies the exact clang build. Hashing the binary (rather than trusting `--version` or a path)
+    // means swapping or upgrading the toolchain automatically invalidates every cached output.
+    private static readonly Lazy<string> ClangIdentity = new(() =>
+    {
+        using var stream = File.OpenRead(ClangPath);
+        return Convert.ToHexString(System.Security.Cryptography.SHA256.HashData(stream));
+    });
+
+    /// <summary>
+    /// Runs clang on <paramref name="sourcePath"/> to produce <paramref name="outputPath"/>, reusing a
+    /// previous result from <c>build/cache/clang</c> when nothing that influences the output has changed.
+    /// The cache key covers the clang binary, the flags (including the macOS SDK), the source path
+    /// (debug info embeds it), the source contents and any header files next to the source.
+    /// </summary>
+    private static void RunClangCached(string sourcePath, string outputPath, params string[] flags)
+    {
+        var fullSourcePath = Path.GetFullPath(sourcePath);
+
+        var key = new StringBuilder();
+        key.AppendLine(ClangIdentity.Value);
+        key.AppendLine(fullSourcePath);
+        key.AppendLine(string.Join('\0', flags));
+        key.AppendLine(string.Join('\0', ClangExtraArgs));
+        key.AppendLine(Convert.ToHexString(System.Security.Cryptography.SHA256.HashData(File.ReadAllBytes(fullSourcePath))));
+
+        var sourceDirectory = Path.GetDirectoryName(fullSourcePath)!;
+        foreach (var header in Directory.EnumerateFiles(sourceDirectory)
+            .Where(x => Path.GetExtension(x) is ".h" or ".hpp" or ".inc")
+            .Order(StringComparer.Ordinal))
+        {
+            key.AppendLine(header);
+            key.AppendLine(Convert.ToHexString(System.Security.Cryptography.SHA256.HashData(File.ReadAllBytes(header))));
+        }
+
+        var keyHash = Convert.ToHexString(System.Security.Cryptography.SHA256.HashData(Encoding.UTF8.GetBytes(key.ToString())));
+        var cachedPath = Path.Combine(ClangCachePath, keyHash + Path.GetExtension(outputPath));
+
+        if (File.Exists(cachedPath))
+        {
+            File.Copy(cachedPath, outputPath, overwrite: true);
+            return;
+        }
+
+        RunClang([fullSourcePath, ..flags, "-o", outputPath]);
+
+        // Publish atomically, because tests run in parallel.
+        Directory.CreateDirectory(ClangCachePath);
+        var temporaryPath = Path.Combine(ClangCachePath, $"{keyHash}.{Guid.NewGuid():N}.tmp");
+        File.Copy(outputPath, temporaryPath, overwrite: true);
+        File.Move(temporaryPath, cachedPath, overwrite: true);
     }
 
     private static void RunClang(string[] arguments)

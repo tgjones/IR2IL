@@ -21,6 +21,8 @@ dotnet test src --filter "Name~Arbitrary"
 
 Each test's `.il` and decompiled `.cs` dumps (under `src/IR2IL.Tests/bin/<config>/<tfm>/output/`) are only written when the test fails. Set `IR2IL_DUMP=1` to write them for every test.
 
+Clang output (`.ll` files and native binaries) is cached in `build/cache/clang`, keyed on the clang binary, flags, source and neighbouring headers. Delete that folder to force a rebuild.
+
 List available tests:
 
 ```bash

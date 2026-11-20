@@ -36,7 +36,7 @@ Each test case currently:
 `Arbitrary` and `Benchmark` also spawn `clang` a second time to build and run a native binary.
 
 - [x] **Make the `.il`/`.cs` dumps opt-in** (`IR2IL_DUMP=1`; also written automatically when a test fails). Whole-module C# decompilation is probably the single most expensive step and is only needed when debugging a failure. Could also be done automatically *on failure*.
-- [ ] **Cache clang output.** Key `.ll` (and native binaries) on (source hash, opt level, clang version) under `build/cache`. The clang toolchain is pinned, so this is safe and saves two process launches per test on re-runs.
+- [x] **Cache clang output.** Key `.ll` (and native binaries) on (source hash, opt level, clang version) under `build/cache`. The clang toolchain is pinned, so this is safe and saves two process launches per test on re-runs.
 - [ ] **Avoid one `dotnet` process start per test.** Run compiled assemblies in a small pool of long-lived worker processes, with the assembly loaded into a collectible `AssemblyLoadContext` and stdout/stderr redirected. Fall back to a fresh process for tests that call `exit`/`abort`.
 - [ ] **Move `Benchmark` out of the default run** (`[TestCategory("Benchmark")]`, filtered out in CI). The timings are meaningless when run in parallel with 5,000 other tests, and the tests also compile with clang twice.
 - [ ] **CI runs the whole suite twice** (Debug and Release) on both OSes. Consider Release-only on PRs, or splitting the suites across matrix jobs.
