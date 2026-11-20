@@ -8,6 +8,7 @@ using System.Runtime.InteropServices;
 using System.Text;
 using System.Text.RegularExpressions;
 using System.Threading;
+using System.Threading.Tasks;
 using ICSharpCode.Decompiler;
 using ICSharpCode.Decompiler.CSharp;
 using ICSharpCode.Decompiler.Disassembler;
@@ -350,6 +351,44 @@ public partial class CompilerTests
         Console.WriteLine($"Stdout: {managedStandardOutput}");
     }
 
+    [TestMethod]
+    public void RunProgramKillsProcessOnTimeout()
+    {
+        var directory = Directory.CreateTempSubdirectory("ir2il_timeout_test_").FullName;
+        try
+        {
+            var irPath = Path.Combine(directory, "infinite_loop.ll");
+            File.WriteAllText(
+                irPath,
+                """
+                define i32 @main() {
+                entry:
+                  br label %loop
+                loop:
+                  br label %loop
+                }
+                """);
+
+            var exePath = Path.Combine(directory, "infinite_loop.exe");
+            Compiler.Compile(irPath, exePath);
+
+            var stopwatch = Stopwatch.StartNew();
+
+            Assert.ThrowsException<TimeoutException>(() => ExecuteManaged(
+                exePath,
+                out _,
+                out _,
+                out _,
+                timeout: TimeSpan.FromSeconds(2)));
+
+            Assert.IsTrue(stopwatch.Elapsed < TimeSpan.FromSeconds(30), $"Took {stopwatch.Elapsed}");
+        }
+        finally
+        {
+            Directory.Delete(directory, recursive: true);
+        }
+    }
+
     private static string GetOutputPath(string testName, string optimizationLevel)
     {
         var outputFilePath = $"{Path.Combine(Environment.CurrentDirectory, "output", Path.GetRelativePath(TestProgramsPath, testName))}_{optimizationLevel}";
@@ -426,7 +465,8 @@ public partial class CompilerTests
         string managedExePath,
         out int managedExitCode,
         out string managedStandardOutput,
-        out string managedStandardError)
+        out string managedStandardError,
+        TimeSpan? timeout = null)
     {
         var tempDir = Directory.CreateTempSubdirectory("ir2il_test_").FullName;
         try
@@ -437,7 +477,8 @@ public partial class CompilerTests
                 out managedExitCode,
                 out managedStandardOutput,
                 out managedStandardError,
-                workingDirectory: tempDir);
+                workingDirectory: tempDir,
+                timeout: timeout);
         }
         finally
         {
@@ -445,14 +486,31 @@ public partial class CompilerTests
         }
     }
 
+    // Generous, because tests run in parallel and CI machines are slower than a developer machine.
+    // This only has to catch hangs, such as a miscompiled infinite loop.
+    // A property rather than a static field: `ClangExtraArgs` calls `RunProgram` during static
+    // initialisation, before any later field initialiser would have run.
+    private static TimeSpan DefaultProcessTimeout =>
+        TimeSpan.FromSeconds(
+            int.TryParse(Environment.GetEnvironmentVariable("IR2IL_TEST_TIMEOUT_SECONDS"), out var seconds) && seconds > 0
+                ? seconds
+                : 120);
+
+    /// <exception cref="TimeoutException">
+    /// The process did not exit within <paramref name="timeout"/> (default 120 s, or
+    /// <c>IR2IL_TEST_TIMEOUT_SECONDS</c>). The process tree is killed first.
+    /// </exception>
     private static void RunProgram(
         string executablePath,
         string[] arguments,
         out int exitCode,
         out string standardOutput,
         out string standardError,
-        string? workingDirectory = null)
+        string? workingDirectory = null,
+        TimeSpan? timeout = null)
     {
+        timeout ??= DefaultProcessTimeout;
+
         var startInfo = new ProcessStartInfo
         {
             FileName = executablePath,
@@ -480,6 +538,21 @@ public partial class CompilerTests
         var standardOutputTask = process.StandardOutput.ReadToEndAsync();
         var standardErrorTask = process.StandardError.ReadToEndAsync();
 
+        if (!process.WaitForExit(timeout.Value))
+        {
+            process.Kill(entireProcessTree: true);
+            process.WaitForExit();
+
+            // Killing the tree closes the pipes, so the reads complete; don't wait forever if they don't.
+            Task.WaitAll([standardOutputTask, standardErrorTask], TimeSpan.FromSeconds(5));
+
+            throw new TimeoutException(
+                $"'{executablePath} {string.Join(' ', arguments)}' did not exit within {timeout.Value.TotalSeconds:0.#} s and was killed." +
+                $"{Environment.NewLine}Stdout so far: {(standardOutputTask.IsCompletedSuccessfully ? standardOutputTask.Result : "<unavailable>")}" +
+                $"{Environment.NewLine}Stderr so far: {(standardErrorTask.IsCompletedSuccessfully ? standardErrorTask.Result : "<unavailable>")}");
+        }
+
+        // The overload with a timeout doesn't guarantee that async output handling has finished.
         process.WaitForExit();
 
         exitCode = process.ExitCode;

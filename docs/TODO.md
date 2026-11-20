@@ -40,7 +40,7 @@ Each test case currently:
 - [x] **Avoid one `dotnet` process start per test.** Run compiled assemblies in a small pool of long-lived worker processes, with the assembly loaded into a collectible `AssemblyLoadContext` and stdout/stderr redirected. Fall back to a fresh process for tests that call `exit`/`abort`. **Decided not to do:** the worker pool, descriptor-level output capture and fallback logic add too much complexity for the benefit.
 - [x] **`Benchmark` stays in the default run, but is now tagged `[TestCategory("Benchmark")]`.** Decided not to filter it out of CI: the tests also assert that output and exit code match the native binary, so they give useful coverage on larger, more realistic code, and they cost only ~2% of total test time. The timings they print are only indicative, since they run in parallel with other tests. Run them alone with `dotnet test src --filter "TestCategory=Benchmark"`.
 - [x] **CI runs the whole suite once, in Release only.** Debug was dropped: the IL under test comes from `Reflection.Emit`, not from the build configuration, and Debug only adds `Debug.Assert`s in `IR2IL.Runtime` and different optimisations, which is marginal value for doubling the CI time. Run Debug locally if needed.
-- [ ] **Add a timeout to `RunProgram`** and kill the process tree on expiry. Today a miscompiled infinite loop hangs the whole run.
+- [x] **Add a timeout to `RunProgram`** and kill the process tree on expiry. Today a miscompiled infinite loop hangs the whole run.
 - [ ] Consider moving to MSTest 4 / Microsoft.Testing.Platform (`MSTest` is pinned at 3.6.2) for faster discovery and better parallelism control.
 
 ### Coverage and visibility

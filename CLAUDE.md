@@ -21,6 +21,8 @@ dotnet test src --filter "Name~Arbitrary"
 
 The `Benchmark` tests have `[TestCategory("Benchmark")]`, so they can be run alone (`--filter "TestCategory=Benchmark"`) or excluded (`--filter "TestCategory!=Benchmark"`). They run by default, and the timings they print are only indicative.
 
+Processes started by the tests (`RunProgram`) are killed after 120 s (override with `IR2IL_TEST_TIMEOUT_SECONDS`), so a miscompiled infinite loop fails the test with a `TimeoutException` instead of hanging the run.
+
 Each test's `.il` and decompiled `.cs` dumps (under `src/IR2IL.Tests/bin/<config>/<tfm>/output/`) are only written when the test fails. Set `IR2IL_DUMP=1` to write them for every test.
 
 Clang output (`.ll` files and native binaries) is cached in `build/cache/clang`, keyed on the clang binary, flags, source and neighbouring headers. Delete that folder to force a rebuild.
