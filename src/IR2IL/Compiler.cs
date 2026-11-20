@@ -120,10 +120,10 @@ public sealed partial class Compiler
             }
             """);
 
-        var runtimeDll = "IR2IL.Runtime.dll";
+        var runtimeAssemblyPath = typeof(IR2IL.Runtime.PrintfHelper).Assembly.Location;
         File.Copy(
-            runtimeDll,
-            Path.Combine(Path.GetDirectoryName(_outputPath) ?? "", runtimeDll),
+            runtimeAssemblyPath,
+            Path.Combine(Path.GetDirectoryName(_outputPath) ?? "", Path.GetFileName(runtimeAssemblyPath)),
             true);
     }
 }

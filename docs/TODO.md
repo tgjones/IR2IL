@@ -21,7 +21,7 @@ System CPU time is higher than user time, which suggests process creation and fi
 ## 0. Urgent
 
 - [x] **[bug] The build is broken on current .NET 10 SDKs.** `src/IR2IL/IR2IL.csproj` sets `<LangVersion>preview</LangVersion>`. With SDK 10.0.402 (allowed by `global.json`'s `rollForward: latestMinor`), the preview "unsafe evolution" rules apply and the build fails with 9 × `CS9363` (pointer conversion operators such as `LLVMValueRef(LLVMOpaqueValue*)` must be used in an unsafe context) in `LLVMExtensions.cs` and `FunctionILEmitter.cs`. Building with `-p:LangVersion=latest` works. Fix: drop `preview` (nothing seems to need it), or add `unsafe` to the affected members. CI will break as soon as its runner image picks up the newer SDK.
-- [ ] **[bug] The compiler copies `IR2IL.Runtime.dll` from the current directory** (`Compiler.Save`: `File.Copy("IR2IL.Runtime.dll", …)`). That only works when the process's working directory is the compiler's output folder (true for the tests, false for `IR2IL in.ll out.exe` run from anywhere else). Use `typeof(PrintfHelper).Assembly.Location`.
+- [x] **[bug] The compiler copies `IR2IL.Runtime.dll` from the current directory** (`Compiler.Save`: `File.Copy("IR2IL.Runtime.dll", …)`). That only works when the process's working directory is the compiler's output folder (true for the tests, false for `IR2IL in.ll out.exe` run from anywhere else). Use `typeof(PrintfHelper).Assembly.Location`.
 
 ## 1. Correctness
 
