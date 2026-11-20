@@ -312,6 +312,7 @@ public partial class CompilerTests
         .GetFiles(Path.Combine(TestProgramsPath, "benchmarks"), "*.c", SearchOption.AllDirectories));
 
     [TestMethod]
+    [TestCategory("Benchmark")]
     [DynamicData(nameof(TestDataBenchmarks), DynamicDataSourceType.Method, DynamicDataDisplayName = nameof(TestDataDisplayName))]
     public void Benchmark(string testName, string optimizationLevel)
     {
