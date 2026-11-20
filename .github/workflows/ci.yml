@@ -26,8 +26,5 @@ jobs:
     - name: Install .NET
       uses: actions/setup-dotnet@v5
 
-    - name: Build & Test Debug
-      run: dotnet test src --configuration Debug
-
-    - name: Build & Test Release
+    - name: Build & Test
       run: dotnet test src --configuration Release
