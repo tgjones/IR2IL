@@ -4,6 +4,8 @@ namespace IR2IL.Intrinsics;
 
 internal sealed class LLVMObjectSizeIntrinsicFunction : IntrinsicFunction
 {
+    public override bool IsPure => true;
+
     public override void BuildCall(IntrinsicFunctionCallContext context)
     {
         // declare i64 @llvm.objectsize.i64.p0(ptr %ptr, i1 %min, i1 %nullunknown, i1 %dynamic)

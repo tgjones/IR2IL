@@ -44,7 +44,7 @@ Each test case currently:
 - [x] Moved to MSTest 4.5.3 with Microsoft.Testing.Platform (`MSTest.Sdk`, opted in via `global.json`). Measured on the 414-test `CTestSuite`: run time unchanged (~6 s), discovery ~0.4 s faster. Kept for the future direction of .NET testing and extensions such as `--hangdump`.
 
 ### Coverage and visibility
-- [ ] **Add small hand-written `.ll` tests per instruction/intrinsic** (with expected output) that run without clang. They'd be fast and precise, and could cover the bugs listed above: ULE, unsigned vector compares, negative const GEPs, `i40` signed compares, `fcmp` NaN cases, and load/store reordering.
+- [ ] **Add small hand-written `.ll` tests per instruction/intrinsic** (started in `HandWrittenIRTests.cs`, which has a `CompileAndRunIR` helper and covers the load/store reordering) (with expected output) that run without clang. They'd be fast and precise, and could cover the bugs listed above: ULE, unsigned vector compares, negative const GEPs, `i40` signed compares, `fcmp` NaN cases, and load/store reordering.
 - [ ] **Expand the Fujitsu suite beyond directory `0020`.** Only about 2.6k of its 21k C files are used (`<= 0020` filter). Add directories one at a time and track the pass rate per directory.
 - [ ] **Make excluded tests visible.** Move the large `switch` ignore lists in `CompilerTests.cs` into a data file (test id, platform, reason). Report excluded tests as `Inconclusive`/skipped rather than silently dropping them, so tests that start passing get noticed and the reasons stay reviewable.
 - [ ] **Re-check stale exclusions.** Several ignore comments mention MSVC-specific problems but apply on all platforms (e.g. `0005_0005`, `0005_0006`, `0014_*` bitfields, `0016_*`/`0018_*` `_Complex`), so they could run on macOS. Similarly, `0021_*` (`extern int printf(...)`) is excluded everywhere but the comment is Windows-specific.
@@ -53,14 +53,14 @@ Each test case currently:
 ## 2. Correctness
 
 ### Instruction scheduling / stack inlining
-- [ ] **[bug] Side-effect analysis can move loads past stores.** `LLVMExtensions.HasNoSideEffects` returns `true` for `load` and for *every* intrinsic call (including `memcpy`, `memset`, `va_start`). `CanPushToStack` only checks for intervening side effects when the *inlined instruction itself* is a load. So in
+- [x] **[bug] Expressions that read memory could be evaluated after a store.** `CanPushToStack` only guarded an inlined instruction that was itself a load, so in
   ```llvm
   %v = load i32, ptr %p
   %a = add i32 %v, 1      ; single use, further down
   store i32 0, ptr %p
   call void @use(i32 %a)
   ```
-  `%a` (and so `%v`) is emitted at the call, *after* the store. Fix: treat `load` as "reads memory" and refuse to defer any expression tree containing a load past an instruction that may write memory; mark only pure intrinsics (math, `dbg.*`, `assume`, `lifetime.*`) as side-effect free. Add a regression `.ll` test.
+  `%a` (and so `%v`) was emitted at the call, *after* the store. Intrinsic calls such as `memcpy`, `memset` and `va_start` were also treated as not writing memory. Fixed: `LLVMExtensions.GetMemoryEffect` classifies each instruction as `None`/`Reads`/`Writes` (only intrinsics that report `IsPure` are `None`), and `CanPushToStack` takes the strongest effect over the instruction and the operands inlined into it. Regression tests are in `HandWrittenIRTests.cs`. Possible follow-up: many pure opcodes (`sub`, `mul`, `trunc`, `select`, …) are still classed as `Writes`, so they are never deferred.
 - [ ] **[perf/bug] `EmitSwitch` re-emits the condition once per case cluster.** If the condition was inlined (`CanPushToStack`), its whole expression is recomputed for each cluster. Spill it to a local once.
 
 ### Integer semantics

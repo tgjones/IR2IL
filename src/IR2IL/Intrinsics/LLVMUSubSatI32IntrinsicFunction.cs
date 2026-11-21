@@ -9,6 +9,8 @@ internal sealed class LLVMUSubSatI32IntrinsicFunction : IntrinsicFunction
 {
     private static readonly MethodInfo Method = typeof(Math).GetMethodStrict(nameof(Math.Max), [typeof(int), typeof(int)]);
 
+    public override bool IsPure => true;
+
     public override void BuildCall(IntrinsicFunctionCallContext context)
     {
         // declare i32 @llvm.usub.sat.i32(i32 %a, i32 %b)

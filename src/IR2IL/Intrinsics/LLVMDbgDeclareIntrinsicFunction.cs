@@ -2,6 +2,8 @@ namespace IR2IL.Intrinsics;
 
 internal sealed class LLVMDbgDeclareIntrinsicFunction : IntrinsicFunction
 {
+    public override bool IsPure => true;
+
     public override void BuildCall(IntrinsicFunctionCallContext context)
     {
         var value = context.Operands[0].GetMDNodeOperands()[0];

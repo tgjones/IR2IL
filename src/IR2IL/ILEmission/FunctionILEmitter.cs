@@ -20,6 +20,7 @@ internal sealed class FunctionILEmitter : ILEmitter
     private readonly LLVMValueRef _function;
 
     private readonly Dictionary<LLVMValueRef, bool> CanPushToStackLookup = [];
+    private readonly Dictionary<LLVMValueRef, MemoryEffect> TreeMemoryEffects = [];
 
     private readonly Dictionary<LLVMValueRef, ParameterBuilder> Parameters = [];
     private readonly Dictionary<LLVMValueRef, LocalBuilder> Locals = [];
@@ -65,10 +66,22 @@ internal sealed class FunctionILEmitter : ILEmitter
         }
     }
 
-    private static bool CanPushToStack(List<LLVMValueRef> instructions, int index)
+    private bool CanPushToStack(List<LLVMValueRef> instructions, int index)
     {
         var instruction = instructions[index];
         var users = instruction.GetUses().ToList();
+
+        // An instruction pushed to the stack is evaluated where its user is, together with every operand
+        // that was itself pushed to the stack. Record what that whole expression does to memory.
+        var effect = instruction.GetMemoryEffect();
+        foreach (var operand in instruction.GetOperands())
+        {
+            if (TreeMemoryEffects.TryGetValue(operand, out var operandEffect) && CanPushToStack(operand))
+            {
+                effect = (MemoryEffect)Math.Max((int)effect, (int)operandEffect);
+            }
+        }
+        TreeMemoryEffects.Add(instruction, effect);
 
         if (users.Count != 1)
         {
@@ -98,28 +111,29 @@ internal sealed class FunctionILEmitter : ILEmitter
             return true;
         }
 
-        if (instruction.InstructionOpcode == LLVMOpcode.LLVMLoad)
+        switch (effect)
         {
-            // Make sure the result of this load instruction is used
-            // before anything that might change its value.
-            for (var j = index + 1; j < instructions.Count; j++)
-            {
-                if (instructions[j] == user)
+            case MemoryEffect.None:
+                return true;
+
+            case MemoryEffect.Reads:
+                // Make sure the expression is evaluated before anything that might change what it reads.
+                for (var j = index + 1; j < instructions.Count; j++)
                 {
-                    return true;
+                    if (instructions[j] == user)
+                    {
+                        return true;
+                    }
+                    if (instructions[j].GetMemoryEffect() == MemoryEffect.Writes)
+                    {
+                        return false;
+                    }
                 }
-                if (!instructions[j].HasNoSideEffects())
-                {
-                    return false;
-                }
-            }
-            throw new InvalidOperationException("Shouldn't be here");
+                throw new InvalidOperationException("Shouldn't be here");
+
+            default:
+                return false;
         }
-        else if (instruction.HasNoSideEffects())
-        {
-            return true;
-        }
-        return false;
     }
 
     public void Compile()

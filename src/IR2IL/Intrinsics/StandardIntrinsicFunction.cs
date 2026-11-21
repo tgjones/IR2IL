@@ -19,6 +19,8 @@ public sealed class StandardIntrinsicFunction(MethodInfo method) : IntrinsicFunc
         return new StandardIntrinsicFunction(type.GetStaticMethodStrict(methodName).MakeGenericMethod(typeArguments));
     }
 
+    public override bool IsPure => true;
+
     public override void BuildCall(IntrinsicFunctionCallContext context)
     {
         for (var i = 0; i < context.Operands.Length - 1; i++)

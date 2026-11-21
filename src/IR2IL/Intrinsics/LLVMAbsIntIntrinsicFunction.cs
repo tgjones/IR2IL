@@ -15,6 +15,8 @@ internal sealed class LLVMAbsIntIntrinsicFunction(MethodInfo method) : Intrinsic
     public static LLVMAbsIntIntrinsicFunction Create(Type type, params Type[] paramTypes)
         => new(type.GetMethodStrict(nameof(Math.Abs), paramTypes));
 
+    public override bool IsPure => true;
+
     public override void BuildCall(IntrinsicFunctionCallContext context)
     {
         context.EmitValue(context.Operands[0]);

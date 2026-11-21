@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text.RegularExpressions;
+using IR2IL.Intrinsics;
 using LLVMSharp.Interop;
 
 namespace IR2IL;
@@ -166,55 +167,55 @@ internal static partial class LLVMExtensions
     public static bool ContainsPhiNodes(this LLVMBasicBlockRef basicBlock) =>
         basicBlock.FirstInstruction.InstructionOpcode == LLVMOpcode.LLVMPHI;
 
-    public static bool HasNoSideEffects(this LLVMValueRef value)
+    /// <summary>
+    /// How an instruction interacts with memory, for deciding whether its evaluation can be delayed
+    /// (see <c>FunctionILEmitter.CanPushToStack</c>). Instructions we don't know about are
+    /// <see cref="MemoryEffect.Writes"/>.
+    /// </summary>
+    public static MemoryEffect GetMemoryEffect(this LLVMValueRef instruction)
     {
-        switch (value.Kind)
+        if (instruction.Kind != LLVMValueKind.LLVMInstructionValueKind)
         {
-            case LLVMValueKind.LLVMArgumentValueKind:
-            case LLVMValueKind.LLVMConstantAggregateZeroValueKind:
-            case LLVMValueKind.LLVMConstantDataVectorValueKind:
-            case LLVMValueKind.LLVMConstantExprValueKind:
-            case LLVMValueKind.LLVMConstantFPValueKind:
-            case LLVMValueKind.LLVMConstantIntValueKind:
-            case LLVMValueKind.LLVMConstantPointerNullValueKind:
-            case LLVMValueKind.LLVMConstantVectorValueKind:
-            case LLVMValueKind.LLVMPoisonValueValueKind:
-            case LLVMValueKind.LLVMUndefValueValueKind:
-                return true;
-
-            case LLVMValueKind.LLVMGlobalVariableValueKind:
-                return false;
+            throw new ArgumentException($"Unexpected value kind {instruction.Kind}: {instruction}", nameof(instruction));
         }
 
-        if (value.Kind != LLVMValueKind.LLVMInstructionValueKind)
+        switch (instruction.InstructionOpcode)
         {
-            throw new ArgumentException($"Unexpected value kind {value.Kind}: {value}", nameof(value));
-        }
+            case LLVMOpcode.LLVMLoad:
+                return MemoryEffect.Reads;
 
-        return value.InstructionOpcode switch
-        {
-            LLVMOpcode.LLVMAdd => value.GetOperand(0).HasNoSideEffects() && value.GetOperand(1).HasNoSideEffects(),
-            LLVMOpcode.LLVMAlloca => true,
-            LLVMOpcode.LLVMCall => value.IsAIntrinsicInst != null, // TODO: Not every intrinsic has no side effects.
-            LLVMOpcode.LLVMExtractElement => value.GetOperands().All(x => x.HasNoSideEffects()),
-            LLVMOpcode.LLVMExtractValue => value.GetOperands().All(x => x.HasNoSideEffects()),
-            LLVMOpcode.LLVMFCmp => value.GetOperand(0).HasNoSideEffects() && value.GetOperand(1).HasNoSideEffects(),
-            LLVMOpcode.LLVMFDiv => value.GetOperand(0).HasNoSideEffects() && value.GetOperand(1).HasNoSideEffects(),
-            LLVMOpcode.LLVMFRem => value.GetOperand(0).HasNoSideEffects() && value.GetOperand(1).HasNoSideEffects(),
-            LLVMOpcode.LLVMFreeze => value.GetOperand(0).HasNoSideEffects(),
-            LLVMOpcode.LLVMGetElementPtr => value.GetOperands().All(x => x.HasNoSideEffects()),
-            LLVMOpcode.LLVMICmp => value.GetOperand(0).HasNoSideEffects() && value.GetOperand(1).HasNoSideEffects(),
-            LLVMOpcode.LLVMInsertElement => value.GetOperands().All(x => x.HasNoSideEffects()),
-            LLVMOpcode.LLVMInsertValue => value.GetOperands().All(x => x.HasNoSideEffects()),
-            LLVMOpcode.LLVMLoad => true, // TODO: Is this correct?
-            LLVMOpcode.LLVMPHI => true, // Because we load it from a local that is guaranteed not to change in the current block
-            LLVMOpcode.LLVMSDiv => value.GetOperand(0).HasNoSideEffects() && value.GetOperand(1).HasNoSideEffects(),
-            LLVMOpcode.LLVMSExt => value.GetOperand(0).HasNoSideEffects(),
-            LLVMOpcode.LLVMShuffleVector => value.GetOperands().All(x => x.HasNoSideEffects()),
-            LLVMOpcode.LLVMUDiv => value.GetOperand(0).HasNoSideEffects() && value.GetOperand(1).HasNoSideEffects(),
-            LLVMOpcode.LLVMZExt => value.GetOperand(0).HasNoSideEffects(),
-            _ => false,
-        };
+            case LLVMOpcode.LLVMCall:
+                // Only intrinsics we know to be pure are exempt; anything else (memcpy, memset, va_start,
+                // calls to other functions) may write memory.
+                return instruction.IsAIntrinsicInst != null
+                    && IntrinsicFunctions.LLVMIntrinsics.TryGetValue(instruction.GetOperands().Last().Name, out var intrinsic)
+                    && intrinsic.IsPure
+                    ? MemoryEffect.None
+                    : MemoryEffect.Writes;
+
+            case LLVMOpcode.LLVMAdd:
+            case LLVMOpcode.LLVMAlloca:
+            case LLVMOpcode.LLVMExtractElement:
+            case LLVMOpcode.LLVMExtractValue:
+            case LLVMOpcode.LLVMFCmp:
+            case LLVMOpcode.LLVMFDiv:
+            case LLVMOpcode.LLVMFRem:
+            case LLVMOpcode.LLVMFreeze:
+            case LLVMOpcode.LLVMGetElementPtr:
+            case LLVMOpcode.LLVMICmp:
+            case LLVMOpcode.LLVMInsertElement:
+            case LLVMOpcode.LLVMInsertValue:
+            case LLVMOpcode.LLVMPHI: // Because we load it from a local that is guaranteed not to change in the current block
+            case LLVMOpcode.LLVMSDiv:
+            case LLVMOpcode.LLVMSExt:
+            case LLVMOpcode.LLVMShuffleVector:
+            case LLVMOpcode.LLVMUDiv:
+            case LLVMOpcode.LLVMZExt:
+                return MemoryEffect.None;
+
+            default:
+                return MemoryEffect.Writes;
+        }
     }
 
     public static unsafe LLVMMetadataRef AsMetadata(this LLVMValueRef value)

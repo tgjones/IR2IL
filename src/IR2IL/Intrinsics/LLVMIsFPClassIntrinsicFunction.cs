@@ -10,6 +10,8 @@ internal sealed class LLVMIsFPClassIntrinsicFunction(bool isDouble) : IntrinsicF
     private static readonly MethodInfo MethodF32 = typeof(LLVMIntrinsics).GetMethodStrict(nameof(LLVMIntrinsics.IsFPClassF32), [typeof(float), typeof(int)]);
     private static readonly MethodInfo MethodF64 = typeof(LLVMIntrinsics).GetMethodStrict(nameof(LLVMIntrinsics.IsFPClassF64), [typeof(double), typeof(int)]);
 
+    public override bool IsPure => true;
+
     public override void BuildCall(IntrinsicFunctionCallContext context)
     {
         // declare i1 @llvm.is.fpclass.f64(double %val, i32 immarg %mask)
