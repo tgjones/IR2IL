@@ -213,10 +213,44 @@ internal static partial class LLVMExtensions
             case LLVMOpcode.LLVMZExt:
                 return MemoryEffect.None;
 
+            // Pure, but only treated that way when the result isn't an integer narrower than 32 bits. A value
+            // of such a type is only normalised (sign- or zero-extended consistently) by being stored to a
+            // local; left on the IL stack, e.g. `trunc` (zero-extended) and `load i8` (sign-extended) can
+            // disagree when compared. TODO: normalise narrow integers where they're consumed, then drop this.
+            case LLVMOpcode.LLVMAShr:
+            case LLVMOpcode.LLVMAnd:
+            case LLVMOpcode.LLVMBitCast:
+            case LLVMOpcode.LLVMFAdd:
+            case LLVMOpcode.LLVMFMul:
+            case LLVMOpcode.LLVMFNeg:
+            case LLVMOpcode.LLVMFPExt:
+            case LLVMOpcode.LLVMFPToSI:
+            case LLVMOpcode.LLVMFPToUI:
+            case LLVMOpcode.LLVMFPTrunc:
+            case LLVMOpcode.LLVMFSub:
+            case LLVMOpcode.LLVMIntToPtr:
+            case LLVMOpcode.LLVMLShr:
+            case LLVMOpcode.LLVMMul:
+            case LLVMOpcode.LLVMOr:
+            case LLVMOpcode.LLVMPtrToInt:
+            case LLVMOpcode.LLVMSIToFP:
+            case LLVMOpcode.LLVMSRem:
+            case LLVMOpcode.LLVMSelect:
+            case LLVMOpcode.LLVMShl:
+            case LLVMOpcode.LLVMSub:
+            case LLVMOpcode.LLVMTrunc:
+            case LLVMOpcode.LLVMUIToFP:
+            case LLVMOpcode.LLVMURem:
+            case LLVMOpcode.LLVMXor:
+                return IsNarrowInteger(instruction.TypeOf) ? MemoryEffect.Writes : MemoryEffect.None;
+
             default:
                 return MemoryEffect.Writes;
         }
     }
+
+    private static bool IsNarrowInteger(LLVMTypeRef type) =>
+        type.Kind == LLVMTypeKind.LLVMIntegerTypeKind && type.IntWidth < 32;
 
     public static unsafe LLVMMetadataRef AsMetadata(this LLVMValueRef value)
     {
