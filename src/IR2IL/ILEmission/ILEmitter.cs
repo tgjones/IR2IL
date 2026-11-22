@@ -202,19 +202,10 @@ internal abstract class ILEmitter
     {
         var text = valueRef.PrintToString();  // e.g. "i128 36893488147419103232" or "i128 -1"
         var valueStr = text[(text.LastIndexOf(' ') + 1)..];
-        var value = Int128.Parse(valueStr);
-        var width = valueRef.TypeOf.IntWidth;
-
-        // An Int128 keeps the bits above N clear, which a negative constant does not.
-        if (width < 128)
-        {
-            value &= (Int128)((UInt128.One << (int)width) - 1);
-        }
-
-        EmitInt128(value);
+        EmitInt128(Int128.Parse(valueStr));
     }
 
-    // Pushes an Int128 with the low `sizeInBits` bits set: the mask that keeps a wide iN normalised.
+    // Pushes an Int128 with the low `sizeInBits` bits set, to clear what is above bit N of a wide iN.
     protected void EmitWideIntegerMask(uint sizeInBits)
     {
         EmitInt128(sizeInBits >= 128 ? Int128.NegativeOne : (Int128)((UInt128.One << (int)sizeInBits) - 1));

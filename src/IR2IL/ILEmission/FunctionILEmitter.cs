@@ -827,7 +827,7 @@ internal sealed class FunctionILEmitter : ILEmitter
 
     /// <summary>
     /// Pushes an integer operand, extended from its logical width the way its consumer reads it. Operands
-    /// that aren't integers, or are 32, 64 or more than 64 bits wide, are pushed as they are.
+    /// that aren't integers, or are 32, 64 or 128 bits wide, are pushed as they are.
     /// </summary>
     private void EmitIntegerOperand(LLVMValueRef operand, Signedness signedness)
     {
@@ -841,13 +841,33 @@ internal sealed class FunctionILEmitter : ILEmitter
 
     /// <summary>
     /// Extends the <c>iN</c> on the IL stack from its logical width: sign-extends from bit N-1, or clears
-    /// everything above bit N-1. Does nothing for N = 32 or 64 (the whole stack value is the integer) or
-    /// N &gt; 64 (<c>Int128</c>, which keeps its upper bits clear itself).
+    /// everything above bit N-1. Does nothing for N = 32, 64 or 128 (the whole stack value is the integer).
     /// </summary>
     private void EmitNormalizedInteger(int bits, Signedness signedness)
     {
-        if (signedness == Signedness.Any || bits is 32 or 64 || bits > 64)
+        if (signedness == Signedness.Any || bits is 32 or 64 or 128)
         {
+            return;
+        }
+
+        if (bits > 64)
+        {
+            // An Int128 on the stack: the same, with Int128 operators.
+            switch (signedness)
+            {
+                case Signedness.Signed:
+                    ILGenerator.Emit(OpCodes.Ldc_I4, 128 - bits);
+                    ILGenerator.Emit(OpCodes.Call, typeof(Int128).GetMethodStrict("op_LeftShift", [typeof(Int128), typeof(int)]));
+                    ILGenerator.Emit(OpCodes.Ldc_I4, 128 - bits);
+                    ILGenerator.Emit(OpCodes.Call, typeof(Int128).GetMethodStrict("op_RightShift", [typeof(Int128), typeof(int)]));
+                    break;
+
+                case Signedness.Unsigned:
+                    EmitWideIntegerMask((uint)bits);
+                    ILGenerator.Emit(OpCodes.Call, typeof(Int128).GetMethodStrict("op_BitwiseAnd", [typeof(Int128), typeof(Int128)]));
+                    break;
+            }
+
             return;
         }
 
@@ -1285,9 +1305,15 @@ internal sealed class FunctionILEmitter : ILEmitter
                     }
                 }
 
+                // Between two wide integers the Int128 on the stack is already the result.
+                var fromWide = fromType.Kind == LLVMTypeKind.LLVMIntegerTypeKind && fromType.IntWidth > 64;
+                if (fromWide && toType.IntWidth > 64)
+                {
+                    break;
+                }
+
                 // For narrowing from a wide integer (stored as Int128), extract the lower 64 bits first.
-                // TODO: This will need to be changed if/when we support widening to 128 bits.
-                if (fromType.Kind == LLVMTypeKind.LLVMIntegerTypeKind && fromType.IntWidth > 64)
+                if (fromWide)
                 {
                     ILGenerator.Emit(OpCodes.Call, typeof(WideIntegerHelper).GetStaticMethodStrict(nameof(WideIntegerHelper.Int128ToLong)));
                 }
@@ -1546,7 +1572,6 @@ internal sealed class FunctionILEmitter : ILEmitter
 
     private void EmitWideIntegerBinaryOp(LLVMValueRef instruction)
     {
-        var resultWidth = (int)instruction.TypeOf.IntWidth;
         var opcode = instruction.InstructionOpcode;
 
         var lhs = instruction.GetOperand(0);
@@ -1556,13 +1581,13 @@ internal sealed class FunctionILEmitter : ILEmitter
         {
             case LLVMOpcode.LLVMLShr:
                 // Use helper for logical (unsigned) right shift via UInt128.
-                EmitValue(lhs);
+                EmitIntegerOperand(lhs, Signedness.Unsigned);
                 EmitShiftAmount(rhs);
                 ILGenerator.Emit(OpCodes.Call, typeof(WideIntegerHelper).GetStaticMethodStrict(nameof(WideIntegerHelper.LshrInt128)));
                 break;
 
             case LLVMOpcode.LLVMAShr:
-                EmitValue(lhs);
+                EmitIntegerOperand(lhs, Signedness.Signed);
                 EmitShiftAmount(rhs);
                 ILGenerator.Emit(OpCodes.Call, typeof(Int128).GetMethodStrict("op_RightShift", [typeof(Int128), typeof(int)]));
                 break;
@@ -1615,13 +1640,6 @@ internal sealed class FunctionILEmitter : ILEmitter
             default:
                 throw new NotImplementedException($"Wide integer binary op {opcode} not implemented");
         }
-
-        // Mask result for non-power-of-2 widths.
-        if (resultWidth != TypeSystem.RoundUpToTypeSize(resultWidth))
-        {
-            EmitWideIntegerMask((uint)resultWidth);
-            ILGenerator.Emit(OpCodes.Call, typeof(Int128).GetMethodStrict("op_BitwiseAnd", [typeof(Int128), typeof(Int128)]));
-        }
     }
 
     private void EmitShiftAmount(LLVMValueRef operand)
@@ -1637,7 +1655,7 @@ internal sealed class FunctionILEmitter : ILEmitter
             }
             else
             {
-                EmitValue(operand);
+                EmitIntegerOperand(operand, Signedness.Unsigned);
                 ILGenerator.Emit(OpCodes.Call, typeof(WideIntegerHelper).GetStaticMethodStrict(nameof(WideIntegerHelper.Int128ToLong)));
                 ILGenerator.Emit(OpCodes.Conv_I4);
             }
