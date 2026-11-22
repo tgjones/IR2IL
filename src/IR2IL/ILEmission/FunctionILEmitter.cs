@@ -2274,8 +2274,6 @@ internal sealed class FunctionILEmitter : ILEmitter
         var cases = new List<SwitchCase>();
         for (var i = 2; i < operands.Count; i += 2)
         {
-            var caseValueType = operands[i].Kind;
-
             if (operands[i].Kind != LLVMValueKind.LLVMConstantIntValueKind
                 || operands[i].TypeOf.IntWidth > 32)
             {
@@ -2300,36 +2298,57 @@ internal sealed class FunctionILEmitter : ILEmitter
         }
         cases.Sort();
 
-        while (cases.Count > 0)
+        // Group the cases into clusters of sequential values.
+        var clusters = new List<List<SwitchCase>>();
+        foreach (var switchCase in cases)
         {
-            var caseValue = cases[0].ConstantValue;
-
-            // Include as many sequential values as we can.
-            var endIndex = 1;
-            while (endIndex < cases.Count && cases[endIndex].ConstantValue == caseValue + endIndex)
+            if (clusters.Count > 0
+                && clusters[^1] is var cluster
+                && cluster[^1].ConstantValue + 1 == switchCase.ConstantValue)
             {
-                endIndex++;
+                cluster.Add(switchCase);
             }
+            else
+            {
+                clusters.Add([switchCase]);
+            }
+        }
 
+        // Each cluster tests the condition again. If it was inlined (so it's an expression, not a local),
+        // evaluate it once into a local rather than once per cluster.
+        LocalBuilder? conditionLocal = null;
+        if (clusters.Count > 1 && CanPushToStack(condition))
+        {
+            conditionLocal = ILGenerator.DeclareLocal(TypeSystem.GetMsilType(condition.TypeOf));
             EmitValue(condition);
+            ILGenerator.Emit(OpCodes.Stloc, conditionLocal);
+        }
+
+        foreach (var cluster in clusters)
+        {
+            var caseValue = cluster[0].ConstantValue;
+
+            if (conditionLocal != null)
+            {
+                ILGenerator.Emit(OpCodes.Ldloc, conditionLocal);
+            }
+            else
+            {
+                EmitValue(condition);
+            }
             if (caseValue != 0)
             {
-                EmitValue(cases[0].Value);
+                EmitValue(cluster[0].Value);
             }
 
             // If we have 2 or more cases, make a switch instruction.
-            if (endIndex > 1)
+            if (cluster.Count > 1)
             {
                 if (caseValue != 0)
                 {
                     ILGenerator.Emit(OpCodes.Sub);
                 }
-                var jumpTable = cases
-                    .Take(endIndex)
-                    .Select(x => x.DestinationLabel)
-                    .ToArray();
-                ILGenerator.Emit(OpCodes.Switch, jumpTable);
-                cases.RemoveRange(0, endIndex);
+                ILGenerator.Emit(OpCodes.Switch, cluster.Select(x => x.DestinationLabel).ToArray());
             }
             else // Otherwise, do a normal conditional branch.
             {
@@ -2337,8 +2356,7 @@ internal sealed class FunctionILEmitter : ILEmitter
                 {
                     ILGenerator.Emit(OpCodes.Ldc_I4, 0);
                 }
-                ILGenerator.Emit(OpCodes.Beq, cases[0].DestinationLabel);
-                cases.RemoveAt(0);
+                ILGenerator.Emit(OpCodes.Beq, cluster[0].DestinationLabel);
             }
         }
 
