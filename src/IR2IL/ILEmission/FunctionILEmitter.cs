@@ -2473,6 +2473,25 @@ internal sealed class FunctionILEmitter : ILEmitter
         // TODO: Atomic load?
     }
 
+    // An iN is stored in ceil(N/8) bytes, less than its container for i24, i40 and so on: reading the whole
+    // container would go past the end of the object. Copies those bytes (little-endian) into a zeroed local.
+    // Stack on entry: [ptr].
+    private void EmitLoadPartialInteger(int containerBits, int byteCount)
+    {
+        var pointer = ILGenerator.DeclareLocal(typeof(nint));
+        var value = ILGenerator.DeclareLocal(containerBits == 64 ? typeof(long) : typeof(int));
+
+        ILGenerator.Emit(OpCodes.Stloc, pointer);
+        ILGenerator.Emit(OpCodes.Ldloca, value);
+        ILGenerator.Emit(OpCodes.Initobj, value.LocalType);
+        ILGenerator.Emit(OpCodes.Ldloca, value);           // [dest]
+        ILGenerator.Emit(OpCodes.Ldloc, pointer);          // [dest, src]
+        ILGenerator.Emit(OpCodes.Ldc_I4, byteCount);       // [dest, src, count]
+        ILGenerator.Emit(OpCodes.Conv_U);
+        ILGenerator.Emit(OpCodes.Cpblk);
+        ILGenerator.Emit(OpCodes.Ldloc, value);
+    }
+
     private void EmitLoadIndirect(LLVMTypeRef typeRef)
     {
         switch (typeRef.Kind)
@@ -2486,7 +2505,15 @@ internal sealed class FunctionILEmitter : ILEmitter
                 break;
 
             case LLVMTypeKind.LLVMIntegerTypeKind:
-                switch (TypeSystem.RoundUpToTypeSize((int)typeRef.IntWidth))
+                var containerBits = TypeSystem.RoundUpToTypeSize((int)typeRef.IntWidth);
+                var loadBytes = ((int)typeRef.IntWidth + 7) / 8;
+                if (containerBits <= 64 && loadBytes * 8 != containerBits)
+                {
+                    EmitLoadPartialInteger(containerBits, loadBytes);
+                    break;
+                }
+
+                switch (containerBits)
                 {
                     case 8:
                         ILGenerator.Emit(OpCodes.Ldind_I1);
