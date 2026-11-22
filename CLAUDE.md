@@ -66,15 +66,20 @@ New intrinsics are registered in `src/IR2IL/Intrinsics/IntrinsicFunctions.cs`. U
 
 LLVM IR allows integers of any bit width (e.g. `i40` from a struct with 3+29+3-bit fields that clang packs into 40 bits). .NET only has 8/16/32/64-bit integers.
 
-**Representation**: `TypeSystem.GetIntegerType` rounds any non-standard width up to the next container type via `RoundUpToTypeSize` — so `i40` → `long`, `i24` → `int`, `i9` → `short`, `i72`/`i80`/`i128` → `Int128`. The upper bits of the container are kept clear.
+**Representation**: `TypeSystem.GetIntegerType` rounds any non-standard width up to the next container type via `RoundUpToTypeSize` — so `i40` → `long`, `i24` → `int`, `i9` → `short`, `i72`/`i80`/`i128` → `Int128`. The container is the *storage* type only: see "Normalisation" below for what the bits above the logical width contain.
 
-**Arithmetic masking**: `EmitUnaryOrBinaryOperation` emits a bitwise AND after each scalar opcode when the result type is a non-power-of-2 width. This keeps bits above the logical width zeroed so that subsequent operations (comparisons, sign extension) see correct values. For example, `add i40` computes in `long` then masks with `0xFFFFFFFFFF`.
+**Normalisation**: an `iN` is only defined in its low N bits. Whatever produced it — a `load` (sign-extended, because `i8`/`i16` map to `sbyte`/`short`), a `trunc`, an `add` — may have left anything above them on the IL stack, and producers don't clean up. Instead, **every consumer that depends on the upper bits extends its operands itself**, through one function:
+
+- `EmitIntegerOperand(value, signedness)` pushes an operand and calls `EmitNormalizedInteger(bits, signedness)`: `Signed` sign-extends from bit N-1 (`conv.i1`/`conv.i2`, or `shl` then `shr` by the unused bits), `Unsigned` clears the bits above N-1 (`conv.u1`/`conv.u2`, or an `and` mask). It does nothing for 32 or 64 bits, and for more than 64 (`Int128` keeps its upper bits clear itself).
+- `Signedness.Any` is for operations whose low N bits don't depend on the operands' upper bits (`add`, `sub`, `mul`, `and`, `or`, `xor`, the value operand of `shl`), so they skip it.
+- The consumers are `icmp` (signed or unsigned by predicate; `eq`/`ne` unsigned), `br`/`select` conditions (an `i1` is true when its low bit is set), `switch` (zero-extended condition and cases), `zext`/`sext`, `sitofp`/`uitofp`, `inttoptr`, `sdiv`/`srem`/`udiv`/`urem`, `lshr`/`ashr` and every shift amount, GEP indices (signed), and vector element indices.
+- Conversions (`EmitIntegerConversion`) only change the stack type (`conv.i4`/`u4`/`i8`/`u8`); `trunc` doesn't mask.
+- When adding an instruction or intrinsic that reads an integer operand, push it with `EmitIntegerOperand` unless it truly ignores the upper bits. `tests/generators/generate_narrow_integer_tests.py` generates tests that cross every way of producing a narrow integer with the consumers.
+- Constants are still emitted masked (`EmitConstantIntegerValue` is shared with global initialisers, where the stored bits matter).
 
 **Integers wider than 64 bits** (i65–i128): stored as `Int128`. Binary operations on these types are handled by `EmitWideIntegerBinaryOp`, which calls `Int128` operator methods directly rather than using IL opcodes. `lshr` routes through `WideIntegerHelper.LshrInt128` (casts to `UInt128` for the unsigned shift). Wide integer shift amounts (e.g. `lshr i72 %x, i72 64`) are emitted directly as `Ldc_I4` for constants — never pushed as `Int128`, since `Conv_I4` doesn't work on a struct. Loading wide integers from memory uses `WideIntegerHelper.LoadWideInt`. Narrowing from `Int128` to ≤64-bit targets goes through `WideIntegerHelper.Int128ToLong` first.
 
 **Struct sizing**: LLVM computes `sizeof({ i40 })` as 8 bytes on ARM64 (5 bytes + 3 padding for 8-byte alignment), matching a .NET struct with a single `long` field.
-
-**Signed operations**: because the container is zero-extended, `sext`, `sitofp`, signed `icmp`, `sdiv`, `srem` and `ashr` first call `EmitSignExtendedInteger`, which sign-extends from bit N-1 (`shl` then `shr` by the unused bits). This is also the normalisation for `i8`/`i16`, which can sit on the IL stack either sign- or zero-extended (a `load` and a `trunc` differ). Integers wider than 64 bits don't have it yet.
 
 **Not yet implemented**: `stind` for wide integer types, and loads/stores of non-power-of-2 widths touch the whole container.
 
