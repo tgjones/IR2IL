@@ -81,7 +81,9 @@ LLVM IR allows integers of any bit width (e.g. `i40` from a struct with 3+29+3-b
 
 **Struct sizing**: LLVM computes `sizeof({ i40 })` as 8 bytes on ARM64 (5 bytes + 3 padding for 8-byte alignment), matching a .NET struct with a single `long` field.
 
-**Not yet implemented**: `stind` for wide integer types, and loads/stores of non-power-of-2 widths touch the whole container.
+**Stores** write exactly ceil(N/8) bytes (`EmitStoreIntegerIndirect`): a non-power-of-2 width that is narrower than its container (`i24`, `i40`, `i72`) is spilled to a local and copied with `cpblk`, so neighbouring bytes are untouched.
+
+**Not yet implemented**: loads of non-power-of-2 widths still read the whole container.
 
 ### Handling varargs on macOS ARM64
 

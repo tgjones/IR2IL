@@ -429,13 +429,8 @@ internal abstract class ILEmitter
                 {
                     // The MSIL container type is larger than the true vector (e.g. <24 x float> = 768 bits
                     // stored in Vector1024<float> = 1024 bits). Write only the actual bytes so we don't
-                    // overflow into adjacent allocations.  Stack on entry: [dest_ptr, value].
-                    var tmp = ILGenerator.DeclareLocal(msilVectorType);
-                    ILGenerator.Emit(OpCodes.Stloc, tmp);            // [dest_ptr]
-                    ILGenerator.Emit(OpCodes.Ldloca, tmp);           // [dest_ptr, &tmp]
-                    ILGenerator.Emit(OpCodes.Ldc_I4, actualBits / 8); // [dest_ptr, &tmp, count]
-                    ILGenerator.Emit(OpCodes.Conv_U);
-                    ILGenerator.Emit(OpCodes.Cpblk);
+                    // overflow into adjacent allocations.
+                    EmitStorePartial(msilVectorType, actualBits / 8);
                 }
                 else
                 {
@@ -453,21 +448,7 @@ internal abstract class ILEmitter
                 break;
 
             case LLVMTypeKind.LLVMIntegerTypeKind:
-                if (type.IntWidth > 64)
-                {
-                    ILGenerator.Emit(OpCodes.Stobj, TypeSystem.GetMsilType(type));
-                }
-                else
-                {
-                    ILGenerator.Emit(TypeSystem.RoundUpToTypeSize((int)type.IntWidth) switch
-                    {
-                        8 => OpCodes.Stind_I1,
-                        16 => OpCodes.Stind_I2,
-                        32 => OpCodes.Stind_I4,
-                        64 => OpCodes.Stind_I8,
-                        _ => throw new NotImplementedException($"Indirect store not implemented for integer width {type.IntWidth}: {type}")
-                    });
-                }
+                EmitStoreIntegerIndirect(type);
                 break;
 
             case LLVMTypeKind.LLVMPointerTypeKind:
@@ -477,5 +458,50 @@ internal abstract class ILEmitter
             default:
                 throw new NotImplementedException($"Unexpected type {type.Kind}: {type}");
         }
+    }
+
+    // An iN is stored in ceil(N/8) bytes (LLVM's store size), which for i24, i40, i72 and so on is less than
+    // its MSIL container. Writing the whole container would clobber the bytes after it (a packed neighbour,
+    // the next array element or the end of the allocation).
+    // Stack on entry: [dest_ptr, value].
+    private void EmitStoreIntegerIndirect(LLVMTypeRef type)
+    {
+        var width = (int)type.IntWidth;
+        var containerBits = TypeSystem.RoundUpToTypeSize(width);
+        var storeBytes = (width + 7) / 8;
+
+        if (containerBits > 64 || storeBytes * 8 != containerBits)
+        {
+            var msilType = TypeSystem.GetMsilType(type);
+            if (storeBytes * 8 == containerBits)
+            {
+                ILGenerator.Emit(OpCodes.Stobj, msilType);
+            }
+            else
+            {
+                EmitStorePartial(msilType, storeBytes);
+            }
+            return;
+        }
+
+        ILGenerator.Emit(containerBits switch
+        {
+            8 => OpCodes.Stind_I1,
+            16 => OpCodes.Stind_I2,
+            32 => OpCodes.Stind_I4,
+            64 => OpCodes.Stind_I8,
+            _ => throw new NotImplementedException($"Indirect store not implemented for integer width {width}: {type}")
+        });
+    }
+
+    // Writes the first byteCount bytes of a value of msilType (little-endian). Stack on entry: [dest_ptr, value].
+    private void EmitStorePartial(Type msilType, int byteCount)
+    {
+        var tmp = ILGenerator.DeclareLocal(msilType);
+        ILGenerator.Emit(OpCodes.Stloc, tmp);              // [dest_ptr]
+        ILGenerator.Emit(OpCodes.Ldloca, tmp);             // [dest_ptr, &tmp]
+        ILGenerator.Emit(OpCodes.Ldc_I4, byteCount);       // [dest_ptr, &tmp, count]
+        ILGenerator.Emit(OpCodes.Conv_U);
+        ILGenerator.Emit(OpCodes.Cpblk);
     }
 }
