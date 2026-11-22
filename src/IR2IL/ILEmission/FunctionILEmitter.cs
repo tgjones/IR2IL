@@ -1619,7 +1619,7 @@ internal sealed class FunctionILEmitter : ILEmitter
         // Mask result for non-power-of-2 widths.
         if (resultWidth != TypeSystem.RoundUpToTypeSize(resultWidth))
         {
-            EmitConstantIntegerValue((uint)resultWidth, -1);
+            EmitWideIntegerMask((uint)resultWidth);
             ILGenerator.Emit(OpCodes.Call, typeof(Int128).GetMethodStrict("op_BitwiseAnd", [typeof(Int128), typeof(Int128)]));
         }
     }

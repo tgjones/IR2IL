@@ -203,44 +203,36 @@ internal abstract class ILEmitter
         var text = valueRef.PrintToString();  // e.g. "i128 36893488147419103232" or "i128 -1"
         var valueStr = text[(text.LastIndexOf(' ') + 1)..];
         var value = Int128.Parse(valueStr);
-        var lower = (ulong)(UInt128)value;
-        var upper = (ulong)((UInt128)value >> 64);
-        ILGenerator.Emit(OpCodes.Ldc_I8, (long)upper);
-        ILGenerator.Emit(OpCodes.Ldc_I8, (long)lower);
+        var width = valueRef.TypeOf.IntWidth;
+
+        // An Int128 keeps the bits above N clear, which a negative constant does not.
+        if (width < 128)
+        {
+            value &= (Int128)((UInt128.One << (int)width) - 1);
+        }
+
+        EmitInt128(value);
+    }
+
+    // Pushes an Int128 with the low `sizeInBits` bits set: the mask that keeps a wide iN normalised.
+    protected void EmitWideIntegerMask(uint sizeInBits)
+    {
+        EmitInt128(sizeInBits >= 128 ? Int128.NegativeOne : (Int128)((UInt128.One << (int)sizeInBits) - 1));
+    }
+
+    private void EmitInt128(Int128 value)
+    {
+        ILGenerator.Emit(OpCodes.Ldc_I8, (long)((UInt128)value >> 64));
+        ILGenerator.Emit(OpCodes.Ldc_I8, (long)(ulong)(UInt128)value);
         ILGenerator.Emit(OpCodes.Newobj, typeof(Int128).GetConstructorStrict([typeof(ulong), typeof(ulong)]));
     }
 
+    // Pushes the value sign-extended into its container, like any other producer of an iN: the bits above
+    // N are not defined, and the consumers extend the operand themselves (see FunctionILEmitter.EmitIntegerOperand).
+    // Only for widths up to 64: wider constants are Int128, see EmitWideConstantIntegerValue.
     protected void EmitConstantIntegerValue(uint sizeInBits, long value)
     {
-        var roundedUpBits = TypeSystem.RoundUpToTypeSize((int)sizeInBits);
-
-        if (roundedUpBits == 128)
-        {
-            // Sign-extend the long value to 128 bits, then mask to sizeInBits.
-            var lower = (ulong)value;
-            var upper = value < 0 ? ulong.MaxValue : 0UL;
-
-            if (sizeInBits < 128)
-            {
-                var maskLower = sizeInBits >= 64 ? ulong.MaxValue : (1UL << (int)sizeInBits) - 1UL;
-                var maskUpper = sizeInBits <= 64 ? 0UL : (1UL << (int)(sizeInBits - 64)) - 1UL;
-                lower &= maskLower;
-                upper &= maskUpper;
-            }
-
-            ILGenerator.Emit(OpCodes.Ldc_I8, (long)upper);
-            ILGenerator.Emit(OpCodes.Ldc_I8, (long)lower);
-            ILGenerator.Emit(OpCodes.Newobj, typeof(Int128).GetConstructorStrict([typeof(ulong), typeof(ulong)]));
-            return;
-        }
-
-        if (roundedUpBits > sizeInBits)
-        {
-            var mask = (1L << (int)sizeInBits) - 1;
-            value = value & mask;
-        }
-
-        switch (roundedUpBits)
+        switch (TypeSystem.RoundUpToTypeSize((int)sizeInBits))
         {
             case 8:
             case 16:
