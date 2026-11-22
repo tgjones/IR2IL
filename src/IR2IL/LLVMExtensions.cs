@@ -193,64 +193,55 @@ internal static partial class LLVMExtensions
                     ? MemoryEffect.None
                     : MemoryEffect.Writes;
 
+            case LLVMOpcode.LLVMAShr:
             case LLVMOpcode.LLVMAdd:
             case LLVMOpcode.LLVMAlloca:
-            case LLVMOpcode.LLVMExtractElement:
-            case LLVMOpcode.LLVMExtractValue:
-            case LLVMOpcode.LLVMFCmp:
-            case LLVMOpcode.LLVMFDiv:
-            case LLVMOpcode.LLVMFRem:
-            case LLVMOpcode.LLVMFreeze:
-            case LLVMOpcode.LLVMGetElementPtr:
-            case LLVMOpcode.LLVMICmp:
-            case LLVMOpcode.LLVMInsertElement:
-            case LLVMOpcode.LLVMInsertValue:
-            case LLVMOpcode.LLVMPHI: // Because we load it from a local that is guaranteed not to change in the current block
-            case LLVMOpcode.LLVMSDiv:
-            case LLVMOpcode.LLVMSExt:
-            case LLVMOpcode.LLVMShuffleVector:
-            case LLVMOpcode.LLVMUDiv:
-            case LLVMOpcode.LLVMZExt:
-                return MemoryEffect.None;
-
-            // Pure, but only treated that way when the result isn't an integer narrower than 32 bits. A value
-            // of such a type is only normalised (sign- or zero-extended consistently) by being stored to a
-            // local; left on the IL stack, e.g. `trunc` (zero-extended) and `load i8` (sign-extended) can
-            // disagree when compared. TODO: normalise narrow integers where they're consumed, then drop this.
-            case LLVMOpcode.LLVMAShr:
             case LLVMOpcode.LLVMAnd:
             case LLVMOpcode.LLVMBitCast:
+            case LLVMOpcode.LLVMExtractElement:
+            case LLVMOpcode.LLVMExtractValue:
             case LLVMOpcode.LLVMFAdd:
+            case LLVMOpcode.LLVMFCmp:
+            case LLVMOpcode.LLVMFDiv:
             case LLVMOpcode.LLVMFMul:
             case LLVMOpcode.LLVMFNeg:
             case LLVMOpcode.LLVMFPExt:
             case LLVMOpcode.LLVMFPToSI:
             case LLVMOpcode.LLVMFPToUI:
             case LLVMOpcode.LLVMFPTrunc:
+            case LLVMOpcode.LLVMFRem:
             case LLVMOpcode.LLVMFSub:
+            case LLVMOpcode.LLVMFreeze:
+            case LLVMOpcode.LLVMGetElementPtr:
+            case LLVMOpcode.LLVMICmp:
+            case LLVMOpcode.LLVMInsertElement:
+            case LLVMOpcode.LLVMInsertValue:
             case LLVMOpcode.LLVMIntToPtr:
             case LLVMOpcode.LLVMLShr:
             case LLVMOpcode.LLVMMul:
             case LLVMOpcode.LLVMOr:
+            case LLVMOpcode.LLVMPHI: // Because we load it from a local that is guaranteed not to change in the current block
             case LLVMOpcode.LLVMPtrToInt:
+            case LLVMOpcode.LLVMSDiv:
+            case LLVMOpcode.LLVMSExt:
             case LLVMOpcode.LLVMSIToFP:
             case LLVMOpcode.LLVMSRem:
             case LLVMOpcode.LLVMSelect:
             case LLVMOpcode.LLVMShl:
+            case LLVMOpcode.LLVMShuffleVector:
             case LLVMOpcode.LLVMSub:
             case LLVMOpcode.LLVMTrunc:
+            case LLVMOpcode.LLVMUDiv:
             case LLVMOpcode.LLVMUIToFP:
             case LLVMOpcode.LLVMURem:
             case LLVMOpcode.LLVMXor:
-                return IsNarrowInteger(instruction.TypeOf) ? MemoryEffect.Writes : MemoryEffect.None;
+            case LLVMOpcode.LLVMZExt:
+                return MemoryEffect.None;
 
             default:
                 return MemoryEffect.Writes;
         }
     }
-
-    private static bool IsNarrowInteger(LLVMTypeRef type) =>
-        type.Kind == LLVMTypeKind.LLVMIntegerTypeKind && type.IntWidth < 32;
 
     public static unsafe LLVMMetadataRef AsMetadata(this LLVMValueRef value)
     {

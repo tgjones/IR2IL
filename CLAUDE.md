@@ -74,7 +74,9 @@ LLVM IR allows integers of any bit width (e.g. `i40` from a struct with 3+29+3-b
 
 **Struct sizing**: LLVM computes `sizeof({ i40 })` as 8 bytes on ARM64 (5 bytes + 3 padding for 8-byte alignment), matching a .NET struct with a single `long` field.
 
-**Not yet implemented**: `sext` from a non-power-of-2 source (e.g. `sext i40 to i64`) — the sign bit would need shifting to be correctly extended. Also `stind` for wide integer types.
+**Signed operations**: because the container is zero-extended, `sext`, `sitofp`, signed `icmp`, `sdiv`, `srem` and `ashr` first call `EmitSignExtendedInteger`, which sign-extends from bit N-1 (`shl` then `shr` by the unused bits). This is also the normalisation for `i8`/`i16`, which can sit on the IL stack either sign- or zero-extended (a `load` and a `trunc` differ). Integers wider than 64 bits don't have it yet.
+
+**Not yet implemented**: `stind` for wide integer types, and loads/stores of non-power-of-2 widths touch the whole container.
 
 ### Handling varargs on macOS ARM64
 

@@ -34,11 +34,10 @@ public partial class CompilerTests
         Assert.IsTrue(match.Success, $"{irPath} has no '; exit-code: N' comment");
         var expectedExitCode = int.Parse(match.Groups[1].Value);
 
-        var outputPath = Path.Combine(
-            Environment.CurrentDirectory,
-            "output",
-            "hand-written",
-            Path.GetFileNameWithoutExtension(irPath) + ".exe");
+        // A directory per test: the compiler copies IR2IL.Runtime.dll next to the output, which fails
+        // if another test running in parallel has already loaded the copy in the shared directory.
+        var testName = Path.GetFileNameWithoutExtension(irPath);
+        var outputPath = Path.Combine(Environment.CurrentDirectory, "output", "hand-written", testName, testName + ".exe");
         Directory.CreateDirectory(Path.GetDirectoryName(outputPath)!);
 
         Compiler.Compile(irPath, outputPath);

@@ -825,12 +825,75 @@ internal sealed class FunctionILEmitter : ILEmitter
         ILGenerator.Emit(OpCodes.Ldloc, aggregateLocal);
     }
 
+    /// <summary>
+    /// Pushes an operand of an integer comparison. <c>i8</c> and <c>i16</c> values on the IL stack aren't
+    /// consistently extended (a load sign-extends, a <c>trunc</c> zero-extends), so they are extended here
+    /// the way the predicate reads them. Other widths up to 64 bits are kept zero-extended, so they only
+    /// need sign-extending for a signed predicate. <c>eq</c>/<c>ne</c> only need both sides to agree.
+    /// </summary>
+    private void EmitIntegerComparisonOperand(LLVMValueRef operand, LLVMIntPredicate predicate)
+    {
+        EmitValue(operand);
+
+        if (operand.TypeOf.Kind != LLVMTypeKind.LLVMIntegerTypeKind || operand.TypeOf.IntWidth > 64)
+        {
+            return;
+        }
+
+        var width = (int)operand.TypeOf.IntWidth;
+        var isSigned = predicate is LLVMIntPredicate.LLVMIntSGE or LLVMIntPredicate.LLVMIntSGT
+            or LLVMIntPredicate.LLVMIntSLE or LLVMIntPredicate.LLVMIntSLT;
+        if (isSigned)
+        {
+            EmitSignExtendedInteger(width);
+        }
+        else if (width is 8 or 16)
+        {
+            EmitIntegerConversion(width, Signedness.Unsigned);
+        }
+    }
+
+    /// <summary>
+    /// Sign-extends the <c>iN</c> on the IL stack from bit N-1, for any N up to 64. Needed before a
+    /// signed operation because an <c>i1</c>/<c>i40</c> is held zero-extended in its container, and an
+    /// <c>i8</c>/<c>i16</c> may be either.
+    /// </summary>
+    private void EmitSignExtendedInteger(int bits)
+    {
+        switch (bits)
+        {
+            case 8:
+                ILGenerator.Emit(OpCodes.Conv_I1);
+                break;
+
+            case 16:
+                ILGenerator.Emit(OpCodes.Conv_I2);
+                break;
+
+            case 32:
+            case 64:
+                break;
+
+            case > 64:
+                throw new NotImplementedException($"Sign extension of i{bits}");
+
+            default:
+                // The value is an int32 for containers up to 32 bits and an int64 above that.
+                var shift = (TypeSystem.RoundUpToTypeSize(bits) == 64 ? 64 : 32) - bits;
+                ILGenerator.Emit(OpCodes.Ldc_I4, shift);
+                ILGenerator.Emit(OpCodes.Shl);
+                ILGenerator.Emit(OpCodes.Ldc_I4, shift);
+                ILGenerator.Emit(OpCodes.Shr);
+                break;
+        }
+    }
+
     private void EmitICmp(LLVMValueRef instruction)
     {
         var operand0 = instruction.GetOperand(0);
 
-        EmitValue(operand0);
-        EmitValue(instruction.GetOperand(1));
+        EmitIntegerComparisonOperand(operand0, instruction.ICmpPredicate);
+        EmitIntegerComparisonOperand(instruction.GetOperand(1), instruction.ICmpPredicate);
 
         switch (operand0.TypeOf.Kind)
         {
@@ -925,6 +988,12 @@ internal sealed class FunctionILEmitter : ILEmitter
 
                     case LLVMIntPredicate.LLVMIntUGT:
                         ILGenerator.Emit(OpCodes.Cgt_Un);
+                        break;
+
+                    case LLVMIntPredicate.LLVMIntULE:
+                        ILGenerator.Emit(OpCodes.Cgt_Un);
+                        ILGenerator.Emit(OpCodes.Ldc_I4_0);
+                        ILGenerator.Emit(OpCodes.Ceq);
                         break;
 
                     case LLVMIntPredicate.LLVMIntULT:
@@ -1156,16 +1225,7 @@ internal sealed class FunctionILEmitter : ILEmitter
                 // Ensure source type is treated as signed.
                 if (opcode == LLVMOpcode.LLVMSIToFP)
                 {
-                    switch (fromType.IntWidth)
-                    {
-                        case 8:
-                            ILGenerator.Emit(OpCodes.Conv_I1);
-                            break;
-
-                        case 16:
-                            ILGenerator.Emit(OpCodes.Conv_I2);
-                            break;
-                    }
+                    EmitSignExtendedInteger((int)fromType.IntWidth);
                 }
                 if (opcode == LLVMOpcode.LLVMUIToFP)
                 {
@@ -1188,16 +1248,7 @@ internal sealed class FunctionILEmitter : ILEmitter
                 // Ensure source type is treated as signed.
                 if (opcode == LLVMOpcode.LLVMSIToFP)
                 {
-                    switch (fromType.IntWidth)
-                    {
-                        case 8:
-                            ILGenerator.Emit(OpCodes.Conv_I1);
-                            break;
-
-                        case 16:
-                            ILGenerator.Emit(OpCodes.Conv_I2);
-                            break;
-                    }
+                    EmitSignExtendedInteger((int)fromType.IntWidth);
                 }
                 if (opcode == LLVMOpcode.LLVMUIToFP)
                 {
@@ -1221,18 +1272,9 @@ internal sealed class FunctionILEmitter : ILEmitter
                 {
                     case LLVMOpcode.LLVMSExt:
                         // Ensure source type is treated as signed.
-                        if (fromType.Kind == LLVMTypeKind.LLVMIntegerTypeKind)
+                        if (fromType.Kind == LLVMTypeKind.LLVMIntegerTypeKind && fromType.IntWidth <= 64)
                         {
-                            switch (fromType.IntWidth)
-                            {
-                                case 8:
-                                    ILGenerator.Emit(OpCodes.Conv_I1);
-                                    break;
-
-                                case 16:
-                                    ILGenerator.Emit(OpCodes.Conv_I2);
-                                    break;
-                            }
+                            EmitSignExtendedInteger((int)fromType.IntWidth);
                         }
                         break;
 
@@ -1419,17 +1461,18 @@ internal sealed class FunctionILEmitter : ILEmitter
             }
             else
             {
-                if (i == 0 && instruction.InstructionOpcode == LLVMOpcode.LLVMAShr)
-                {
-                    EmitConversion(LLVMOpcode.LLVMSExt, operand, instruction.TypeOf, Signedness.Signed);
-                }
-                else
-                {
-                    EmitValue(operand);
+                EmitValue(operand);
 
-                    if (operand.TypeOf.Kind == LLVMTypeKind.LLVMIntegerTypeKind)
+                if (operand.TypeOf.Kind == LLVMTypeKind.LLVMIntegerTypeKind)
+                {
+                    var operandWidth = (int)operand.TypeOf.IntWidth;
+                    if (signedness == Signedness.Signed || (i == 0 && instruction.InstructionOpcode == LLVMOpcode.LLVMAShr))
                     {
-                        EmitIntegerConversion((int)operand.TypeOf.IntWidth, signedness);
+                        EmitSignExtendedInteger(operandWidth);
+                    }
+                    else
+                    {
+                        EmitIntegerConversion(operandWidth, signedness);
                     }
                 }
             }
@@ -1687,8 +1730,8 @@ internal sealed class FunctionILEmitter : ILEmitter
             && condition.InstructionOpcode == LLVMOpcode.LLVMICmp
             && condition.TypeOf.Kind == LLVMTypeKind.LLVMIntegerTypeKind)
         {
-            EmitValue(condition.GetOperand(0));
-            EmitValue(condition.GetOperand(1));
+            EmitIntegerComparisonOperand(condition.GetOperand(0), condition.ICmpPredicate);
+            EmitIntegerComparisonOperand(condition.GetOperand(1), condition.ICmpPredicate);
 
             // Int128 is a struct — Beq/Blt/etc. don't work; use Int128/UInt128 operators then Brtrue.
             if (condition.GetOperand(0).TypeOf.Kind == LLVMTypeKind.LLVMIntegerTypeKind &&
@@ -1740,6 +1783,7 @@ internal sealed class FunctionILEmitter : ILEmitter
                 LLVMIntPredicate.LLVMIntSGT => OpCodes.Bgt,
                 LLVMIntPredicate.LLVMIntSLT => OpCodes.Blt,
                 LLVMIntPredicate.LLVMIntSLE => OpCodes.Ble,
+                LLVMIntPredicate.LLVMIntUGE => OpCodes.Bge_Un,
                 LLVMIntPredicate.LLVMIntUGT => OpCodes.Bgt_Un,
                 LLVMIntPredicate.LLVMIntULE => OpCodes.Ble_Un,
                 LLVMIntPredicate.LLVMIntULT => OpCodes.Blt_Un,
@@ -2264,6 +2308,12 @@ internal sealed class FunctionILEmitter : ILEmitter
             throw new NotImplementedException($"Unsupported switch condition: {condition}");
         }
 
+        // Power-of-two widths are compared sign-extended: a raw i8/i16 on the IL stack may be zero-extended
+        // or carry stray high bits, so it's extended from its width before every comparison. Other widths
+        // (i1, i24, …) are kept zero-extended with the upper bits clear, so their cases are too.
+        var conditionWidth = (int)condition.TypeOf.IntWidth;
+        var signExtendedCases = conditionWidth is 8 or 16 or 32;
+
         var phiBlocksToEmit = new List<(Label, LLVMBasicBlockRef)>();
 
         // Operand 1 is the default destination.
@@ -2280,7 +2330,7 @@ internal sealed class FunctionILEmitter : ILEmitter
                 throw new NotImplementedException();
             }
 
-            var caseValue = (int)operands[i].ConstIntSExt;
+            var caseValue = signExtendedCases ? (int)operands[i].ConstIntSExt : (int)operands[i].ConstIntZExt;
 
             var destinationBlock = operands[i + 1].AsBasicBlock();
             Label destinationLabel;
@@ -2320,7 +2370,7 @@ internal sealed class FunctionILEmitter : ILEmitter
         if (clusters.Count > 1 && CanPushToStack(condition))
         {
             conditionLocal = ILGenerator.DeclareLocal(TypeSystem.GetMsilType(condition.TypeOf));
-            EmitValue(condition);
+            EmitSwitchCondition();
             ILGenerator.Emit(OpCodes.Stloc, conditionLocal);
         }
 
@@ -2334,7 +2384,7 @@ internal sealed class FunctionILEmitter : ILEmitter
             }
             else
             {
-                EmitValue(condition);
+                EmitSwitchCondition();
             }
             if (caseValue != 0)
             {
@@ -2367,6 +2417,15 @@ internal sealed class FunctionILEmitter : ILEmitter
             ILGenerator.MarkLabel(phiLabel);
             EmitPhiValues(instruction.InstructionParent, destinationBlock);
             ILGenerator.Emit(OpCodes.Br, GetOrCreateLabel(destinationBlock));
+        }
+
+        void EmitSwitchCondition()
+        {
+            EmitValue(condition);
+            if (conditionWidth is 8 or 16)
+            {
+                EmitIntegerConversion(conditionWidth, Signedness.Signed);
+            }
         }
     }
 
