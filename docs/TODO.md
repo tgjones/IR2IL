@@ -74,7 +74,7 @@ Each test case currently:
 - [ ] `sdiv`/`srem` with `INT_MIN / -1` and division by zero throw .NET exceptions. That's UB in C, so acceptable, but document it.
 
 ### Floating point
-- [ ] **[bug] Missing or incorrect `fcmp` predicates.** Scalar `EmitFCmp`: `ord`, `ugt`, `true`, `false`. Branch-fused path (`EmitBranchCondition`): also `one`, `ord`, `ugt`. Vector: only OEQ/OGT/OLT/UGE/UNE exist, and vector `UGE` uses `GreaterThanOrEqual`, which is *ordered* (wrong for NaN). The trailing `// TODO: Do the right thing for ordered / unordered equality comparisons` in `EmitFCmp` is still open. Build a table-driven implementation covering all 16 predicates for scalars and vectors, with NaN tests.
+- [ ] **[bug] Vector `fcmp` predicates.** Scalar `fcmp` is done: `EmitFloatComparison` handles all 16 predicates for stored and branch conditions, and `float_fcmp.ll` checks them against clang with NaN operands (it fixed `false`/`true`/`ord`/`ugt`/`one` in branches, and NaN in stored `oge`/`ole`/`uge`/`ule`). Vector: only OEQ/OGT/OLT/UGE/UNE exist, and vector `UGE` uses `GreaterThanOrEqual`, which is *ordered* (wrong for NaN). Build a table-driven implementation covering all 16 predicates for vectors, with NaN tests.
 - [ ] **[bug] `undef`/`poison` of `double` and `i128` types throw** in `EmitConstantValue` (only `float` and integers up to 64 bits are handled).
 - [ ] **[gap]** `half`, `bfloat`, `fp128`, `x86_fp80` types (`0022_*` Fujitsu tests are excluded for `half`).
 

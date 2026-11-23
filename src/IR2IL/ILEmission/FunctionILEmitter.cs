@@ -1276,90 +1276,12 @@ internal sealed class FunctionILEmitter : ILEmitter
         {
             case LLVMTypeKind.LLVMDoubleTypeKind:
             case LLVMTypeKind.LLVMFloatTypeKind:
-                switch (instruction.FCmpPredicate)
-                {
-                    case LLVMRealPredicate.LLVMRealOEQ:
-                        ILGenerator.Emit(OpCodes.Ceq);
-                        break;
-
-                    case LLVMRealPredicate.LLVMRealOGE:
-                        ILGenerator.Emit(OpCodes.Clt);
-                        ILGenerator.Emit(OpCodes.Ldc_I4_0);
-                        ILGenerator.Emit(OpCodes.Ceq);
-                        break;
-
-                    case LLVMRealPredicate.LLVMRealOGT:
-                        ILGenerator.Emit(OpCodes.Cgt);
-                        break;
-
-                    case LLVMRealPredicate.LLVMRealOLE:
-                        ILGenerator.Emit(OpCodes.Cgt);
-                        ILGenerator.Emit(OpCodes.Ldc_I4_0);
-                        ILGenerator.Emit(OpCodes.Ceq);
-                        break;
-
-                    case LLVMRealPredicate.LLVMRealOLT:
-                        ILGenerator.Emit(OpCodes.Clt);
-                        break;
-
-                    case LLVMRealPredicate.LLVMRealONE:
-                    {
-                        var floatType = TypeSystem.GetMsilType(operand0.TypeOf);
-                        var areOrderedAndNotEqualMethod = typeof(LLVMIntrinsics).GetMethodStrict(nameof(LLVMIntrinsics.AreOrderedAndNotEqual), [floatType, floatType]);
-                        ILGenerator.Emit(OpCodes.Call, areOrderedAndNotEqualMethod);
-                        break;
-                    }
-
-                    case LLVMRealPredicate.LLVMRealUGE:
-                        ILGenerator.Emit(OpCodes.Clt_Un);
-                        ILGenerator.Emit(OpCodes.Ldc_I4_0);
-                        ILGenerator.Emit(OpCodes.Ceq);
-                        break;
-
-                    case LLVMRealPredicate.LLVMRealULE:
-                        ILGenerator.Emit(OpCodes.Cgt_Un);
-                        ILGenerator.Emit(OpCodes.Ldc_I4_0);
-                        ILGenerator.Emit(OpCodes.Ceq);
-                        break;
-
-                    case LLVMRealPredicate.LLVMRealULT:
-                        ILGenerator.Emit(OpCodes.Clt_Un);
-                        break;
-
-                    case LLVMRealPredicate.LLVMRealUNE:
-                        ILGenerator.Emit(OpCodes.Ceq);
-                        ILGenerator.Emit(OpCodes.Ldc_I4_0);
-                        ILGenerator.Emit(OpCodes.Ceq);
-                        break;
-
-                    case LLVMRealPredicate.LLVMRealUNO:
-                    {
-                        var floatType = TypeSystem.GetMsilType(operand0.TypeOf);
-                        var areUnorderedMethod = typeof(LLVMIntrinsics).GetMethodStrict(nameof(LLVMIntrinsics.AreUnordered), [floatType, floatType]);
-                        ILGenerator.Emit(OpCodes.Call, areUnorderedMethod);
-                        break;
-                    }
-
-                    case LLVMRealPredicate.LLVMRealUEQ:
-                    {
-                        var floatType = TypeSystem.GetMsilType(operand0.TypeOf);
-                        var areOrderedAndNotEqualMethod = typeof(LLVMIntrinsics).GetMethodStrict(nameof(LLVMIntrinsics.AreOrderedAndNotEqual), [floatType, floatType]);
-                        ILGenerator.Emit(OpCodes.Call, areOrderedAndNotEqualMethod);
-                        ILGenerator.Emit(OpCodes.Ldc_I4_0);
-                        ILGenerator.Emit(OpCodes.Ceq);
-                        break;
-                    }
-
-                    default:
-                        throw new NotImplementedException($"Float comparison predicate {instruction.FCmpPredicate} not implemented: {instruction}");
-                }
+                EmitFloatComparison(instruction.FCmpPredicate, operand0.TypeOf);
                 break;
 
             default:
                 throw new NotImplementedException($"FCmp not implemented for type {operand0.TypeOf.Kind}: {instruction}");
         }
-
-        // TODO: Do the right thing for ordered / unordered equality comparisons.
     }
 
     /// <summary>
@@ -1961,35 +1883,19 @@ internal sealed class FunctionILEmitter : ILEmitter
             && condition.TypeOf.Kind == LLVMTypeKind.LLVMIntegerTypeKind)
         {
             var op0 = condition.GetOperand(0);
-            var floatType = TypeSystem.GetMsilType(op0.TypeOf);
             EmitValue(op0);
             EmitValue(condition.GetOperand(1));
 
-            if (condition.FCmpPredicate == LLVMRealPredicate.LLVMRealUNO)
+            // A predicate with a single branch opcode is fused. The others compute the i1 and branch on it,
+            // so every predicate that `EmitFloatComparison` handles can be a branch condition.
+            var branchOpCode = GetFloatBranchOpCode(condition.FCmpPredicate);
+            if (branchOpCode != null)
             {
-                ILGenerator.Emit(OpCodes.Call, typeof(LLVMIntrinsics).GetMethodStrict(nameof(LLVMIntrinsics.AreUnordered), [floatType, floatType]));
-                return OpCodes.Brtrue;
+                return branchOpCode.Value;
             }
 
-            if (condition.FCmpPredicate == LLVMRealPredicate.LLVMRealUEQ)
-            {
-                ILGenerator.Emit(OpCodes.Call, typeof(LLVMIntrinsics).GetMethodStrict(nameof(LLVMIntrinsics.AreOrderedAndNotEqual), [floatType, floatType]));
-                return OpCodes.Brfalse;
-            }
-
-            return condition.FCmpPredicate switch
-            {
-                LLVMRealPredicate.LLVMRealOEQ => OpCodes.Beq,
-                LLVMRealPredicate.LLVMRealOGE => OpCodes.Bge,
-                LLVMRealPredicate.LLVMRealOGT => OpCodes.Bgt,
-                LLVMRealPredicate.LLVMRealOLE => OpCodes.Ble,
-                LLVMRealPredicate.LLVMRealOLT => OpCodes.Blt,
-                LLVMRealPredicate.LLVMRealUGE => OpCodes.Bge_Un,
-                LLVMRealPredicate.LLVMRealULE => OpCodes.Ble_Un,
-                LLVMRealPredicate.LLVMRealULT => OpCodes.Blt_Un,
-                LLVMRealPredicate.LLVMRealUNE => OpCodes.Bne_Un,
-                _ => throw new NotImplementedException($"Branch condition float comparison {condition.FCmpPredicate} not implemented: {condition}"),
-            };
+            EmitFloatComparison(condition.FCmpPredicate, op0.TypeOf);
+            return OpCodes.Brtrue;
         }
         else
         {
@@ -1998,6 +1904,80 @@ internal sealed class FunctionILEmitter : ILEmitter
 
             return OpCodes.Brtrue;
         }
+    }
+
+    /// <summary>
+    /// The branch opcode that tests <paramref name="predicate"/> on the two operands on the stack, if there
+    /// is one. `beq`, `bgt`, `bge`, `blt` and `ble` are false when an operand is NaN, and their `.un` forms
+    /// (and `bne.un`) are true: they are the ordered and the unordered predicates respectively.
+    /// </summary>
+    private static OpCode? GetFloatBranchOpCode(LLVMRealPredicate predicate) => predicate switch
+    {
+        LLVMRealPredicate.LLVMRealOEQ => OpCodes.Beq,
+        LLVMRealPredicate.LLVMRealOGT => OpCodes.Bgt,
+        LLVMRealPredicate.LLVMRealOGE => OpCodes.Bge,
+        LLVMRealPredicate.LLVMRealOLT => OpCodes.Blt,
+        LLVMRealPredicate.LLVMRealOLE => OpCodes.Ble,
+        LLVMRealPredicate.LLVMRealUGT => OpCodes.Bgt_Un,
+        LLVMRealPredicate.LLVMRealUGE => OpCodes.Bge_Un,
+        LLVMRealPredicate.LLVMRealULT => OpCodes.Blt_Un,
+        LLVMRealPredicate.LLVMRealULE => OpCodes.Ble_Un,
+        LLVMRealPredicate.LLVMRealUNE => OpCodes.Bne_Un,
+        _ => null,
+    };
+
+    /// <summary>
+    /// Replaces the two floating-point operands on the stack with the result of <paramref name="predicate"/>
+    /// (an int32 that is 0 or 1), for all 16 predicates. `ceq`, `cgt` and `clt` are false when an operand is
+    /// NaN and `cgt.un` and `clt.un` are true, so each comparison that has to be true or false for NaN is the
+    /// opposite comparison negated: `a >= b` (ordered) is `!(a &lt; b unordered)`, `a >= b` (unordered) is `!(a &lt; b)`.
+    /// </summary>
+    private void EmitFloatComparison(LLVMRealPredicate predicate, LLVMTypeRef operandType)
+    {
+        switch (predicate)
+        {
+            case LLVMRealPredicate.LLVMRealPredicateFalse:
+            case LLVMRealPredicate.LLVMRealPredicateTrue:
+                ILGenerator.Emit(OpCodes.Pop);
+                ILGenerator.Emit(OpCodes.Pop);
+                ILGenerator.Emit(predicate == LLVMRealPredicate.LLVMRealPredicateTrue ? OpCodes.Ldc_I4_1 : OpCodes.Ldc_I4_0);
+                return;
+
+            case LLVMRealPredicate.LLVMRealOEQ: ILGenerator.Emit(OpCodes.Ceq); return;
+            case LLVMRealPredicate.LLVMRealOGT: ILGenerator.Emit(OpCodes.Cgt); return;
+            case LLVMRealPredicate.LLVMRealOLT: ILGenerator.Emit(OpCodes.Clt); return;
+            case LLVMRealPredicate.LLVMRealUGT: ILGenerator.Emit(OpCodes.Cgt_Un); return;
+            case LLVMRealPredicate.LLVMRealULT: ILGenerator.Emit(OpCodes.Clt_Un); return;
+
+            case LLVMRealPredicate.LLVMRealOGE: EmitNegatedComparison(OpCodes.Clt_Un); return;
+            case LLVMRealPredicate.LLVMRealOLE: EmitNegatedComparison(OpCodes.Cgt_Un); return;
+            case LLVMRealPredicate.LLVMRealUGE: EmitNegatedComparison(OpCodes.Clt); return;
+            case LLVMRealPredicate.LLVMRealULE: EmitNegatedComparison(OpCodes.Cgt); return;
+            case LLVMRealPredicate.LLVMRealUNE: EmitNegatedComparison(OpCodes.Ceq); return;
+        }
+
+        var floatType = TypeSystem.GetMsilType(operandType);
+        var helperName = predicate switch
+        {
+            LLVMRealPredicate.LLVMRealONE or LLVMRealPredicate.LLVMRealUEQ => nameof(LLVMIntrinsics.AreOrderedAndNotEqual),
+            LLVMRealPredicate.LLVMRealORD or LLVMRealPredicate.LLVMRealUNO => nameof(LLVMIntrinsics.AreUnordered),
+            _ => throw new NotImplementedException($"Float comparison predicate {predicate} not implemented"),
+        };
+        ILGenerator.Emit(OpCodes.Call, typeof(LLVMIntrinsics).GetMethodStrict(helperName, [floatType, floatType]));
+
+        // The helpers are the true result of `one` and `uno`; `ueq` and `ord` are their opposites.
+        if (predicate is LLVMRealPredicate.LLVMRealUEQ or LLVMRealPredicate.LLVMRealORD)
+        {
+            ILGenerator.Emit(OpCodes.Ldc_I4_0);
+            ILGenerator.Emit(OpCodes.Ceq);
+        }
+    }
+
+    private void EmitNegatedComparison(OpCode comparison)
+    {
+        ILGenerator.Emit(comparison);
+        ILGenerator.Emit(OpCodes.Ldc_I4_0);
+        ILGenerator.Emit(OpCodes.Ceq);
     }
 
     private void EmitBranchUnconditional(LLVMValueRef brInstruction, LLVMBasicBlockRef to)
