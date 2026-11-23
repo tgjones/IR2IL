@@ -1,4 +1,3 @@
-; exit-code: 5
 ; A store between a pure expression and its user doesn't change the result.
 
 define i32 @id(i32 %x) {

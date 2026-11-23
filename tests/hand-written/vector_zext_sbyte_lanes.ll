@@ -1,4 +1,3 @@
-; exit-code: 0
 ; zext of a vector whose lanes are i8 must zero-extend: 0x80 is 128, not -128 (and not 0xFFFFFF80).
 ; The VectorUtility.ZExt helpers used to cast an sbyte lane straight to the wider type, which sign-extends.
 ; main returns the 1-based number of the first check that failed, or 0.

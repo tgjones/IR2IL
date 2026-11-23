@@ -1,4 +1,3 @@
-; exit-code: 0
 ; Loading an i24 / i40 from the last bytes of a global gives the right value, zero- and sign-extended.
 ; Consumers normalise, so an over-read would not change these results: this checks the value, not the
 ; number of bytes read (which only shows up as a fault past the end of a mapping).

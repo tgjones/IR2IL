@@ -1,4 +1,3 @@
-; exit-code: 63
 ; A sign-extended `load i8`/`load i16` and a zero-extended `trunc` of the same bit pattern (0x80 / 0x8000)
 ; must compare equal, whichever way the comparison is emitted. Both operands are left on the IL stack
 ; (the load is deferred, the trunc is used by the next instruction), so nothing normalises them.

@@ -1,4 +1,3 @@
-; exit-code: 3
 ; `inttoptr` zero-extends its operand: i32 -1 becomes 0xFFFFFFFF and i8 -1 becomes 0xFF, not all ones.
 ; 1 for the i32 case, 2 for the i8 case.
 

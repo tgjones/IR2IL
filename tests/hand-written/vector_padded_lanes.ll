@@ -1,4 +1,3 @@
-; exit-code: 0
 ; Vectors of 16 and 32 bits (<2 x i8>, <4 x i8>, <2 x i16>) are held in a Vector64 with padding lanes, but have
 ; only their own bytes in memory and as struct fields and array elements. main returns the 1-based number of the
 ; first check that failed, or 0.

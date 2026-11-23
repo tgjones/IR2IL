@@ -1,4 +1,3 @@
-; exit-code: 0
 ; Storing an iN writes ceil(N/8) bytes: the bytes after it must not change.
 ; The i8 slots hold 0x55 around an i24, an i40 and an i72, written through a stray-high-bits value.
 

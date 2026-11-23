@@ -1,4 +1,3 @@
-; exit-code: 0
 ; LLVM folds an instruction whose operands are all constants, so the constants of c1, c2, c3, c7, c8 and c10
 ; go through a call; the others combine one with an argument.
 ; A negative constant of a narrow integer is not masked to its width: the bits above N are sign

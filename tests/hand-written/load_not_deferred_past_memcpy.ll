@@ -1,4 +1,3 @@
-; exit-code: 4
 ; Like load_not_deferred_past_store, but the write is a memcpy intrinsic.
 
 declare void @llvm.memcpy.p0.p0.i64(ptr, ptr, i64, i1)

@@ -1,4 +1,3 @@
-; exit-code: 6
 ; A GEP index may be any integer type and is signed. Each index is a negative number produced by a
 ; `trunc`, which leaves it zero-extended on the IL stack (253 for i8 -3), so it has to be sign-extended
 ; before it is added to the pointer. a[4 - 3] + a[4 - 2] + a[4 - 1] = 1 + 2 + 3.

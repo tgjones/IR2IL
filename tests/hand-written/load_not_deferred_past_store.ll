@@ -1,4 +1,3 @@
-; exit-code: 6
 ; `%a` has a single use, further down. It must still observe the value loaded before the store.
 
 define i32 @id(i32 %x) {

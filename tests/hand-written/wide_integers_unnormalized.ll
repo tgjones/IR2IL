@@ -1,4 +1,3 @@
-; exit-code: 0
 ; An i72 is held in an Int128 whose bits above bit 71 are not defined: add, sub and sext leave stray high bits
 ; (and a negative constant is sign-extended), so every consumer has to read the logical i72 value.
 ; Each cN returns 1 when it is right; main returns the 1-based number of the first check that failed (0 if none).

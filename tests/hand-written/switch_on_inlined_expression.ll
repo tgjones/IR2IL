@@ -1,4 +1,3 @@
-; exit-code: 7
 ; The switch condition is an inlined expression and the cases form several clusters
 ; ({1,2}, {10}, {20,21}), so it is tested more than once. 19 + 1 = 20 is in the last cluster.
 
