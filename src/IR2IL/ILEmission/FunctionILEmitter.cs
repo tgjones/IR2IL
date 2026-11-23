@@ -923,6 +923,13 @@ internal sealed class FunctionILEmitter : ILEmitter
     {
         var operand0 = instruction.GetOperand(0);
 
+        if (operand0.TypeOf.Kind == LLVMTypeKind.LLVMVectorTypeKind)
+        {
+            EmitVectorComparisonMask(instruction);
+            EmitNarrowVectorMask(instruction);
+            return;
+        }
+
         var operandSignedness = GetSignedness(instruction.ICmpPredicate);
         EmitIntegerOperand(operand0, operandSignedness);
         EmitIntegerOperand(instruction.GetOperand(1), operandSignedness);
@@ -1037,30 +1044,56 @@ internal sealed class FunctionILEmitter : ILEmitter
                 }
                 break;
 
-            case LLVMTypeKind.LLVMVectorTypeKind:
-                var nonGenericVectorType = TypeSystem.GetNonGenericVectorType(instruction.GetOperand(0).TypeOf);
-                var (vectorUtilityType, vectorComparisonMethodName) = instruction.ICmpPredicate switch
-                {
-                    LLVMIntPredicate.LLVMIntEQ => (nonGenericVectorType, nameof(Vector128.Equals)),
-                    LLVMIntPredicate.LLVMIntNE => (typeof(VectorUtility), $"Compare{nonGenericVectorType.Name}NotEquals"),
-                    LLVMIntPredicate.LLVMIntSGE => (nonGenericVectorType, nameof(Vector128.GreaterThanOrEqual)),
-                    LLVMIntPredicate.LLVMIntSGT => (nonGenericVectorType, nameof(Vector128.GreaterThan)),
-                    LLVMIntPredicate.LLVMIntSLT => (nonGenericVectorType, nameof(Vector128.LessThan)),
-                    LLVMIntPredicate.LLVMIntUGT => (nonGenericVectorType, nameof(Vector128.GreaterThan)),
-                    LLVMIntPredicate.LLVMIntULT => (nonGenericVectorType, nameof(Vector128.LessThan)),
-                    _ => throw new NotImplementedException($"Integer comparison predicate {instruction.ICmpPredicate} not implemented for vectors: {instruction}"),
-                };
-                EmitVectorComparison(instruction, vectorUtilityType, vectorComparisonMethodName);
-                break;
-
             default:
                 throw new NotImplementedException($"ICmp not implemented for type {operand0.TypeOf.Kind}: {instruction}");
         }
     }
 
-    private void EmitVectorComparison(LLVMValueRef instruction, Type vectorUtilityType, string vectorComparisonMethodName)
+    /// <summary>
+    /// Emits a vector <c>icmp</c> or <c>fcmp</c> and leaves the full-width mask on the stack: a vector of
+    /// integers as wide as the compared elements, with every bit of a lane set when the comparison holds.
+    /// <see cref="EmitNarrowVectorMask"/> turns that into the <c>&lt;N x i1&gt;</c> value the rest of the emitter uses.
+    /// </summary>
+    private void EmitVectorComparisonMask(LLVMValueRef instruction)
     {
         var operand0 = instruction.GetOperand(0);
+        var nonGenericVectorType = TypeSystem.GetNonGenericVectorType(operand0.TypeOf);
+
+        Type vectorUtilityType;
+        string vectorComparisonMethodName;
+        if (instruction.InstructionOpcode == LLVMOpcode.LLVMICmp)
+        {
+            var operandSignedness = GetSignedness(instruction.ICmpPredicate);
+            EmitIntegerOperand(operand0, operandSignedness);
+            EmitIntegerOperand(instruction.GetOperand(1), operandSignedness);
+
+            (vectorUtilityType, vectorComparisonMethodName) = instruction.ICmpPredicate switch
+            {
+                LLVMIntPredicate.LLVMIntEQ => (nonGenericVectorType, nameof(Vector128.Equals)),
+                LLVMIntPredicate.LLVMIntNE => (typeof(VectorUtility), $"Compare{nonGenericVectorType.Name}NotEquals"),
+                LLVMIntPredicate.LLVMIntSGE => (nonGenericVectorType, nameof(Vector128.GreaterThanOrEqual)),
+                LLVMIntPredicate.LLVMIntSGT => (nonGenericVectorType, nameof(Vector128.GreaterThan)),
+                LLVMIntPredicate.LLVMIntSLT => (nonGenericVectorType, nameof(Vector128.LessThan)),
+                LLVMIntPredicate.LLVMIntUGT => (nonGenericVectorType, nameof(Vector128.GreaterThan)),
+                LLVMIntPredicate.LLVMIntULT => (nonGenericVectorType, nameof(Vector128.LessThan)),
+                _ => throw new NotImplementedException($"Integer comparison predicate {instruction.ICmpPredicate} not implemented for vectors: {instruction}"),
+            };
+        }
+        else
+        {
+            EmitValue(operand0);
+            EmitValue(instruction.GetOperand(1));
+
+            (vectorUtilityType, vectorComparisonMethodName) = instruction.FCmpPredicate switch
+            {
+                LLVMRealPredicate.LLVMRealOEQ => (nonGenericVectorType, nameof(Vector128.Equals)),
+                LLVMRealPredicate.LLVMRealOGT => (nonGenericVectorType, nameof(Vector128.GreaterThan)),
+                LLVMRealPredicate.LLVMRealOLT => (nonGenericVectorType, nameof(Vector128.LessThan)),
+                LLVMRealPredicate.LLVMRealUGE => (nonGenericVectorType, nameof(Vector128.GreaterThanOrEqual)),
+                LLVMRealPredicate.LLVMRealUNE => (typeof(VectorUtility), $"Compare{nonGenericVectorType.Name}NotEquals"),
+                _ => throw new NotImplementedException($"Float comparison predicate {instruction.FCmpPredicate} not implemented for vectors: {instruction}"),
+            };
+        }
 
         var genericVectorMethod = vectorUtilityType.GetStaticMethodStrict(vectorComparisonMethodName);
         var elementType = TypeSystem.GetMsilVectorElementType(operand0.TypeOf.ElementType);
@@ -1068,7 +1101,6 @@ internal sealed class FunctionILEmitter : ILEmitter
         ILGenerator.Emit(OpCodes.Call, vectorMethod);
 
         // If result is not an integer type, bitcast it to integer type.
-        var nonGenericVectorType = TypeSystem.GetNonGenericVectorType(operand0.TypeOf);
         switch (operand0.TypeOf.ElementType.Kind)
         {
             case LLVMTypeKind.LLVMDoubleTypeKind:
@@ -1091,6 +1123,15 @@ internal sealed class FunctionILEmitter : ILEmitter
             default:
                 throw new NotImplementedException($"Vector comparison not implemented for element type {operand0.TypeOf.ElementType.Kind}: {instruction}");
         }
+    }
+
+    /// <summary>
+    /// Narrows the full-width mask <see cref="EmitVectorComparisonMask"/> left on the stack to the
+    /// <c>&lt;N x i1&gt;</c> representation of <paramref name="instruction"/>.
+    /// </summary>
+    private void EmitNarrowVectorMask(LLVMValueRef instruction)
+    {
+        var operand0 = instruction.GetOperand(0);
 
         // Save intermediate result to local, since we'll need to reference it multiple times below.
         var integerVectorType = TypeSystem.GetGenericVectorType(operand0.TypeOf).MakeGenericType(TypeSystem.GetIntegerType(TypeSystem.GetSizeOfTypeInBits(operand0.TypeOf.ElementType)));
@@ -1103,7 +1144,6 @@ internal sealed class FunctionILEmitter : ILEmitter
         var resultVectorType = TypeSystem.GetMsilVectorType(instruction.TypeOf);
         ILGenerator.Emit(OpCodes.Call, resultVectorType.GetMethodStrict("get_Zero"));
 
-        var inputVectorType = TypeSystem.GetMsilVectorType(operand0.TypeOf);
         for (var i = 0; i < instruction.TypeOf.VectorSize; i++)
         {
             ILGenerator.Emit(OpCodes.Ldc_I4, i);
@@ -1123,6 +1163,13 @@ internal sealed class FunctionILEmitter : ILEmitter
     private void EmitFCmp(LLVMValueRef instruction)
     {
         var operand0 = instruction.GetOperand(0);
+
+        if (operand0.TypeOf.Kind == LLVMTypeKind.LLVMVectorTypeKind)
+        {
+            EmitVectorComparisonMask(instruction);
+            EmitNarrowVectorMask(instruction);
+            return;
+        }
 
         EmitValue(operand0);
         EmitValue(instruction.GetOperand(1));
@@ -1208,20 +1255,6 @@ internal sealed class FunctionILEmitter : ILEmitter
                     default:
                         throw new NotImplementedException($"Float comparison predicate {instruction.FCmpPredicate} not implemented: {instruction}");
                 }
-                break;
-
-            case LLVMTypeKind.LLVMVectorTypeKind:
-                var nonGenericVectorType = TypeSystem.GetNonGenericVectorType(instruction.GetOperand(0).TypeOf);
-                var (vectorUtilityType, vectorComparisonMethodName) = instruction.FCmpPredicate switch
-                {
-                    LLVMRealPredicate.LLVMRealOEQ => (nonGenericVectorType, nameof(Vector128.Equals)),
-                    LLVMRealPredicate.LLVMRealOGT => (nonGenericVectorType, nameof(Vector128.GreaterThan)),
-                    LLVMRealPredicate.LLVMRealOLT => (nonGenericVectorType, nameof(Vector128.LessThan)),
-                    LLVMRealPredicate.LLVMRealUGE => (nonGenericVectorType, nameof(Vector128.GreaterThanOrEqual)),
-                    LLVMRealPredicate.LLVMRealUNE => (typeof(VectorUtility), $"Compare{nonGenericVectorType.Name}NotEquals"),
-                    _ => throw new NotImplementedException($"Float comparison predicate {instruction.FCmpPredicate} not implemented for vectors: {instruction}"),
-                };
-                EmitVectorComparison(instruction, vectorUtilityType, vectorComparisonMethodName);
                 break;
 
             default:
@@ -2196,58 +2229,58 @@ internal sealed class FunctionILEmitter : ILEmitter
 
             case LLVMTypeKind.LLVMVectorTypeKind:
                 var operand1 = instruction.GetOperand(1);
-
-                EmitValue(operand0);
-
-                // Now we need to convert condition from <2 x i1> to same type as left and right operands.
-
-                // Store to local because we'll need to reference it multiple times below.
-                var intermediateLocal = ILGenerator.DeclareLocal(TypeSystem.GetMsilVectorType(operand0.TypeOf));
-                ILGenerator.Emit(OpCodes.Stloc, intermediateLocal);
-
-                // We need to extend the result from e.g. Vector16<sbyte> to Vector64<int>,
-                // something like this:
-                // Vector64.Create((int)input[0], (int)input[1]);
-
-                var inputVectorType = TypeSystem.GetMsilVectorType(operand0.TypeOf);
-                var operand1ElementSizeInBits = TypeSystem.GetSizeOfTypeInBits(operand1.TypeOf.ElementType);
-                for (var i = 0; i < instruction.TypeOf.VectorSize; i++)
-                {
-                    ILGenerator.Emit(OpCodes.Ldloca, intermediateLocal);
-                    ILGenerator.Emit(OpCodes.Ldc_I4, i);
-                    ILGenerator.Emit(OpCodes.Call, inputVectorType.GetMethodStrict("get_Item"));
-
-                    // If integer bit width is larger than 32, we extend.
-                    if (operand1ElementSizeInBits > 32)
-                    {
-                        ILGenerator.Emit(OpCodes.Conv_I8);
-                    }
-                }
-
                 var nonGenericVectorType = TypeSystem.GetNonGenericVectorType(operand1.TypeOf);
-                var createMethodArgumentTypes = new Type[operand1.TypeOf.VectorSize];
-                // Integer type with same bitwidth as operand1 element type.
-                Array.Fill(createMethodArgumentTypes, TypeSystem.GetIntegerType(TypeSystem.RoundUpToTypeSize(operand1ElementSizeInBits)));
-                var createMethod = nonGenericVectorType.GetMethodStrict(nameof(Vector128.Create), createMethodArgumentTypes);
-                ILGenerator.Emit(OpCodes.Call, createMethod);
 
-                // If necessary, call cast method, e.g. AsSingle.
-                switch (operand1.TypeOf.ElementType.Kind)
+                if (CanSelectOnComparisonMask(operand0, operand1))
                 {
-                    case LLVMTypeKind.LLVMDoubleTypeKind:
-                        ILGenerator.Emit(OpCodes.Call, nonGenericVectorType.GetMethodStrict(nameof(Vector128.AsDouble)).MakeGenericMethod(createMethodArgumentTypes[0]));
-                        break;
+                    // The condition is a vector comparison used only here, so use the full-width mask it
+                    // produces as it is, instead of narrowing it to <N x i1> and widening it again:
+                    //
+                    // LLVM:
+                    // %c = icmp slt <4 x i32> %a, %b
+                    // %r = select <4 x i1> %c, <4 x i32> %x, <4 x i32> %y
+                    //
+                    // .NET:
+                    // Vector128.ConditionalSelect(Vector128.LessThan(a, b), x, y)
+                    EmitVectorComparisonMask(operand0);
+                    EmitIntegerVectorAsElementType(operand1.TypeOf.ElementType, nonGenericVectorType);
+                }
+                else
+                {
+                    EmitValue(operand0);
 
-                    case LLVMTypeKind.LLVMFloatTypeKind:
-                        ILGenerator.Emit(OpCodes.Call, nonGenericVectorType.GetMethodStrict(nameof(Vector128.AsSingle)).MakeGenericMethod(createMethodArgumentTypes[0]));
-                        break;
+                    // Now we need to convert condition from <2 x i1> to same type as left and right operands.
 
-                    case LLVMTypeKind.LLVMIntegerTypeKind:
-                        // Nothing to do.
-                        break;
+                    // Store to local because we'll need to reference it multiple times below.
+                    var intermediateLocal = ILGenerator.DeclareLocal(TypeSystem.GetMsilVectorType(operand0.TypeOf));
+                    ILGenerator.Emit(OpCodes.Stloc, intermediateLocal);
 
-                    default:
-                        throw new NotImplementedException($"Unsupported operand element type: {operand1.TypeOf.ElementType}");
+                    // We need to extend the result from e.g. Vector16<sbyte> to Vector64<int>,
+                    // something like this:
+                    // Vector64.Create((int)input[0], (int)input[1]);
+
+                    var inputVectorType = TypeSystem.GetMsilVectorType(operand0.TypeOf);
+                    var operand1ElementSizeInBits = TypeSystem.GetSizeOfTypeInBits(operand1.TypeOf.ElementType);
+                    for (var i = 0; i < instruction.TypeOf.VectorSize; i++)
+                    {
+                        ILGenerator.Emit(OpCodes.Ldloca, intermediateLocal);
+                        ILGenerator.Emit(OpCodes.Ldc_I4, i);
+                        ILGenerator.Emit(OpCodes.Call, inputVectorType.GetMethodStrict("get_Item"));
+
+                        // If integer bit width is larger than 32, we extend.
+                        if (operand1ElementSizeInBits > 32)
+                        {
+                            ILGenerator.Emit(OpCodes.Conv_I8);
+                        }
+                    }
+
+                    var createMethodArgumentTypes = new Type[operand1.TypeOf.VectorSize];
+                    // Integer type with same bitwidth as operand1 element type.
+                    Array.Fill(createMethodArgumentTypes, TypeSystem.GetIntegerType(TypeSystem.RoundUpToTypeSize(operand1ElementSizeInBits)));
+                    var createMethod = nonGenericVectorType.GetMethodStrict(nameof(Vector128.Create), createMethodArgumentTypes);
+                    ILGenerator.Emit(OpCodes.Call, createMethod);
+
+                    EmitIntegerVectorAsElementType(operand1.TypeOf.ElementType, nonGenericVectorType);
                 }
 
                 EmitValue(operand1);
@@ -2262,6 +2295,55 @@ internal sealed class FunctionILEmitter : ILEmitter
 
             default:
                 throw new NotImplementedException();
+        }
+    }
+
+    /// <summary>
+    /// Whether a vector <c>select</c> can use the full-width mask of its condition directly: the condition is a
+    /// vector comparison that is evaluated in place (so nothing else needs its <c>&lt;N x i1&gt;</c> form) and
+    /// its lanes are as wide as the selected ones.
+    /// </summary>
+    private bool CanSelectOnComparisonMask(LLVMValueRef condition, LLVMValueRef selectedValue)
+    {
+        if (condition.Kind != LLVMValueKind.LLVMInstructionValueKind
+            || condition.InstructionOpcode is not (LLVMOpcode.LLVMICmp or LLVMOpcode.LLVMFCmp)
+            || !CanPushToStack(condition))
+        {
+            return false;
+        }
+
+        var comparedElementType = condition.GetOperand(0).TypeOf.ElementType;
+        var selectedElementType = selectedValue.TypeOf.ElementType;
+
+        // Pointer lanes are nint, which doesn't match the long vector of the mask.
+        return comparedElementType.Kind != LLVMTypeKind.LLVMPointerTypeKind
+            && selectedElementType.Kind != LLVMTypeKind.LLVMPointerTypeKind
+            && TypeSystem.GetSizeOfTypeInBits(comparedElementType) == TypeSystem.GetSizeOfTypeInBits(selectedElementType);
+    }
+
+    /// <summary>
+    /// Reinterprets the integer vector on the stack as a vector of <paramref name="elementType"/>,
+    /// e.g. with <c>AsSingle</c>. Integer elements need nothing.
+    /// </summary>
+    private void EmitIntegerVectorAsElementType(LLVMTypeRef elementType, Type nonGenericVectorType)
+    {
+        var integerType = TypeSystem.GetIntegerType(TypeSystem.RoundUpToTypeSize(TypeSystem.GetSizeOfTypeInBits(elementType)));
+        switch (elementType.Kind)
+        {
+            case LLVMTypeKind.LLVMDoubleTypeKind:
+                ILGenerator.Emit(OpCodes.Call, nonGenericVectorType.GetMethodStrict(nameof(Vector128.AsDouble)).MakeGenericMethod(integerType));
+                break;
+
+            case LLVMTypeKind.LLVMFloatTypeKind:
+                ILGenerator.Emit(OpCodes.Call, nonGenericVectorType.GetMethodStrict(nameof(Vector128.AsSingle)).MakeGenericMethod(integerType));
+                break;
+
+            case LLVMTypeKind.LLVMIntegerTypeKind:
+                // Nothing to do.
+                break;
+
+            default:
+                throw new NotImplementedException($"Unsupported operand element type: {elementType}");
         }
     }
 
