@@ -1109,15 +1109,13 @@ internal sealed class FunctionILEmitter : ILEmitter
         var compareElementType = elementType;
         var unsignedCompare = false;
 
-        Type vectorUtilityType;
-        string vectorComparisonMethodName;
         if (instruction.InstructionOpcode == LLVMOpcode.LLVMICmp)
         {
             var predicate = instruction.ICmpPredicate;
             unsignedCompare = predicate is LLVMIntPredicate.LLVMIntUGE or LLVMIntPredicate.LLVMIntUGT
                 or LLVMIntPredicate.LLVMIntULE or LLVMIntPredicate.LLVMIntULT;
 
-            (vectorUtilityType, vectorComparisonMethodName) = predicate switch
+            var (vectorUtilityType, vectorComparisonMethodName) = predicate switch
             {
                 LLVMIntPredicate.LLVMIntEQ => (nonGenericVectorType, nameof(Vector128.Equals)),
                 LLVMIntPredicate.LLVMIntNE => (typeof(VectorUtility), $"Compare{nonGenericVectorType.Name}NotEquals"),
@@ -1145,26 +1143,14 @@ internal sealed class FunctionILEmitter : ILEmitter
                 EmitIntegerOperand(operand0, operandSignedness);
                 EmitIntegerOperand(instruction.GetOperand(1), operandSignedness);
             }
+
+            var genericVectorMethod = vectorUtilityType.GetStaticMethodStrict(vectorComparisonMethodName);
+            ILGenerator.Emit(OpCodes.Call, genericVectorMethod.MakeGenericMethod(compareElementType));
         }
         else
         {
-            EmitValue(operand0);
-            EmitValue(instruction.GetOperand(1));
-
-            (vectorUtilityType, vectorComparisonMethodName) = instruction.FCmpPredicate switch
-            {
-                LLVMRealPredicate.LLVMRealOEQ => (nonGenericVectorType, nameof(Vector128.Equals)),
-                LLVMRealPredicate.LLVMRealOGT => (nonGenericVectorType, nameof(Vector128.GreaterThan)),
-                LLVMRealPredicate.LLVMRealOLT => (nonGenericVectorType, nameof(Vector128.LessThan)),
-                LLVMRealPredicate.LLVMRealUGE => (nonGenericVectorType, nameof(Vector128.GreaterThanOrEqual)),
-                LLVMRealPredicate.LLVMRealUNE => (typeof(VectorUtility), $"Compare{nonGenericVectorType.Name}NotEquals"),
-                _ => throw new NotImplementedException($"Float comparison predicate {instruction.FCmpPredicate} not implemented for vectors: {instruction}"),
-            };
+            EmitVectorFloatComparison(instruction, nonGenericVectorType, elementType);
         }
-
-        var genericVectorMethod = vectorUtilityType.GetStaticMethodStrict(vectorComparisonMethodName);
-        var vectorMethod = genericVectorMethod.MakeGenericMethod(compareElementType);
-        ILGenerator.Emit(OpCodes.Call, vectorMethod);
 
         // If result is not an integer type, bitcast it to integer type.
         switch (operand0.TypeOf.ElementType.Kind)
@@ -1200,6 +1186,84 @@ internal sealed class FunctionILEmitter : ILEmitter
 
             default:
                 throw new NotImplementedException($"Vector comparison not implemented for element type {operand0.TypeOf.ElementType.Kind}: {instruction}");
+        }
+    }
+
+    /// <summary>
+    /// Emits a vector <c>fcmp</c> and leaves the floating-point vector of lanes that are all ones where the
+    /// predicate holds and all zeros elsewhere, for all 16 predicates. The BCL compares are the ordered ones
+    /// (false when a lane is NaN), so each unordered predicate is the complement of the opposite ordered
+    /// comparison: <c>ugt</c> is <c>!(a &lt;= b)</c>. <c>one</c> is <c>a &lt; b | a &gt; b</c>, and <c>ord</c> is
+    /// <c>a == a &amp; b == b</c>.
+    /// </summary>
+    private void EmitVectorFloatComparison(LLVMValueRef instruction, Type nonGenericVectorType, Type laneType)
+    {
+        var operand0 = instruction.GetOperand(0);
+        var vectorType = TypeSystem.GetMsilVectorType(operand0.TypeOf);
+
+        var left = ILGenerator.DeclareLocal(vectorType);
+        var right = ILGenerator.DeclareLocal(vectorType);
+        EmitValue(operand0);
+        EmitValue(instruction.GetOperand(1));
+        ILGenerator.Emit(OpCodes.Stloc, right);
+        ILGenerator.Emit(OpCodes.Stloc, left);
+
+        void Compare(string methodName, LocalBuilder first, LocalBuilder second, Type? declaringType = null)
+        {
+            ILGenerator.Emit(OpCodes.Ldloc, first);
+            ILGenerator.Emit(OpCodes.Ldloc, second);
+            ILGenerator.Emit(OpCodes.Call, (declaringType ?? nonGenericVectorType).GetStaticMethodStrict(methodName).MakeGenericMethod(laneType));
+        }
+
+        void Combine(string methodName)
+        {
+            ILGenerator.Emit(OpCodes.Call, nonGenericVectorType.GetStaticMethodStrict(methodName).MakeGenericMethod(laneType));
+        }
+
+        void OrderedNotEqual()
+        {
+            Compare(nameof(Vector128.LessThan), left, right);
+            Compare(nameof(Vector128.GreaterThan), left, right);
+            Combine(nameof(Vector128.BitwiseOr));
+        }
+
+        void Ordered()
+        {
+            Compare(nameof(Vector128.Equals), left, left);
+            Compare(nameof(Vector128.Equals), right, right);
+            Combine(nameof(Vector128.BitwiseAnd));
+        }
+
+        switch (instruction.FCmpPredicate)
+        {
+            case LLVMRealPredicate.LLVMRealPredicateFalse:
+                ILGenerator.Emit(OpCodes.Call, vectorType.GetMethodStrict("get_Zero"));
+                break;
+
+            case LLVMRealPredicate.LLVMRealPredicateTrue:
+                ILGenerator.Emit(OpCodes.Call, vectorType.GetMethodStrict("get_AllBitsSet"));
+                break;
+
+            case LLVMRealPredicate.LLVMRealOEQ: Compare(nameof(Vector128.Equals), left, right); break;
+            case LLVMRealPredicate.LLVMRealOGT: Compare(nameof(Vector128.GreaterThan), left, right); break;
+            case LLVMRealPredicate.LLVMRealOGE: Compare(nameof(Vector128.GreaterThanOrEqual), left, right); break;
+            case LLVMRealPredicate.LLVMRealOLT: Compare(nameof(Vector128.LessThan), left, right); break;
+            case LLVMRealPredicate.LLVMRealOLE: Compare(nameof(Vector128.LessThanOrEqual), left, right); break;
+            case LLVMRealPredicate.LLVMRealONE: OrderedNotEqual(); break;
+            case LLVMRealPredicate.LLVMRealORD: Ordered(); break;
+
+            case LLVMRealPredicate.LLVMRealUGT: Compare(nameof(Vector128.LessThanOrEqual), left, right); Combine(nameof(Vector128.OnesComplement)); break;
+            case LLVMRealPredicate.LLVMRealUGE: Compare(nameof(Vector128.LessThan), left, right); Combine(nameof(Vector128.OnesComplement)); break;
+            case LLVMRealPredicate.LLVMRealULT: Compare(nameof(Vector128.GreaterThanOrEqual), left, right); Combine(nameof(Vector128.OnesComplement)); break;
+            case LLVMRealPredicate.LLVMRealULE: Compare(nameof(Vector128.GreaterThan), left, right); Combine(nameof(Vector128.OnesComplement)); break;
+            case LLVMRealPredicate.LLVMRealUEQ: OrderedNotEqual(); Combine(nameof(Vector128.OnesComplement)); break;
+            case LLVMRealPredicate.LLVMRealUNO: Ordered(); Combine(nameof(Vector128.OnesComplement)); break;
+            case LLVMRealPredicate.LLVMRealUNE:
+                Compare($"Compare{nonGenericVectorType.Name}NotEquals", left, right, typeof(VectorUtility));
+                break;
+
+            default:
+                throw new NotImplementedException($"Float comparison predicate {instruction.FCmpPredicate} not implemented for vectors: {instruction}");
         }
     }
 
