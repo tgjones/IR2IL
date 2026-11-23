@@ -43,9 +43,11 @@ public partial class CompilerTests
         Compiler.Compile(irPath, outputPath);
         _compiledOutputPath = outputPath;
 
-        ExecuteManaged(outputPath, out var exitCode, out _, out var standardError);
+        ExecuteManaged(outputPath, out var exitCode, out var standardOutput, out var standardError);
 
         Assert.AreEqual("", NormalizeLineEndings(standardError));
-        Assert.AreEqual(expectedExitCode, exitCode);
+
+        // Some files print what failed (the generated ones name each failing function).
+        Assert.AreEqual(expectedExitCode, exitCode, standardOutput);
     }
 }

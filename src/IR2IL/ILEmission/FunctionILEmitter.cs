@@ -477,10 +477,26 @@ internal sealed class FunctionILEmitter : ILEmitter
 
     private void EmitBitCast(LLVMValueRef instruction)
     {
-        EmitValue(instruction.GetOperand(0));
-
         var fromType = instruction.GetOperand(0).TypeOf;
         var toType = instruction.TypeOf;
+
+        if (fromType.Kind == LLVMTypeKind.LLVMIntegerTypeKind && IsMaskType(toType))
+        {
+            // Lane i is all ones when bit i is set. Only the low N bits of the integer are defined.
+            if (fromType.IntWidth > 64)
+            {
+                throw new NotImplementedException($"Unsupported bitcast from type {fromType} to type {toType}: {instruction}");
+            }
+
+            EmitIntegerOperand(instruction.GetOperand(0), Signedness.Unsigned);
+            ILGenerator.Emit(OpCodes.Conv_U8);
+            ILGenerator.Emit(
+                OpCodes.Call,
+                typeof(VectorUtility).GetStaticMethodStrict($"MaskFromBits{toType.VectorSize}"));
+            return;
+        }
+
+        EmitValue(instruction.GetOperand(0));
 
         var fromTypeMsil = TypeSystem.GetMsilType(fromType);
         var toTypeMsil = TypeSystem.GetMsilType(toType);
@@ -724,7 +740,11 @@ internal sealed class FunctionILEmitter : ILEmitter
         EmitValue(sourceVector1);
         ILGenerator.Emit(OpCodes.Stloc, sourceVector1Local);
 
-        var elementSizeInBytes = TypeSystem.GetSizeOfTypeInBytes(instruction.TypeOf.ElementType);
+        // The lanes are laid out as in the .NET vector: an i1 lane is a byte (not the zero bytes
+        // GetSizeOfTypeInBytes gives for one bit) and an i24 lane an int.
+        var elementSizeInBytes = instruction.TypeOf.ElementType.Kind == LLVMTypeKind.LLVMIntegerTypeKind
+            ? TypeSystem.RoundUpToTypeSize((int)instruction.TypeOf.ElementType.IntWidth) / 8
+            : TypeSystem.GetSizeOfTypeInBytes(instruction.TypeOf.ElementType);
         var resultLocal = ILGenerator.DeclareLocal(TypeSystem.GetMsilType(instruction.TypeOf));
 
         for (var i = 0; i < maskIndices.Length; i++)
@@ -926,7 +946,7 @@ internal sealed class FunctionILEmitter : ILEmitter
         if (operand0.TypeOf.Kind == LLVMTypeKind.LLVMVectorTypeKind)
         {
             EmitVectorComparisonMask(instruction);
-            EmitNarrowVectorMask(instruction);
+            EmitNarrowVectorMask(operand0.TypeOf, instruction.TypeOf);
             return;
         }
 
@@ -1181,25 +1201,24 @@ internal sealed class FunctionILEmitter : ILEmitter
     }
 
     /// <summary>
-    /// Narrows the full-width mask <see cref="EmitVectorComparisonMask"/> left on the stack to the
-    /// <c>&lt;N x i1&gt;</c> representation of <paramref name="instruction"/>.
+    /// Narrows a full-width mask (lanes as wide as those of <paramref name="comparedType"/>, all ones or all zeros),
+    /// such as <see cref="EmitVectorComparisonMask"/> leaves on the stack, to the <c>&lt;N x i1&gt;</c>
+    /// representation <paramref name="maskType"/>.
     /// </summary>
-    private void EmitNarrowVectorMask(LLVMValueRef instruction)
+    private void EmitNarrowVectorMask(LLVMTypeRef comparedType, LLVMTypeRef maskType)
     {
-        var operand0 = instruction.GetOperand(0);
-
         // Save intermediate result to local, since we'll need to reference it multiple times below.
-        var integerVectorType = TypeSystem.GetGenericVectorType(operand0.TypeOf).MakeGenericType(TypeSystem.GetIntegerType(TypeSystem.GetSizeOfTypeInBits(operand0.TypeOf.ElementType)));
+        var integerVectorType = TypeSystem.GetGenericVectorType(comparedType).MakeGenericType(TypeSystem.GetIntegerType(TypeSystem.GetSizeOfTypeInBits(comparedType.ElementType)));
         var intermediateLocal = ILGenerator.DeclareLocal(integerVectorType);
         ILGenerator.Emit(OpCodes.Stloc, intermediateLocal);
 
         // We need to truncate the result from e.g. Vector128<long> to Vector16<sbyte>,
         // something like this:
         // Vector16<sbyte>.Zero.WithElement(0, (sbyte)input[0]).WithElement(1, (sbyte)input[1]);
-        var resultVectorType = TypeSystem.GetMsilVectorType(instruction.TypeOf);
+        var resultVectorType = TypeSystem.GetMsilVectorType(maskType);
         ILGenerator.Emit(OpCodes.Call, resultVectorType.GetMethodStrict("get_Zero"));
 
-        for (var i = 0; i < instruction.TypeOf.VectorSize; i++)
+        for (var i = 0; i < maskType.VectorSize; i++)
         {
             ILGenerator.Emit(OpCodes.Ldc_I4, i);
             ILGenerator.Emit(OpCodes.Ldloca, intermediateLocal);
@@ -1210,7 +1229,7 @@ internal sealed class FunctionILEmitter : ILEmitter
             ILGenerator.Emit(OpCodes.Conv_I1);
 
             EmitVectorWithElement(
-                TypeSystem.GetNonGenericVectorType(instruction.TypeOf),
+                TypeSystem.GetNonGenericVectorType(maskType),
                 typeof(sbyte));
         }
     }
@@ -1222,7 +1241,7 @@ internal sealed class FunctionILEmitter : ILEmitter
         if (operand0.TypeOf.Kind == LLVMTypeKind.LLVMVectorTypeKind)
         {
             EmitVectorComparisonMask(instruction);
-            EmitNarrowVectorMask(instruction);
+            EmitNarrowVectorMask(operand0.TypeOf, instruction.TypeOf);
             return;
         }
 
@@ -1423,6 +1442,23 @@ internal sealed class FunctionILEmitter : ILEmitter
                 break;
 
             case LLVMTypeKind.LLVMVectorTypeKind:
+                if (opcode == LLVMOpcode.LLVMTrunc && IsMaskType(toType))
+                {
+                    EmitTruncToMask(fromType, toType);
+                    break;
+                }
+
+                // The ZExt helpers extend an i8 lane. An i1 lane is only defined in its low bit (a true lane
+                // is all ones), so clear the rest first.
+                if (opcode == LLVMOpcode.LLVMZExt
+                    && fromType.ElementType.Kind == LLVMTypeKind.LLVMIntegerTypeKind
+                    && fromType.ElementType.IntWidth == 1)
+                {
+                    ILGenerator.Emit(
+                        OpCodes.Call,
+                        typeof(VectorUtility).GetMethodStrict(nameof(VectorUtility.NormalizeI1Lanes), [TypeSystem.GetMsilVectorType(fromType)]));
+                }
+
                 var convertMethodPrefix = opcode.ToString().Remove(0, 4);
                 var convertMethodName = $"{convertMethodPrefix}{GetIntrinsicMethodSuffix(fromType)}To{GetIntrinsicMethodSuffix(toType)}";
                 var convertMethod = typeof(VectorUtility).GetStaticMethodStrict(convertMethodName);
@@ -1432,6 +1468,43 @@ internal sealed class FunctionILEmitter : ILEmitter
             default:
                 throw new NotImplementedException($"Conversion not implemented to {toType} for operand {operand}: {opcode}");
         }
+    }
+
+    private static bool IsMaskType(LLVMTypeRef type) =>
+        type.Kind == LLVMTypeKind.LLVMVectorTypeKind
+        && type.ElementType.Kind == LLVMTypeKind.LLVMIntegerTypeKind
+        && type.ElementType.IntWidth == 1;
+
+    /// <summary>
+    /// <c>trunc &lt;N x iM&gt; to &lt;N x i1&gt;</c> keeps the low bit of each lane. That is the comparison
+    /// <c>(x &amp; 1) == 1</c>, so it produces the mask the same way a comparison does:
+    /// <c>Vector128.Equals(Vector128.BitwiseAnd(x, Vector128.Create(1)), Vector128.Create(1))</c>.
+    /// </summary>
+    private void EmitTruncToMask(LLVMTypeRef fromType, LLVMTypeRef maskType)
+    {
+        var nonGenericVectorType = TypeSystem.GetNonGenericVectorType(fromType);
+        var laneType = TypeSystem.GetMsilVectorElementType(fromType.ElementType);
+        var createOne = nonGenericVectorType.GetMethodStrict(nameof(Vector128.Create), [laneType]);
+
+        void EmitOnes()
+        {
+            if (laneType == typeof(long) || laneType == typeof(ulong))
+            {
+                ILGenerator.Emit(OpCodes.Ldc_I8, 1L);
+            }
+            else
+            {
+                ILGenerator.Emit(OpCodes.Ldc_I4_1);
+            }
+
+            ILGenerator.Emit(OpCodes.Call, createOne);
+        }
+
+        EmitOnes();
+        ILGenerator.Emit(OpCodes.Call, nonGenericVectorType.GetStaticMethodStrict(nameof(Vector128.BitwiseAnd)).MakeGenericMethod(laneType));
+        EmitOnes();
+        ILGenerator.Emit(OpCodes.Call, nonGenericVectorType.GetStaticMethodStrict(nameof(Vector128.Equals)).MakeGenericMethod(laneType));
+        EmitNarrowVectorMask(fromType, maskType);
     }
 
     /// <summary>
