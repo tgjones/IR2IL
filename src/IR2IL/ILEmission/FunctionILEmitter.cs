@@ -1059,25 +1059,48 @@ internal sealed class FunctionILEmitter : ILEmitter
         var operand0 = instruction.GetOperand(0);
         var nonGenericVectorType = TypeSystem.GetNonGenericVectorType(operand0.TypeOf);
 
+        // The BCL compares are typed: an unsigned comparison has to run on the unsigned vector type,
+        // while the lanes themselves are signed (or nint) in our representation.
+        var elementType = TypeSystem.GetMsilVectorElementType(operand0.TypeOf.ElementType);
+        var compareElementType = elementType;
+        var unsignedCompare = false;
+
         Type vectorUtilityType;
         string vectorComparisonMethodName;
         if (instruction.InstructionOpcode == LLVMOpcode.LLVMICmp)
         {
-            var operandSignedness = GetSignedness(instruction.ICmpPredicate);
-            EmitIntegerOperand(operand0, operandSignedness);
-            EmitIntegerOperand(instruction.GetOperand(1), operandSignedness);
+            var predicate = instruction.ICmpPredicate;
+            unsignedCompare = predicate is LLVMIntPredicate.LLVMIntUGE or LLVMIntPredicate.LLVMIntUGT
+                or LLVMIntPredicate.LLVMIntULE or LLVMIntPredicate.LLVMIntULT;
 
-            (vectorUtilityType, vectorComparisonMethodName) = instruction.ICmpPredicate switch
+            (vectorUtilityType, vectorComparisonMethodName) = predicate switch
             {
                 LLVMIntPredicate.LLVMIntEQ => (nonGenericVectorType, nameof(Vector128.Equals)),
                 LLVMIntPredicate.LLVMIntNE => (typeof(VectorUtility), $"Compare{nonGenericVectorType.Name}NotEquals"),
-                LLVMIntPredicate.LLVMIntSGE => (nonGenericVectorType, nameof(Vector128.GreaterThanOrEqual)),
-                LLVMIntPredicate.LLVMIntSGT => (nonGenericVectorType, nameof(Vector128.GreaterThan)),
-                LLVMIntPredicate.LLVMIntSLT => (nonGenericVectorType, nameof(Vector128.LessThan)),
-                LLVMIntPredicate.LLVMIntUGT => (nonGenericVectorType, nameof(Vector128.GreaterThan)),
-                LLVMIntPredicate.LLVMIntULT => (nonGenericVectorType, nameof(Vector128.LessThan)),
-                _ => throw new NotImplementedException($"Integer comparison predicate {instruction.ICmpPredicate} not implemented for vectors: {instruction}"),
+                LLVMIntPredicate.LLVMIntSGE or LLVMIntPredicate.LLVMIntUGE => (nonGenericVectorType, nameof(Vector128.GreaterThanOrEqual)),
+                LLVMIntPredicate.LLVMIntSGT or LLVMIntPredicate.LLVMIntUGT => (nonGenericVectorType, nameof(Vector128.GreaterThan)),
+                LLVMIntPredicate.LLVMIntSLE or LLVMIntPredicate.LLVMIntULE => (nonGenericVectorType, nameof(Vector128.LessThanOrEqual)),
+                LLVMIntPredicate.LLVMIntSLT or LLVMIntPredicate.LLVMIntULT => (nonGenericVectorType, nameof(Vector128.LessThan)),
+                _ => throw new NotImplementedException($"Integer comparison predicate {predicate} not implemented for vectors: {instruction}"),
             };
+
+            var operandSignedness = GetSignedness(predicate);
+            if (unsignedCompare)
+            {
+                var (asUnsignedName, unsignedElementType) = GetUnsignedVectorCast(operand0.TypeOf.ElementType);
+                compareElementType = unsignedElementType;
+                var asUnsigned = nonGenericVectorType.GetMethodStrict(asUnsignedName).MakeGenericMethod(elementType);
+
+                EmitIntegerOperand(operand0, operandSignedness);
+                ILGenerator.Emit(OpCodes.Call, asUnsigned);
+                EmitIntegerOperand(instruction.GetOperand(1), operandSignedness);
+                ILGenerator.Emit(OpCodes.Call, asUnsigned);
+            }
+            else
+            {
+                EmitIntegerOperand(operand0, operandSignedness);
+                EmitIntegerOperand(instruction.GetOperand(1), operandSignedness);
+            }
         }
         else
         {
@@ -1096,33 +1119,65 @@ internal sealed class FunctionILEmitter : ILEmitter
         }
 
         var genericVectorMethod = vectorUtilityType.GetStaticMethodStrict(vectorComparisonMethodName);
-        var elementType = TypeSystem.GetMsilVectorElementType(operand0.TypeOf.ElementType);
-        var vectorMethod = genericVectorMethod.MakeGenericMethod(elementType);
+        var vectorMethod = genericVectorMethod.MakeGenericMethod(compareElementType);
         ILGenerator.Emit(OpCodes.Call, vectorMethod);
 
         // If result is not an integer type, bitcast it to integer type.
         switch (operand0.TypeOf.ElementType.Kind)
         {
             case LLVMTypeKind.LLVMDoubleTypeKind:
-                ILGenerator.Emit(OpCodes.Call, nonGenericVectorType.GetMethodStrict(nameof(Vector128.AsInt64)).MakeGenericMethod(elementType));
+                ILGenerator.Emit(OpCodes.Call, nonGenericVectorType.GetMethodStrict(nameof(Vector128.AsInt64)).MakeGenericMethod(compareElementType));
                 break;
 
             case LLVMTypeKind.LLVMFloatTypeKind:
-                ILGenerator.Emit(OpCodes.Call, nonGenericVectorType.GetMethodStrict(nameof(Vector128.AsInt32)).MakeGenericMethod(elementType));
+                ILGenerator.Emit(OpCodes.Call, nonGenericVectorType.GetMethodStrict(nameof(Vector128.AsInt32)).MakeGenericMethod(compareElementType));
                 break;
 
             case LLVMTypeKind.LLVMIntegerTypeKind:
-                // Nothing to do.
+                if (unsignedCompare)
+                {
+                    // Back to the signed vector of the same width.
+                    var asSignedName = TypeSystem.RoundUpToTypeSize(TypeSystem.GetSizeOfTypeInBits(operand0.TypeOf.ElementType)) switch
+                    {
+                        8 => nameof(Vector128.AsSByte),
+                        16 => nameof(Vector128.AsInt16),
+                        32 => nameof(Vector128.AsInt32),
+                        64 => nameof(Vector128.AsInt64),
+                        var bits => throw new NotImplementedException($"Unsigned vector comparison of {bits}-bit lanes: {instruction}"),
+                    };
+                    ILGenerator.Emit(OpCodes.Call, nonGenericVectorType.GetMethodStrict(asSignedName).MakeGenericMethod(compareElementType));
+                }
                 break;
 
             case LLVMTypeKind.LLVMPointerTypeKind:
-                // nint and long are both pointer-sized; reinterpret so the result is Vector<long>.
-                ILGenerator.Emit(OpCodes.Call, nonGenericVectorType.GetMethodStrict(nameof(Vector128.AsInt64)).MakeGenericMethod(elementType));
+                // nint, nuint and long are all pointer-sized; reinterpret so the result is Vector<long>.
+                ILGenerator.Emit(OpCodes.Call, nonGenericVectorType.GetMethodStrict(nameof(Vector128.AsInt64)).MakeGenericMethod(compareElementType));
                 break;
 
             default:
                 throw new NotImplementedException($"Vector comparison not implemented for element type {operand0.TypeOf.ElementType.Kind}: {instruction}");
         }
+    }
+
+    /// <summary>
+    /// The <c>Vector128.AsXxx</c> method that reinterprets a vector of <paramref name="laneType"/> lanes as
+    /// unsigned, and the unsigned lane type it gives.
+    /// </summary>
+    private (string MethodName, Type UnsignedElementType) GetUnsignedVectorCast(LLVMTypeRef laneType)
+    {
+        if (laneType.Kind == LLVMTypeKind.LLVMPointerTypeKind)
+        {
+            return (nameof(Vector128.AsNUInt), typeof(nuint));
+        }
+
+        return TypeSystem.RoundUpToTypeSize(TypeSystem.GetSizeOfTypeInBits(laneType)) switch
+        {
+            8 => (nameof(Vector128.AsByte), typeof(byte)),
+            16 => (nameof(Vector128.AsUInt16), typeof(ushort)),
+            32 => (nameof(Vector128.AsUInt32), typeof(uint)),
+            64 => (nameof(Vector128.AsUInt64), typeof(ulong)),
+            var bits => throw new NotImplementedException($"Unsigned vector comparison of {bits}-bit lanes"),
+        };
     }
 
     /// <summary>

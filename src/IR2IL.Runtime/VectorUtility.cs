@@ -28,6 +28,18 @@ public static class VectorUtility
         return Vector128.OnesComplement(Vector128.Equals(left, right));
     }
 
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    public static Vector256<T> CompareVector256NotEquals<T>(Vector256<T> left, Vector256<T> right)
+    {
+        return Vector256.OnesComplement(Vector256.Equals(left, right));
+    }
+
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    public static Vector512<T> CompareVector512NotEquals<T>(Vector512<T> left, Vector512<T> right)
+    {
+        return Vector512.OnesComplement(Vector512.Equals(left, right));
+    }
+
     // FPExt
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
