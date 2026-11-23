@@ -2298,6 +2298,11 @@ internal sealed class FunctionILEmitter : ILEmitter
                     // .NET:
                     // Vector128.ConditionalSelect(Vector128.LessThan(a, b), x, y)
                     EmitVectorComparisonMask(operand0);
+                    TryResizeVectorMask(
+                        GetMaskLaneBits(operand0.GetOperand(0).TypeOf.ElementType),
+                        GetMaskLaneBits(operand1.TypeOf.ElementType),
+                        (int)operand1.TypeOf.VectorSize,
+                        emit: true);
                     EmitIntegerVectorAsElementType(operand1.TypeOf.ElementType, nonGenericVectorType);
                 }
                 else
@@ -2356,7 +2361,7 @@ internal sealed class FunctionILEmitter : ILEmitter
     /// <summary>
     /// Whether a vector <c>select</c> can use the full-width mask of its condition directly: the condition is a
     /// vector comparison that is evaluated in place (so nothing else needs its <c>&lt;N x i1&gt;</c> form) and
-    /// its lanes are as wide as the selected ones.
+    /// its mask can be resized to the lane width of the selected values.
     /// </summary>
     private bool CanSelectOnComparisonMask(LLVMValueRef condition, LLVMValueRef selectedValue)
     {
@@ -2373,7 +2378,128 @@ internal sealed class FunctionILEmitter : ILEmitter
         // Pointer lanes are nint, which doesn't match the long vector of the mask.
         return comparedElementType.Kind != LLVMTypeKind.LLVMPointerTypeKind
             && selectedElementType.Kind != LLVMTypeKind.LLVMPointerTypeKind
-            && TypeSystem.GetSizeOfTypeInBits(comparedElementType) == TypeSystem.GetSizeOfTypeInBits(selectedElementType);
+            && TryResizeVectorMask(
+                GetMaskLaneBits(comparedElementType),
+                GetMaskLaneBits(selectedElementType),
+                (int)selectedValue.TypeOf.VectorSize,
+                emit: false);
+    }
+
+    private int GetMaskLaneBits(LLVMTypeRef elementType) =>
+        TypeSystem.RoundUpToTypeSize(TypeSystem.GetSizeOfTypeInBits(elementType));
+
+    /// <summary>
+    /// Resizes the lanes of the full-width mask on the stack from <paramref name="fromLaneBits"/> to
+    /// <paramref name="toLaneBits"/> bits. Every lane is all ones or all zeros, so truncating and sign-extending
+    /// it loses nothing. Each step halves or doubles the lane width:
+    /// <code>
+    /// narrow: Vector128.Narrow(mask.GetLower(), mask.GetUpper())      // Vector256&lt;long&gt; to Vector128&lt;int&gt;
+    /// widen:  Vector256.Create(Vector128.WidenLower(mask), Vector128.WidenUpper(mask))   // Vector128&lt;int&gt; to Vector256&lt;long&gt;
+    /// </code>
+    /// Returns whether it can be done, which needs the .NET vector types (64 to 512 bits) at every step: the
+    /// custom <c>Vector16</c>, <c>Vector32</c> and <c>Vector1024</c> have neither <c>Narrow</c> nor <c>Widen</c>.
+    /// With <paramref name="emit"/> false it only checks.
+    /// </summary>
+    private bool TryResizeVectorMask(int fromLaneBits, int toLaneBits, int laneCount, bool emit)
+    {
+        if (fromLaneBits == toLaneBits)
+        {
+            return true;
+        }
+
+        var laneBits = fromLaneBits;
+        while (laneBits != toLaneBits)
+        {
+            var totalBits = laneBits * laneCount;
+            var narrow = toLaneBits < laneBits;
+
+            // A narrow splits the vector in halves, so it needs a vector of at least 128 bits;
+            // a widen doubles the vector, so the result must fit in 512 bits.
+            var supported = laneBits is 8 or 16 or 32 or 64
+                && totalBits is >= 64 and <= 512
+                && (narrow ? totalBits >= 128 && laneBits > 8 : totalBits <= 256 && laneBits < 64);
+            if (!supported)
+            {
+                return false;
+            }
+
+            if (emit)
+            {
+                if (narrow)
+                {
+                    EmitNarrowMaskStep(laneBits, totalBits);
+                }
+                else
+                {
+                    EmitWidenMaskStep(laneBits, totalBits);
+                }
+            }
+
+            laneBits = narrow ? laneBits / 2 : laneBits * 2;
+        }
+
+        return true;
+    }
+
+    private static Type GetVectorClass(int totalBits) => totalBits switch
+    {
+        64 => typeof(Vector64),
+        128 => typeof(Vector128),
+        256 => typeof(Vector256),
+        512 => typeof(Vector512),
+        _ => throw new ArgumentOutOfRangeException(nameof(totalBits)),
+    };
+
+    private static Type GetMaskLaneType(int laneBits) => laneBits switch
+    {
+        8 => typeof(sbyte),
+        16 => typeof(short),
+        32 => typeof(int),
+        64 => typeof(long),
+        _ => throw new ArgumentOutOfRangeException(nameof(laneBits)),
+    };
+
+    private static Type GetVectorOf(int totalBits, int laneBits) =>
+        (totalBits switch
+        {
+            64 => typeof(Vector64<>),
+            128 => typeof(Vector128<>),
+            256 => typeof(Vector256<>),
+            512 => typeof(Vector512<>),
+            _ => throw new ArgumentOutOfRangeException(nameof(totalBits)),
+        }).MakeGenericType(GetMaskLaneType(laneBits));
+
+    private void EmitNarrowMaskStep(int laneBits, int totalBits)
+    {
+        var vectorClass = GetVectorClass(totalBits);
+        var halfClass = GetVectorClass(totalBits / 2);
+        var laneType = GetMaskLaneType(laneBits);
+        var halfVector = GetVectorOf(totalBits / 2, laneBits);
+
+        // Both halves are needed, so keep the mask in a local.
+        var maskLocal = ILGenerator.DeclareLocal(GetVectorOf(totalBits, laneBits));
+        ILGenerator.Emit(OpCodes.Stloc, maskLocal);
+        ILGenerator.Emit(OpCodes.Ldloc, maskLocal);
+        ILGenerator.Emit(OpCodes.Call, vectorClass.GetStaticMethodStrict(nameof(Vector128.GetLower)).MakeGenericMethod(laneType));
+        ILGenerator.Emit(OpCodes.Ldloc, maskLocal);
+        ILGenerator.Emit(OpCodes.Call, vectorClass.GetStaticMethodStrict(nameof(Vector128.GetUpper)).MakeGenericMethod(laneType));
+        ILGenerator.Emit(OpCodes.Call, halfClass.GetMethodStrict(nameof(Vector128.Narrow), [halfVector, halfVector]));
+    }
+
+    private void EmitWidenMaskStep(int laneBits, int totalBits)
+    {
+        var vectorClass = GetVectorClass(totalBits);
+        var doubleClass = GetVectorClass(totalBits * 2);
+        var vector = GetVectorOf(totalBits, laneBits);
+        var widenedVector = GetVectorOf(totalBits, laneBits * 2);
+
+        var maskLocal = ILGenerator.DeclareLocal(vector);
+        ILGenerator.Emit(OpCodes.Stloc, maskLocal);
+        ILGenerator.Emit(OpCodes.Ldloc, maskLocal);
+        ILGenerator.Emit(OpCodes.Call, vectorClass.GetMethodStrict(nameof(Vector128.WidenLower), [vector]));
+        ILGenerator.Emit(OpCodes.Ldloc, maskLocal);
+        ILGenerator.Emit(OpCodes.Call, vectorClass.GetMethodStrict(nameof(Vector128.WidenUpper), [vector]));
+        ILGenerator.Emit(OpCodes.Call, doubleClass.GetMethodStrict(nameof(Vector128.Create), [widenedVector, widenedVector]));
     }
 
     /// <summary>

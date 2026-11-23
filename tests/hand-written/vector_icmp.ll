@@ -444,6 +444,540 @@ define <4 x i64> @select_i64_sle(<4 x i64> %a, <4 x i64> %b) {
   ret <4 x i64> %r
 }
 
+define <8 x i16> @mixed_c8_si16_ult_8(<8 x i8> %a, <8 x i8> %b, <8 x i16> %x, <8 x i16> %y) {
+  %c = icmp ult <8 x i8> %a, %b
+  %r = select <8 x i1> %c, <8 x i16> %x, <8 x i16> %y
+  ret <8 x i16> %r
+}
+
+define <8 x i16> @mixed_c8_si16_sgt_8(<8 x i8> %a, <8 x i8> %b, <8 x i16> %x, <8 x i16> %y) {
+  %c = icmp sgt <8 x i8> %a, %b
+  %r = select <8 x i1> %c, <8 x i16> %x, <8 x i16> %y
+  ret <8 x i16> %r
+}
+
+define <8 x i16> @mixed_c8_si16_ne_8(<8 x i8> %a, <8 x i8> %b, <8 x i16> %x, <8 x i16> %y) {
+  %c = icmp ne <8 x i8> %a, %b
+  %r = select <8 x i1> %c, <8 x i16> %x, <8 x i16> %y
+  ret <8 x i16> %r
+}
+
+define <8 x i16> @mixed_c8_si16_sle_8(<8 x i8> %a, <8 x i8> %b, <8 x i16> %x, <8 x i16> %y) {
+  %c = icmp sle <8 x i8> %a, %b
+  %r = select <8 x i1> %c, <8 x i16> %x, <8 x i16> %y
+  ret <8 x i16> %r
+}
+
+define <8 x i32> @mixed_c8_si32_ult_8(<8 x i8> %a, <8 x i8> %b, <8 x i32> %x, <8 x i32> %y) {
+  %c = icmp ult <8 x i8> %a, %b
+  %r = select <8 x i1> %c, <8 x i32> %x, <8 x i32> %y
+  ret <8 x i32> %r
+}
+
+define <8 x i32> @mixed_c8_si32_sgt_8(<8 x i8> %a, <8 x i8> %b, <8 x i32> %x, <8 x i32> %y) {
+  %c = icmp sgt <8 x i8> %a, %b
+  %r = select <8 x i1> %c, <8 x i32> %x, <8 x i32> %y
+  ret <8 x i32> %r
+}
+
+define <8 x i32> @mixed_c8_si32_ne_8(<8 x i8> %a, <8 x i8> %b, <8 x i32> %x, <8 x i32> %y) {
+  %c = icmp ne <8 x i8> %a, %b
+  %r = select <8 x i1> %c, <8 x i32> %x, <8 x i32> %y
+  ret <8 x i32> %r
+}
+
+define <8 x i32> @mixed_c8_si32_sle_8(<8 x i8> %a, <8 x i8> %b, <8 x i32> %x, <8 x i32> %y) {
+  %c = icmp sle <8 x i8> %a, %b
+  %r = select <8 x i1> %c, <8 x i32> %x, <8 x i32> %y
+  ret <8 x i32> %r
+}
+
+define <8 x i64> @mixed_c8_si64_ult_8(<8 x i8> %a, <8 x i8> %b, <8 x i64> %x, <8 x i64> %y) {
+  %c = icmp ult <8 x i8> %a, %b
+  %r = select <8 x i1> %c, <8 x i64> %x, <8 x i64> %y
+  ret <8 x i64> %r
+}
+
+define <8 x i64> @mixed_c8_si64_sgt_8(<8 x i8> %a, <8 x i8> %b, <8 x i64> %x, <8 x i64> %y) {
+  %c = icmp sgt <8 x i8> %a, %b
+  %r = select <8 x i1> %c, <8 x i64> %x, <8 x i64> %y
+  ret <8 x i64> %r
+}
+
+define <8 x i64> @mixed_c8_si64_ne_8(<8 x i8> %a, <8 x i8> %b, <8 x i64> %x, <8 x i64> %y) {
+  %c = icmp ne <8 x i8> %a, %b
+  %r = select <8 x i1> %c, <8 x i64> %x, <8 x i64> %y
+  ret <8 x i64> %r
+}
+
+define <8 x i64> @mixed_c8_si64_sle_8(<8 x i8> %a, <8 x i8> %b, <8 x i64> %x, <8 x i64> %y) {
+  %c = icmp sle <8 x i8> %a, %b
+  %r = select <8 x i1> %c, <8 x i64> %x, <8 x i64> %y
+  ret <8 x i64> %r
+}
+
+define <8 x i8> @mixed_c16_si8_ult_8(<8 x i16> %a, <8 x i16> %b, <8 x i8> %x, <8 x i8> %y) {
+  %c = icmp ult <8 x i16> %a, %b
+  %r = select <8 x i1> %c, <8 x i8> %x, <8 x i8> %y
+  ret <8 x i8> %r
+}
+
+define <8 x i8> @mixed_c16_si8_sgt_8(<8 x i16> %a, <8 x i16> %b, <8 x i8> %x, <8 x i8> %y) {
+  %c = icmp sgt <8 x i16> %a, %b
+  %r = select <8 x i1> %c, <8 x i8> %x, <8 x i8> %y
+  ret <8 x i8> %r
+}
+
+define <8 x i8> @mixed_c16_si8_ne_8(<8 x i16> %a, <8 x i16> %b, <8 x i8> %x, <8 x i8> %y) {
+  %c = icmp ne <8 x i16> %a, %b
+  %r = select <8 x i1> %c, <8 x i8> %x, <8 x i8> %y
+  ret <8 x i8> %r
+}
+
+define <8 x i8> @mixed_c16_si8_sle_8(<8 x i16> %a, <8 x i16> %b, <8 x i8> %x, <8 x i8> %y) {
+  %c = icmp sle <8 x i16> %a, %b
+  %r = select <8 x i1> %c, <8 x i8> %x, <8 x i8> %y
+  ret <8 x i8> %r
+}
+
+define <8 x i32> @mixed_c16_si32_ult_8(<8 x i16> %a, <8 x i16> %b, <8 x i32> %x, <8 x i32> %y) {
+  %c = icmp ult <8 x i16> %a, %b
+  %r = select <8 x i1> %c, <8 x i32> %x, <8 x i32> %y
+  ret <8 x i32> %r
+}
+
+define <8 x i32> @mixed_c16_si32_sgt_8(<8 x i16> %a, <8 x i16> %b, <8 x i32> %x, <8 x i32> %y) {
+  %c = icmp sgt <8 x i16> %a, %b
+  %r = select <8 x i1> %c, <8 x i32> %x, <8 x i32> %y
+  ret <8 x i32> %r
+}
+
+define <8 x i32> @mixed_c16_si32_ne_8(<8 x i16> %a, <8 x i16> %b, <8 x i32> %x, <8 x i32> %y) {
+  %c = icmp ne <8 x i16> %a, %b
+  %r = select <8 x i1> %c, <8 x i32> %x, <8 x i32> %y
+  ret <8 x i32> %r
+}
+
+define <8 x i32> @mixed_c16_si32_sle_8(<8 x i16> %a, <8 x i16> %b, <8 x i32> %x, <8 x i32> %y) {
+  %c = icmp sle <8 x i16> %a, %b
+  %r = select <8 x i1> %c, <8 x i32> %x, <8 x i32> %y
+  ret <8 x i32> %r
+}
+
+define <8 x i64> @mixed_c16_si64_ult_8(<8 x i16> %a, <8 x i16> %b, <8 x i64> %x, <8 x i64> %y) {
+  %c = icmp ult <8 x i16> %a, %b
+  %r = select <8 x i1> %c, <8 x i64> %x, <8 x i64> %y
+  ret <8 x i64> %r
+}
+
+define <8 x i64> @mixed_c16_si64_sgt_8(<8 x i16> %a, <8 x i16> %b, <8 x i64> %x, <8 x i64> %y) {
+  %c = icmp sgt <8 x i16> %a, %b
+  %r = select <8 x i1> %c, <8 x i64> %x, <8 x i64> %y
+  ret <8 x i64> %r
+}
+
+define <8 x i64> @mixed_c16_si64_ne_8(<8 x i16> %a, <8 x i16> %b, <8 x i64> %x, <8 x i64> %y) {
+  %c = icmp ne <8 x i16> %a, %b
+  %r = select <8 x i1> %c, <8 x i64> %x, <8 x i64> %y
+  ret <8 x i64> %r
+}
+
+define <8 x i64> @mixed_c16_si64_sle_8(<8 x i16> %a, <8 x i16> %b, <8 x i64> %x, <8 x i64> %y) {
+  %c = icmp sle <8 x i16> %a, %b
+  %r = select <8 x i1> %c, <8 x i64> %x, <8 x i64> %y
+  ret <8 x i64> %r
+}
+
+define <8 x i8> @mixed_c32_si8_ult_8(<8 x i32> %a, <8 x i32> %b, <8 x i8> %x, <8 x i8> %y) {
+  %c = icmp ult <8 x i32> %a, %b
+  %r = select <8 x i1> %c, <8 x i8> %x, <8 x i8> %y
+  ret <8 x i8> %r
+}
+
+define <8 x i8> @mixed_c32_si8_sgt_8(<8 x i32> %a, <8 x i32> %b, <8 x i8> %x, <8 x i8> %y) {
+  %c = icmp sgt <8 x i32> %a, %b
+  %r = select <8 x i1> %c, <8 x i8> %x, <8 x i8> %y
+  ret <8 x i8> %r
+}
+
+define <8 x i8> @mixed_c32_si8_ne_8(<8 x i32> %a, <8 x i32> %b, <8 x i8> %x, <8 x i8> %y) {
+  %c = icmp ne <8 x i32> %a, %b
+  %r = select <8 x i1> %c, <8 x i8> %x, <8 x i8> %y
+  ret <8 x i8> %r
+}
+
+define <8 x i8> @mixed_c32_si8_sle_8(<8 x i32> %a, <8 x i32> %b, <8 x i8> %x, <8 x i8> %y) {
+  %c = icmp sle <8 x i32> %a, %b
+  %r = select <8 x i1> %c, <8 x i8> %x, <8 x i8> %y
+  ret <8 x i8> %r
+}
+
+define <8 x i16> @mixed_c32_si16_ult_8(<8 x i32> %a, <8 x i32> %b, <8 x i16> %x, <8 x i16> %y) {
+  %c = icmp ult <8 x i32> %a, %b
+  %r = select <8 x i1> %c, <8 x i16> %x, <8 x i16> %y
+  ret <8 x i16> %r
+}
+
+define <8 x i16> @mixed_c32_si16_sgt_8(<8 x i32> %a, <8 x i32> %b, <8 x i16> %x, <8 x i16> %y) {
+  %c = icmp sgt <8 x i32> %a, %b
+  %r = select <8 x i1> %c, <8 x i16> %x, <8 x i16> %y
+  ret <8 x i16> %r
+}
+
+define <8 x i16> @mixed_c32_si16_ne_8(<8 x i32> %a, <8 x i32> %b, <8 x i16> %x, <8 x i16> %y) {
+  %c = icmp ne <8 x i32> %a, %b
+  %r = select <8 x i1> %c, <8 x i16> %x, <8 x i16> %y
+  ret <8 x i16> %r
+}
+
+define <8 x i16> @mixed_c32_si16_sle_8(<8 x i32> %a, <8 x i32> %b, <8 x i16> %x, <8 x i16> %y) {
+  %c = icmp sle <8 x i32> %a, %b
+  %r = select <8 x i1> %c, <8 x i16> %x, <8 x i16> %y
+  ret <8 x i16> %r
+}
+
+define <8 x i64> @mixed_c32_si64_ult_8(<8 x i32> %a, <8 x i32> %b, <8 x i64> %x, <8 x i64> %y) {
+  %c = icmp ult <8 x i32> %a, %b
+  %r = select <8 x i1> %c, <8 x i64> %x, <8 x i64> %y
+  ret <8 x i64> %r
+}
+
+define <8 x i64> @mixed_c32_si64_sgt_8(<8 x i32> %a, <8 x i32> %b, <8 x i64> %x, <8 x i64> %y) {
+  %c = icmp sgt <8 x i32> %a, %b
+  %r = select <8 x i1> %c, <8 x i64> %x, <8 x i64> %y
+  ret <8 x i64> %r
+}
+
+define <8 x i64> @mixed_c32_si64_ne_8(<8 x i32> %a, <8 x i32> %b, <8 x i64> %x, <8 x i64> %y) {
+  %c = icmp ne <8 x i32> %a, %b
+  %r = select <8 x i1> %c, <8 x i64> %x, <8 x i64> %y
+  ret <8 x i64> %r
+}
+
+define <8 x i64> @mixed_c32_si64_sle_8(<8 x i32> %a, <8 x i32> %b, <8 x i64> %x, <8 x i64> %y) {
+  %c = icmp sle <8 x i32> %a, %b
+  %r = select <8 x i1> %c, <8 x i64> %x, <8 x i64> %y
+  ret <8 x i64> %r
+}
+
+define <8 x i8> @mixed_c64_si8_ult_8(<8 x i64> %a, <8 x i64> %b, <8 x i8> %x, <8 x i8> %y) {
+  %c = icmp ult <8 x i64> %a, %b
+  %r = select <8 x i1> %c, <8 x i8> %x, <8 x i8> %y
+  ret <8 x i8> %r
+}
+
+define <8 x i8> @mixed_c64_si8_sgt_8(<8 x i64> %a, <8 x i64> %b, <8 x i8> %x, <8 x i8> %y) {
+  %c = icmp sgt <8 x i64> %a, %b
+  %r = select <8 x i1> %c, <8 x i8> %x, <8 x i8> %y
+  ret <8 x i8> %r
+}
+
+define <8 x i8> @mixed_c64_si8_ne_8(<8 x i64> %a, <8 x i64> %b, <8 x i8> %x, <8 x i8> %y) {
+  %c = icmp ne <8 x i64> %a, %b
+  %r = select <8 x i1> %c, <8 x i8> %x, <8 x i8> %y
+  ret <8 x i8> %r
+}
+
+define <8 x i8> @mixed_c64_si8_sle_8(<8 x i64> %a, <8 x i64> %b, <8 x i8> %x, <8 x i8> %y) {
+  %c = icmp sle <8 x i64> %a, %b
+  %r = select <8 x i1> %c, <8 x i8> %x, <8 x i8> %y
+  ret <8 x i8> %r
+}
+
+define <8 x i16> @mixed_c64_si16_ult_8(<8 x i64> %a, <8 x i64> %b, <8 x i16> %x, <8 x i16> %y) {
+  %c = icmp ult <8 x i64> %a, %b
+  %r = select <8 x i1> %c, <8 x i16> %x, <8 x i16> %y
+  ret <8 x i16> %r
+}
+
+define <8 x i16> @mixed_c64_si16_sgt_8(<8 x i64> %a, <8 x i64> %b, <8 x i16> %x, <8 x i16> %y) {
+  %c = icmp sgt <8 x i64> %a, %b
+  %r = select <8 x i1> %c, <8 x i16> %x, <8 x i16> %y
+  ret <8 x i16> %r
+}
+
+define <8 x i16> @mixed_c64_si16_ne_8(<8 x i64> %a, <8 x i64> %b, <8 x i16> %x, <8 x i16> %y) {
+  %c = icmp ne <8 x i64> %a, %b
+  %r = select <8 x i1> %c, <8 x i16> %x, <8 x i16> %y
+  ret <8 x i16> %r
+}
+
+define <8 x i16> @mixed_c64_si16_sle_8(<8 x i64> %a, <8 x i64> %b, <8 x i16> %x, <8 x i16> %y) {
+  %c = icmp sle <8 x i64> %a, %b
+  %r = select <8 x i1> %c, <8 x i16> %x, <8 x i16> %y
+  ret <8 x i16> %r
+}
+
+define <8 x i32> @mixed_c64_si32_ult_8(<8 x i64> %a, <8 x i64> %b, <8 x i32> %x, <8 x i32> %y) {
+  %c = icmp ult <8 x i64> %a, %b
+  %r = select <8 x i1> %c, <8 x i32> %x, <8 x i32> %y
+  ret <8 x i32> %r
+}
+
+define <8 x i32> @mixed_c64_si32_sgt_8(<8 x i64> %a, <8 x i64> %b, <8 x i32> %x, <8 x i32> %y) {
+  %c = icmp sgt <8 x i64> %a, %b
+  %r = select <8 x i1> %c, <8 x i32> %x, <8 x i32> %y
+  ret <8 x i32> %r
+}
+
+define <8 x i32> @mixed_c64_si32_ne_8(<8 x i64> %a, <8 x i64> %b, <8 x i32> %x, <8 x i32> %y) {
+  %c = icmp ne <8 x i64> %a, %b
+  %r = select <8 x i1> %c, <8 x i32> %x, <8 x i32> %y
+  ret <8 x i32> %r
+}
+
+define <8 x i32> @mixed_c64_si32_sle_8(<8 x i64> %a, <8 x i64> %b, <8 x i32> %x, <8 x i32> %y) {
+  %c = icmp sle <8 x i64> %a, %b
+  %r = select <8 x i1> %c, <8 x i32> %x, <8 x i32> %y
+  ret <8 x i32> %r
+}
+
+define <4 x i32> @mixed_c16_si32_ult_4(<4 x i16> %a, <4 x i16> %b, <4 x i32> %x, <4 x i32> %y) {
+  %c = icmp ult <4 x i16> %a, %b
+  %r = select <4 x i1> %c, <4 x i32> %x, <4 x i32> %y
+  ret <4 x i32> %r
+}
+
+define <4 x i32> @mixed_c16_si32_sgt_4(<4 x i16> %a, <4 x i16> %b, <4 x i32> %x, <4 x i32> %y) {
+  %c = icmp sgt <4 x i16> %a, %b
+  %r = select <4 x i1> %c, <4 x i32> %x, <4 x i32> %y
+  ret <4 x i32> %r
+}
+
+define <4 x i32> @mixed_c16_si32_ne_4(<4 x i16> %a, <4 x i16> %b, <4 x i32> %x, <4 x i32> %y) {
+  %c = icmp ne <4 x i16> %a, %b
+  %r = select <4 x i1> %c, <4 x i32> %x, <4 x i32> %y
+  ret <4 x i32> %r
+}
+
+define <4 x i32> @mixed_c16_si32_sle_4(<4 x i16> %a, <4 x i16> %b, <4 x i32> %x, <4 x i32> %y) {
+  %c = icmp sle <4 x i16> %a, %b
+  %r = select <4 x i1> %c, <4 x i32> %x, <4 x i32> %y
+  ret <4 x i32> %r
+}
+
+define <4 x i64> @mixed_c16_si64_ult_4(<4 x i16> %a, <4 x i16> %b, <4 x i64> %x, <4 x i64> %y) {
+  %c = icmp ult <4 x i16> %a, %b
+  %r = select <4 x i1> %c, <4 x i64> %x, <4 x i64> %y
+  ret <4 x i64> %r
+}
+
+define <4 x i64> @mixed_c16_si64_sgt_4(<4 x i16> %a, <4 x i16> %b, <4 x i64> %x, <4 x i64> %y) {
+  %c = icmp sgt <4 x i16> %a, %b
+  %r = select <4 x i1> %c, <4 x i64> %x, <4 x i64> %y
+  ret <4 x i64> %r
+}
+
+define <4 x i64> @mixed_c16_si64_ne_4(<4 x i16> %a, <4 x i16> %b, <4 x i64> %x, <4 x i64> %y) {
+  %c = icmp ne <4 x i16> %a, %b
+  %r = select <4 x i1> %c, <4 x i64> %x, <4 x i64> %y
+  ret <4 x i64> %r
+}
+
+define <4 x i64> @mixed_c16_si64_sle_4(<4 x i16> %a, <4 x i16> %b, <4 x i64> %x, <4 x i64> %y) {
+  %c = icmp sle <4 x i16> %a, %b
+  %r = select <4 x i1> %c, <4 x i64> %x, <4 x i64> %y
+  ret <4 x i64> %r
+}
+
+define <4 x i16> @mixed_c32_si16_ult_4(<4 x i32> %a, <4 x i32> %b, <4 x i16> %x, <4 x i16> %y) {
+  %c = icmp ult <4 x i32> %a, %b
+  %r = select <4 x i1> %c, <4 x i16> %x, <4 x i16> %y
+  ret <4 x i16> %r
+}
+
+define <4 x i16> @mixed_c32_si16_sgt_4(<4 x i32> %a, <4 x i32> %b, <4 x i16> %x, <4 x i16> %y) {
+  %c = icmp sgt <4 x i32> %a, %b
+  %r = select <4 x i1> %c, <4 x i16> %x, <4 x i16> %y
+  ret <4 x i16> %r
+}
+
+define <4 x i16> @mixed_c32_si16_ne_4(<4 x i32> %a, <4 x i32> %b, <4 x i16> %x, <4 x i16> %y) {
+  %c = icmp ne <4 x i32> %a, %b
+  %r = select <4 x i1> %c, <4 x i16> %x, <4 x i16> %y
+  ret <4 x i16> %r
+}
+
+define <4 x i16> @mixed_c32_si16_sle_4(<4 x i32> %a, <4 x i32> %b, <4 x i16> %x, <4 x i16> %y) {
+  %c = icmp sle <4 x i32> %a, %b
+  %r = select <4 x i1> %c, <4 x i16> %x, <4 x i16> %y
+  ret <4 x i16> %r
+}
+
+define <4 x i64> @mixed_c32_si64_ult_4(<4 x i32> %a, <4 x i32> %b, <4 x i64> %x, <4 x i64> %y) {
+  %c = icmp ult <4 x i32> %a, %b
+  %r = select <4 x i1> %c, <4 x i64> %x, <4 x i64> %y
+  ret <4 x i64> %r
+}
+
+define <4 x i64> @mixed_c32_si64_sgt_4(<4 x i32> %a, <4 x i32> %b, <4 x i64> %x, <4 x i64> %y) {
+  %c = icmp sgt <4 x i32> %a, %b
+  %r = select <4 x i1> %c, <4 x i64> %x, <4 x i64> %y
+  ret <4 x i64> %r
+}
+
+define <4 x i64> @mixed_c32_si64_ne_4(<4 x i32> %a, <4 x i32> %b, <4 x i64> %x, <4 x i64> %y) {
+  %c = icmp ne <4 x i32> %a, %b
+  %r = select <4 x i1> %c, <4 x i64> %x, <4 x i64> %y
+  ret <4 x i64> %r
+}
+
+define <4 x i64> @mixed_c32_si64_sle_4(<4 x i32> %a, <4 x i32> %b, <4 x i64> %x, <4 x i64> %y) {
+  %c = icmp sle <4 x i32> %a, %b
+  %r = select <4 x i1> %c, <4 x i64> %x, <4 x i64> %y
+  ret <4 x i64> %r
+}
+
+define <4 x i16> @mixed_c64_si16_ult_4(<4 x i64> %a, <4 x i64> %b, <4 x i16> %x, <4 x i16> %y) {
+  %c = icmp ult <4 x i64> %a, %b
+  %r = select <4 x i1> %c, <4 x i16> %x, <4 x i16> %y
+  ret <4 x i16> %r
+}
+
+define <4 x i16> @mixed_c64_si16_sgt_4(<4 x i64> %a, <4 x i64> %b, <4 x i16> %x, <4 x i16> %y) {
+  %c = icmp sgt <4 x i64> %a, %b
+  %r = select <4 x i1> %c, <4 x i16> %x, <4 x i16> %y
+  ret <4 x i16> %r
+}
+
+define <4 x i16> @mixed_c64_si16_ne_4(<4 x i64> %a, <4 x i64> %b, <4 x i16> %x, <4 x i16> %y) {
+  %c = icmp ne <4 x i64> %a, %b
+  %r = select <4 x i1> %c, <4 x i16> %x, <4 x i16> %y
+  ret <4 x i16> %r
+}
+
+define <4 x i16> @mixed_c64_si16_sle_4(<4 x i64> %a, <4 x i64> %b, <4 x i16> %x, <4 x i16> %y) {
+  %c = icmp sle <4 x i64> %a, %b
+  %r = select <4 x i1> %c, <4 x i16> %x, <4 x i16> %y
+  ret <4 x i16> %r
+}
+
+define <4 x i32> @mixed_c64_si32_ult_4(<4 x i64> %a, <4 x i64> %b, <4 x i32> %x, <4 x i32> %y) {
+  %c = icmp ult <4 x i64> %a, %b
+  %r = select <4 x i1> %c, <4 x i32> %x, <4 x i32> %y
+  ret <4 x i32> %r
+}
+
+define <4 x i32> @mixed_c64_si32_sgt_4(<4 x i64> %a, <4 x i64> %b, <4 x i32> %x, <4 x i32> %y) {
+  %c = icmp sgt <4 x i64> %a, %b
+  %r = select <4 x i1> %c, <4 x i32> %x, <4 x i32> %y
+  ret <4 x i32> %r
+}
+
+define <4 x i32> @mixed_c64_si32_ne_4(<4 x i64> %a, <4 x i64> %b, <4 x i32> %x, <4 x i32> %y) {
+  %c = icmp ne <4 x i64> %a, %b
+  %r = select <4 x i1> %c, <4 x i32> %x, <4 x i32> %y
+  ret <4 x i32> %r
+}
+
+define <4 x i32> @mixed_c64_si32_sle_4(<4 x i64> %a, <4 x i64> %b, <4 x i32> %x, <4 x i32> %y) {
+  %c = icmp sle <4 x i64> %a, %b
+  %r = select <4 x i1> %c, <4 x i32> %x, <4 x i32> %y
+  ret <4 x i32> %r
+}
+
+define <4 x float> @mixed_c64_sfloat_ult_4(<4 x i64> %a, <4 x i64> %b, <4 x float> %x, <4 x float> %y) {
+  %c = icmp ult <4 x i64> %a, %b
+  %r = select <4 x i1> %c, <4 x float> %x, <4 x float> %y
+  ret <4 x float> %r
+}
+
+define <4 x float> @mixed_c64_sfloat_slt_4(<4 x i64> %a, <4 x i64> %b, <4 x float> %x, <4 x float> %y) {
+  %c = icmp slt <4 x i64> %a, %b
+  %r = select <4 x i1> %c, <4 x float> %x, <4 x float> %y
+  ret <4 x float> %r
+}
+
+define <4 x float> @mixed_c64_sfloat_ne_4(<4 x i64> %a, <4 x i64> %b, <4 x float> %x, <4 x float> %y) {
+  %c = icmp ne <4 x i64> %a, %b
+  %r = select <4 x i1> %c, <4 x float> %x, <4 x float> %y
+  ret <4 x float> %r
+}
+
+define <4 x float> @mixed_c32_sfloat_ult_4(<4 x i32> %a, <4 x i32> %b, <4 x float> %x, <4 x float> %y) {
+  %c = icmp ult <4 x i32> %a, %b
+  %r = select <4 x i1> %c, <4 x float> %x, <4 x float> %y
+  ret <4 x float> %r
+}
+
+define <4 x float> @mixed_c32_sfloat_slt_4(<4 x i32> %a, <4 x i32> %b, <4 x float> %x, <4 x float> %y) {
+  %c = icmp slt <4 x i32> %a, %b
+  %r = select <4 x i1> %c, <4 x float> %x, <4 x float> %y
+  ret <4 x float> %r
+}
+
+define <4 x float> @mixed_c32_sfloat_ne_4(<4 x i32> %a, <4 x i32> %b, <4 x float> %x, <4 x float> %y) {
+  %c = icmp ne <4 x i32> %a, %b
+  %r = select <4 x i1> %c, <4 x float> %x, <4 x float> %y
+  ret <4 x float> %r
+}
+
+define <4 x float> @mixed_c16_sfloat_ult_4(<4 x i16> %a, <4 x i16> %b, <4 x float> %x, <4 x float> %y) {
+  %c = icmp ult <4 x i16> %a, %b
+  %r = select <4 x i1> %c, <4 x float> %x, <4 x float> %y
+  ret <4 x float> %r
+}
+
+define <4 x float> @mixed_c16_sfloat_slt_4(<4 x i16> %a, <4 x i16> %b, <4 x float> %x, <4 x float> %y) {
+  %c = icmp slt <4 x i16> %a, %b
+  %r = select <4 x i1> %c, <4 x float> %x, <4 x float> %y
+  ret <4 x float> %r
+}
+
+define <4 x float> @mixed_c16_sfloat_ne_4(<4 x i16> %a, <4 x i16> %b, <4 x float> %x, <4 x float> %y) {
+  %c = icmp ne <4 x i16> %a, %b
+  %r = select <4 x i1> %c, <4 x float> %x, <4 x float> %y
+  ret <4 x float> %r
+}
+
+define <4 x double> @mixed_c32_sdouble_ult_4(<4 x i32> %a, <4 x i32> %b, <4 x double> %x, <4 x double> %y) {
+  %c = icmp ult <4 x i32> %a, %b
+  %r = select <4 x i1> %c, <4 x double> %x, <4 x double> %y
+  ret <4 x double> %r
+}
+
+define <4 x double> @mixed_c32_sdouble_slt_4(<4 x i32> %a, <4 x i32> %b, <4 x double> %x, <4 x double> %y) {
+  %c = icmp slt <4 x i32> %a, %b
+  %r = select <4 x i1> %c, <4 x double> %x, <4 x double> %y
+  ret <4 x double> %r
+}
+
+define <4 x double> @mixed_c32_sdouble_ne_4(<4 x i32> %a, <4 x i32> %b, <4 x double> %x, <4 x double> %y) {
+  %c = icmp ne <4 x i32> %a, %b
+  %r = select <4 x i1> %c, <4 x double> %x, <4 x double> %y
+  ret <4 x double> %r
+}
+
+define <4 x double> @mixed_c64_sdouble_ult_4(<4 x i64> %a, <4 x i64> %b, <4 x double> %x, <4 x double> %y) {
+  %c = icmp ult <4 x i64> %a, %b
+  %r = select <4 x i1> %c, <4 x double> %x, <4 x double> %y
+  ret <4 x double> %r
+}
+
+define <4 x double> @mixed_c64_sdouble_slt_4(<4 x i64> %a, <4 x i64> %b, <4 x double> %x, <4 x double> %y) {
+  %c = icmp slt <4 x i64> %a, %b
+  %r = select <4 x i1> %c, <4 x double> %x, <4 x double> %y
+  ret <4 x double> %r
+}
+
+define <4 x double> @mixed_c64_sdouble_ne_4(<4 x i64> %a, <4 x i64> %b, <4 x double> %x, <4 x double> %y) {
+  %c = icmp ne <4 x i64> %a, %b
+  %r = select <4 x i1> %c, <4 x double> %x, <4 x double> %y
+  ret <4 x double> %r
+}
+
+define <4 x i32> @mixed_c8_si32_eq_4(<4 x i8> %a, <4 x i8> %b, <4 x i32> %x, <4 x i32> %y) {
+  %c = icmp eq <4 x i8> %a, %b
+  %r = select <4 x i1> %c, <4 x i32> %x, <4 x i32> %y
+  ret <4 x i32> %r
+}
+
+define <4 x i8> @mixed_c32_si8_eq_4(<4 x i32> %a, <4 x i32> %b, <4 x i8> %x, <4 x i8> %y) {
+  %c = icmp eq <4 x i32> %a, %b
+  %r = select <4 x i1> %c, <4 x i8> %x, <4 x i8> %y
+  ret <4 x i8> %r
+}
+
 define i32 @main() {
   ; 1: eq on <16 x i8>
   %r1 = call i16 @mask_i8_eq(<16 x i8> <i8 0, i8 0, i8 0, i8 0, i8 0, i8 0, i8 0, i8 1, i8 1, i8 1, i8 1, i8 1, i8 1, i8 1, i8 2, i8 2>, <16 x i8> <i8 0, i8 1, i8 2, i8 127, i8 -128, i8 -2, i8 -1, i8 0, i8 1, i8 2, i8 127, i8 -128, i8 -2, i8 -1, i8 0, i8 1>)
@@ -4185,6 +4719,2969 @@ next739:
   %ok740 = icmp eq i4 %m740, -1
   br i1 %ok740, label %next740, label %fail40
 next740:
+  ; 41: ult on <8 x i8> selecting <8 x i16>
+  %r741 = call <8 x i16> @mixed_c8_si16_ult_8(<8 x i8> <i8 0, i8 0, i8 0, i8 0, i8 0, i8 1, i8 1, i8 1>, <8 x i8> <i8 0, i8 1, i8 127, i8 -128, i8 -1, i8 0, i8 1, i8 127>, <8 x i16> <i16 1, i16 2, i16 3, i16 4, i16 5, i16 6, i16 7, i16 8>, <8 x i16> <i16 -1, i16 -2, i16 -3, i16 -4, i16 -5, i16 -6, i16 -7, i16 -8>)
+  %c741 = icmp eq <8 x i16> %r741, <i16 -1, i16 2, i16 3, i16 4, i16 5, i16 -6, i16 -7, i16 8>
+  %m741 = bitcast <8 x i1> %c741 to i8
+  %ok741 = icmp eq i8 %m741, -1
+  br i1 %ok741, label %next741, label %fail41
+next741:
+  %r742 = call <8 x i16> @mixed_c8_si16_ult_8(<8 x i8> <i8 1, i8 1, i8 127, i8 127, i8 127, i8 127, i8 127, i8 -128>, <8 x i8> <i8 -128, i8 -1, i8 0, i8 1, i8 127, i8 -128, i8 -1, i8 0>, <8 x i16> <i16 1, i16 2, i16 3, i16 4, i16 5, i16 6, i16 7, i16 8>, <8 x i16> <i16 -1, i16 -2, i16 -3, i16 -4, i16 -5, i16 -6, i16 -7, i16 -8>)
+  %c742 = icmp eq <8 x i16> %r742, <i16 1, i16 2, i16 -3, i16 -4, i16 -5, i16 6, i16 7, i16 -8>
+  %m742 = bitcast <8 x i1> %c742 to i8
+  %ok742 = icmp eq i8 %m742, -1
+  br i1 %ok742, label %next742, label %fail41
+next742:
+  %r743 = call <8 x i16> @mixed_c8_si16_ult_8(<8 x i8> <i8 -128, i8 -128, i8 -128, i8 -128, i8 -1, i8 -1, i8 -1, i8 -1>, <8 x i8> <i8 1, i8 127, i8 -128, i8 -1, i8 0, i8 1, i8 127, i8 -128>, <8 x i16> <i16 1, i16 2, i16 3, i16 4, i16 5, i16 6, i16 7, i16 8>, <8 x i16> <i16 -1, i16 -2, i16 -3, i16 -4, i16 -5, i16 -6, i16 -7, i16 -8>)
+  %c743 = icmp eq <8 x i16> %r743, <i16 -1, i16 -2, i16 -3, i16 4, i16 -5, i16 -6, i16 -7, i16 -8>
+  %m743 = bitcast <8 x i1> %c743 to i8
+  %ok743 = icmp eq i8 %m743, -1
+  br i1 %ok743, label %next743, label %fail41
+next743:
+  %r744 = call <8 x i16> @mixed_c8_si16_ult_8(<8 x i8> <i8 -1, i8 -1, i8 -1, i8 -1, i8 -1, i8 -1, i8 -1, i8 -1>, <8 x i8> <i8 -1, i8 -1, i8 -1, i8 -1, i8 -1, i8 -1, i8 -1, i8 -1>, <8 x i16> <i16 1, i16 2, i16 3, i16 4, i16 5, i16 6, i16 7, i16 8>, <8 x i16> <i16 -1, i16 -2, i16 -3, i16 -4, i16 -5, i16 -6, i16 -7, i16 -8>)
+  %c744 = icmp eq <8 x i16> %r744, <i16 -1, i16 -2, i16 -3, i16 -4, i16 -5, i16 -6, i16 -7, i16 -8>
+  %m744 = bitcast <8 x i1> %c744 to i8
+  %ok744 = icmp eq i8 %m744, -1
+  br i1 %ok744, label %next744, label %fail41
+next744:
+  ; 42: sgt on <8 x i8> selecting <8 x i16>
+  %r745 = call <8 x i16> @mixed_c8_si16_sgt_8(<8 x i8> <i8 0, i8 0, i8 0, i8 0, i8 0, i8 1, i8 1, i8 1>, <8 x i8> <i8 0, i8 1, i8 127, i8 -128, i8 -1, i8 0, i8 1, i8 127>, <8 x i16> <i16 1, i16 2, i16 3, i16 4, i16 5, i16 6, i16 7, i16 8>, <8 x i16> <i16 -1, i16 -2, i16 -3, i16 -4, i16 -5, i16 -6, i16 -7, i16 -8>)
+  %c745 = icmp eq <8 x i16> %r745, <i16 -1, i16 -2, i16 -3, i16 4, i16 5, i16 6, i16 -7, i16 -8>
+  %m745 = bitcast <8 x i1> %c745 to i8
+  %ok745 = icmp eq i8 %m745, -1
+  br i1 %ok745, label %next745, label %fail42
+next745:
+  %r746 = call <8 x i16> @mixed_c8_si16_sgt_8(<8 x i8> <i8 1, i8 1, i8 127, i8 127, i8 127, i8 127, i8 127, i8 -128>, <8 x i8> <i8 -128, i8 -1, i8 0, i8 1, i8 127, i8 -128, i8 -1, i8 0>, <8 x i16> <i16 1, i16 2, i16 3, i16 4, i16 5, i16 6, i16 7, i16 8>, <8 x i16> <i16 -1, i16 -2, i16 -3, i16 -4, i16 -5, i16 -6, i16 -7, i16 -8>)
+  %c746 = icmp eq <8 x i16> %r746, <i16 1, i16 2, i16 3, i16 4, i16 -5, i16 6, i16 7, i16 -8>
+  %m746 = bitcast <8 x i1> %c746 to i8
+  %ok746 = icmp eq i8 %m746, -1
+  br i1 %ok746, label %next746, label %fail42
+next746:
+  %r747 = call <8 x i16> @mixed_c8_si16_sgt_8(<8 x i8> <i8 -128, i8 -128, i8 -128, i8 -128, i8 -1, i8 -1, i8 -1, i8 -1>, <8 x i8> <i8 1, i8 127, i8 -128, i8 -1, i8 0, i8 1, i8 127, i8 -128>, <8 x i16> <i16 1, i16 2, i16 3, i16 4, i16 5, i16 6, i16 7, i16 8>, <8 x i16> <i16 -1, i16 -2, i16 -3, i16 -4, i16 -5, i16 -6, i16 -7, i16 -8>)
+  %c747 = icmp eq <8 x i16> %r747, <i16 -1, i16 -2, i16 -3, i16 -4, i16 -5, i16 -6, i16 -7, i16 8>
+  %m747 = bitcast <8 x i1> %c747 to i8
+  %ok747 = icmp eq i8 %m747, -1
+  br i1 %ok747, label %next747, label %fail42
+next747:
+  %r748 = call <8 x i16> @mixed_c8_si16_sgt_8(<8 x i8> <i8 -1, i8 -1, i8 -1, i8 -1, i8 -1, i8 -1, i8 -1, i8 -1>, <8 x i8> <i8 -1, i8 -1, i8 -1, i8 -1, i8 -1, i8 -1, i8 -1, i8 -1>, <8 x i16> <i16 1, i16 2, i16 3, i16 4, i16 5, i16 6, i16 7, i16 8>, <8 x i16> <i16 -1, i16 -2, i16 -3, i16 -4, i16 -5, i16 -6, i16 -7, i16 -8>)
+  %c748 = icmp eq <8 x i16> %r748, <i16 -1, i16 -2, i16 -3, i16 -4, i16 -5, i16 -6, i16 -7, i16 -8>
+  %m748 = bitcast <8 x i1> %c748 to i8
+  %ok748 = icmp eq i8 %m748, -1
+  br i1 %ok748, label %next748, label %fail42
+next748:
+  ; 43: ne on <8 x i8> selecting <8 x i16>
+  %r749 = call <8 x i16> @mixed_c8_si16_ne_8(<8 x i8> <i8 0, i8 0, i8 0, i8 0, i8 0, i8 1, i8 1, i8 1>, <8 x i8> <i8 0, i8 1, i8 127, i8 -128, i8 -1, i8 0, i8 1, i8 127>, <8 x i16> <i16 1, i16 2, i16 3, i16 4, i16 5, i16 6, i16 7, i16 8>, <8 x i16> <i16 -1, i16 -2, i16 -3, i16 -4, i16 -5, i16 -6, i16 -7, i16 -8>)
+  %c749 = icmp eq <8 x i16> %r749, <i16 -1, i16 2, i16 3, i16 4, i16 5, i16 6, i16 -7, i16 8>
+  %m749 = bitcast <8 x i1> %c749 to i8
+  %ok749 = icmp eq i8 %m749, -1
+  br i1 %ok749, label %next749, label %fail43
+next749:
+  %r750 = call <8 x i16> @mixed_c8_si16_ne_8(<8 x i8> <i8 1, i8 1, i8 127, i8 127, i8 127, i8 127, i8 127, i8 -128>, <8 x i8> <i8 -128, i8 -1, i8 0, i8 1, i8 127, i8 -128, i8 -1, i8 0>, <8 x i16> <i16 1, i16 2, i16 3, i16 4, i16 5, i16 6, i16 7, i16 8>, <8 x i16> <i16 -1, i16 -2, i16 -3, i16 -4, i16 -5, i16 -6, i16 -7, i16 -8>)
+  %c750 = icmp eq <8 x i16> %r750, <i16 1, i16 2, i16 3, i16 4, i16 -5, i16 6, i16 7, i16 8>
+  %m750 = bitcast <8 x i1> %c750 to i8
+  %ok750 = icmp eq i8 %m750, -1
+  br i1 %ok750, label %next750, label %fail43
+next750:
+  %r751 = call <8 x i16> @mixed_c8_si16_ne_8(<8 x i8> <i8 -128, i8 -128, i8 -128, i8 -128, i8 -1, i8 -1, i8 -1, i8 -1>, <8 x i8> <i8 1, i8 127, i8 -128, i8 -1, i8 0, i8 1, i8 127, i8 -128>, <8 x i16> <i16 1, i16 2, i16 3, i16 4, i16 5, i16 6, i16 7, i16 8>, <8 x i16> <i16 -1, i16 -2, i16 -3, i16 -4, i16 -5, i16 -6, i16 -7, i16 -8>)
+  %c751 = icmp eq <8 x i16> %r751, <i16 1, i16 2, i16 -3, i16 4, i16 5, i16 6, i16 7, i16 8>
+  %m751 = bitcast <8 x i1> %c751 to i8
+  %ok751 = icmp eq i8 %m751, -1
+  br i1 %ok751, label %next751, label %fail43
+next751:
+  %r752 = call <8 x i16> @mixed_c8_si16_ne_8(<8 x i8> <i8 -1, i8 -1, i8 -1, i8 -1, i8 -1, i8 -1, i8 -1, i8 -1>, <8 x i8> <i8 -1, i8 -1, i8 -1, i8 -1, i8 -1, i8 -1, i8 -1, i8 -1>, <8 x i16> <i16 1, i16 2, i16 3, i16 4, i16 5, i16 6, i16 7, i16 8>, <8 x i16> <i16 -1, i16 -2, i16 -3, i16 -4, i16 -5, i16 -6, i16 -7, i16 -8>)
+  %c752 = icmp eq <8 x i16> %r752, <i16 -1, i16 -2, i16 -3, i16 -4, i16 -5, i16 -6, i16 -7, i16 -8>
+  %m752 = bitcast <8 x i1> %c752 to i8
+  %ok752 = icmp eq i8 %m752, -1
+  br i1 %ok752, label %next752, label %fail43
+next752:
+  ; 44: sle on <8 x i8> selecting <8 x i16>
+  %r753 = call <8 x i16> @mixed_c8_si16_sle_8(<8 x i8> <i8 0, i8 0, i8 0, i8 0, i8 0, i8 1, i8 1, i8 1>, <8 x i8> <i8 0, i8 1, i8 127, i8 -128, i8 -1, i8 0, i8 1, i8 127>, <8 x i16> <i16 1, i16 2, i16 3, i16 4, i16 5, i16 6, i16 7, i16 8>, <8 x i16> <i16 -1, i16 -2, i16 -3, i16 -4, i16 -5, i16 -6, i16 -7, i16 -8>)
+  %c753 = icmp eq <8 x i16> %r753, <i16 1, i16 2, i16 3, i16 -4, i16 -5, i16 -6, i16 7, i16 8>
+  %m753 = bitcast <8 x i1> %c753 to i8
+  %ok753 = icmp eq i8 %m753, -1
+  br i1 %ok753, label %next753, label %fail44
+next753:
+  %r754 = call <8 x i16> @mixed_c8_si16_sle_8(<8 x i8> <i8 1, i8 1, i8 127, i8 127, i8 127, i8 127, i8 127, i8 -128>, <8 x i8> <i8 -128, i8 -1, i8 0, i8 1, i8 127, i8 -128, i8 -1, i8 0>, <8 x i16> <i16 1, i16 2, i16 3, i16 4, i16 5, i16 6, i16 7, i16 8>, <8 x i16> <i16 -1, i16 -2, i16 -3, i16 -4, i16 -5, i16 -6, i16 -7, i16 -8>)
+  %c754 = icmp eq <8 x i16> %r754, <i16 -1, i16 -2, i16 -3, i16 -4, i16 5, i16 -6, i16 -7, i16 8>
+  %m754 = bitcast <8 x i1> %c754 to i8
+  %ok754 = icmp eq i8 %m754, -1
+  br i1 %ok754, label %next754, label %fail44
+next754:
+  %r755 = call <8 x i16> @mixed_c8_si16_sle_8(<8 x i8> <i8 -128, i8 -128, i8 -128, i8 -128, i8 -1, i8 -1, i8 -1, i8 -1>, <8 x i8> <i8 1, i8 127, i8 -128, i8 -1, i8 0, i8 1, i8 127, i8 -128>, <8 x i16> <i16 1, i16 2, i16 3, i16 4, i16 5, i16 6, i16 7, i16 8>, <8 x i16> <i16 -1, i16 -2, i16 -3, i16 -4, i16 -5, i16 -6, i16 -7, i16 -8>)
+  %c755 = icmp eq <8 x i16> %r755, <i16 1, i16 2, i16 3, i16 4, i16 5, i16 6, i16 7, i16 -8>
+  %m755 = bitcast <8 x i1> %c755 to i8
+  %ok755 = icmp eq i8 %m755, -1
+  br i1 %ok755, label %next755, label %fail44
+next755:
+  %r756 = call <8 x i16> @mixed_c8_si16_sle_8(<8 x i8> <i8 -1, i8 -1, i8 -1, i8 -1, i8 -1, i8 -1, i8 -1, i8 -1>, <8 x i8> <i8 -1, i8 -1, i8 -1, i8 -1, i8 -1, i8 -1, i8 -1, i8 -1>, <8 x i16> <i16 1, i16 2, i16 3, i16 4, i16 5, i16 6, i16 7, i16 8>, <8 x i16> <i16 -1, i16 -2, i16 -3, i16 -4, i16 -5, i16 -6, i16 -7, i16 -8>)
+  %c756 = icmp eq <8 x i16> %r756, <i16 1, i16 2, i16 3, i16 4, i16 5, i16 6, i16 7, i16 8>
+  %m756 = bitcast <8 x i1> %c756 to i8
+  %ok756 = icmp eq i8 %m756, -1
+  br i1 %ok756, label %next756, label %fail44
+next756:
+  ; 45: ult on <8 x i8> selecting <8 x i32>
+  %r757 = call <8 x i32> @mixed_c8_si32_ult_8(<8 x i8> <i8 0, i8 0, i8 0, i8 0, i8 0, i8 1, i8 1, i8 1>, <8 x i8> <i8 0, i8 1, i8 127, i8 -128, i8 -1, i8 0, i8 1, i8 127>, <8 x i32> <i32 1, i32 2, i32 3, i32 4, i32 5, i32 6, i32 7, i32 8>, <8 x i32> <i32 -1, i32 -2, i32 -3, i32 -4, i32 -5, i32 -6, i32 -7, i32 -8>)
+  %c757 = icmp eq <8 x i32> %r757, <i32 -1, i32 2, i32 3, i32 4, i32 5, i32 -6, i32 -7, i32 8>
+  %m757 = bitcast <8 x i1> %c757 to i8
+  %ok757 = icmp eq i8 %m757, -1
+  br i1 %ok757, label %next757, label %fail45
+next757:
+  %r758 = call <8 x i32> @mixed_c8_si32_ult_8(<8 x i8> <i8 1, i8 1, i8 127, i8 127, i8 127, i8 127, i8 127, i8 -128>, <8 x i8> <i8 -128, i8 -1, i8 0, i8 1, i8 127, i8 -128, i8 -1, i8 0>, <8 x i32> <i32 1, i32 2, i32 3, i32 4, i32 5, i32 6, i32 7, i32 8>, <8 x i32> <i32 -1, i32 -2, i32 -3, i32 -4, i32 -5, i32 -6, i32 -7, i32 -8>)
+  %c758 = icmp eq <8 x i32> %r758, <i32 1, i32 2, i32 -3, i32 -4, i32 -5, i32 6, i32 7, i32 -8>
+  %m758 = bitcast <8 x i1> %c758 to i8
+  %ok758 = icmp eq i8 %m758, -1
+  br i1 %ok758, label %next758, label %fail45
+next758:
+  %r759 = call <8 x i32> @mixed_c8_si32_ult_8(<8 x i8> <i8 -128, i8 -128, i8 -128, i8 -128, i8 -1, i8 -1, i8 -1, i8 -1>, <8 x i8> <i8 1, i8 127, i8 -128, i8 -1, i8 0, i8 1, i8 127, i8 -128>, <8 x i32> <i32 1, i32 2, i32 3, i32 4, i32 5, i32 6, i32 7, i32 8>, <8 x i32> <i32 -1, i32 -2, i32 -3, i32 -4, i32 -5, i32 -6, i32 -7, i32 -8>)
+  %c759 = icmp eq <8 x i32> %r759, <i32 -1, i32 -2, i32 -3, i32 4, i32 -5, i32 -6, i32 -7, i32 -8>
+  %m759 = bitcast <8 x i1> %c759 to i8
+  %ok759 = icmp eq i8 %m759, -1
+  br i1 %ok759, label %next759, label %fail45
+next759:
+  %r760 = call <8 x i32> @mixed_c8_si32_ult_8(<8 x i8> <i8 -1, i8 -1, i8 -1, i8 -1, i8 -1, i8 -1, i8 -1, i8 -1>, <8 x i8> <i8 -1, i8 -1, i8 -1, i8 -1, i8 -1, i8 -1, i8 -1, i8 -1>, <8 x i32> <i32 1, i32 2, i32 3, i32 4, i32 5, i32 6, i32 7, i32 8>, <8 x i32> <i32 -1, i32 -2, i32 -3, i32 -4, i32 -5, i32 -6, i32 -7, i32 -8>)
+  %c760 = icmp eq <8 x i32> %r760, <i32 -1, i32 -2, i32 -3, i32 -4, i32 -5, i32 -6, i32 -7, i32 -8>
+  %m760 = bitcast <8 x i1> %c760 to i8
+  %ok760 = icmp eq i8 %m760, -1
+  br i1 %ok760, label %next760, label %fail45
+next760:
+  ; 46: sgt on <8 x i8> selecting <8 x i32>
+  %r761 = call <8 x i32> @mixed_c8_si32_sgt_8(<8 x i8> <i8 0, i8 0, i8 0, i8 0, i8 0, i8 1, i8 1, i8 1>, <8 x i8> <i8 0, i8 1, i8 127, i8 -128, i8 -1, i8 0, i8 1, i8 127>, <8 x i32> <i32 1, i32 2, i32 3, i32 4, i32 5, i32 6, i32 7, i32 8>, <8 x i32> <i32 -1, i32 -2, i32 -3, i32 -4, i32 -5, i32 -6, i32 -7, i32 -8>)
+  %c761 = icmp eq <8 x i32> %r761, <i32 -1, i32 -2, i32 -3, i32 4, i32 5, i32 6, i32 -7, i32 -8>
+  %m761 = bitcast <8 x i1> %c761 to i8
+  %ok761 = icmp eq i8 %m761, -1
+  br i1 %ok761, label %next761, label %fail46
+next761:
+  %r762 = call <8 x i32> @mixed_c8_si32_sgt_8(<8 x i8> <i8 1, i8 1, i8 127, i8 127, i8 127, i8 127, i8 127, i8 -128>, <8 x i8> <i8 -128, i8 -1, i8 0, i8 1, i8 127, i8 -128, i8 -1, i8 0>, <8 x i32> <i32 1, i32 2, i32 3, i32 4, i32 5, i32 6, i32 7, i32 8>, <8 x i32> <i32 -1, i32 -2, i32 -3, i32 -4, i32 -5, i32 -6, i32 -7, i32 -8>)
+  %c762 = icmp eq <8 x i32> %r762, <i32 1, i32 2, i32 3, i32 4, i32 -5, i32 6, i32 7, i32 -8>
+  %m762 = bitcast <8 x i1> %c762 to i8
+  %ok762 = icmp eq i8 %m762, -1
+  br i1 %ok762, label %next762, label %fail46
+next762:
+  %r763 = call <8 x i32> @mixed_c8_si32_sgt_8(<8 x i8> <i8 -128, i8 -128, i8 -128, i8 -128, i8 -1, i8 -1, i8 -1, i8 -1>, <8 x i8> <i8 1, i8 127, i8 -128, i8 -1, i8 0, i8 1, i8 127, i8 -128>, <8 x i32> <i32 1, i32 2, i32 3, i32 4, i32 5, i32 6, i32 7, i32 8>, <8 x i32> <i32 -1, i32 -2, i32 -3, i32 -4, i32 -5, i32 -6, i32 -7, i32 -8>)
+  %c763 = icmp eq <8 x i32> %r763, <i32 -1, i32 -2, i32 -3, i32 -4, i32 -5, i32 -6, i32 -7, i32 8>
+  %m763 = bitcast <8 x i1> %c763 to i8
+  %ok763 = icmp eq i8 %m763, -1
+  br i1 %ok763, label %next763, label %fail46
+next763:
+  %r764 = call <8 x i32> @mixed_c8_si32_sgt_8(<8 x i8> <i8 -1, i8 -1, i8 -1, i8 -1, i8 -1, i8 -1, i8 -1, i8 -1>, <8 x i8> <i8 -1, i8 -1, i8 -1, i8 -1, i8 -1, i8 -1, i8 -1, i8 -1>, <8 x i32> <i32 1, i32 2, i32 3, i32 4, i32 5, i32 6, i32 7, i32 8>, <8 x i32> <i32 -1, i32 -2, i32 -3, i32 -4, i32 -5, i32 -6, i32 -7, i32 -8>)
+  %c764 = icmp eq <8 x i32> %r764, <i32 -1, i32 -2, i32 -3, i32 -4, i32 -5, i32 -6, i32 -7, i32 -8>
+  %m764 = bitcast <8 x i1> %c764 to i8
+  %ok764 = icmp eq i8 %m764, -1
+  br i1 %ok764, label %next764, label %fail46
+next764:
+  ; 47: ne on <8 x i8> selecting <8 x i32>
+  %r765 = call <8 x i32> @mixed_c8_si32_ne_8(<8 x i8> <i8 0, i8 0, i8 0, i8 0, i8 0, i8 1, i8 1, i8 1>, <8 x i8> <i8 0, i8 1, i8 127, i8 -128, i8 -1, i8 0, i8 1, i8 127>, <8 x i32> <i32 1, i32 2, i32 3, i32 4, i32 5, i32 6, i32 7, i32 8>, <8 x i32> <i32 -1, i32 -2, i32 -3, i32 -4, i32 -5, i32 -6, i32 -7, i32 -8>)
+  %c765 = icmp eq <8 x i32> %r765, <i32 -1, i32 2, i32 3, i32 4, i32 5, i32 6, i32 -7, i32 8>
+  %m765 = bitcast <8 x i1> %c765 to i8
+  %ok765 = icmp eq i8 %m765, -1
+  br i1 %ok765, label %next765, label %fail47
+next765:
+  %r766 = call <8 x i32> @mixed_c8_si32_ne_8(<8 x i8> <i8 1, i8 1, i8 127, i8 127, i8 127, i8 127, i8 127, i8 -128>, <8 x i8> <i8 -128, i8 -1, i8 0, i8 1, i8 127, i8 -128, i8 -1, i8 0>, <8 x i32> <i32 1, i32 2, i32 3, i32 4, i32 5, i32 6, i32 7, i32 8>, <8 x i32> <i32 -1, i32 -2, i32 -3, i32 -4, i32 -5, i32 -6, i32 -7, i32 -8>)
+  %c766 = icmp eq <8 x i32> %r766, <i32 1, i32 2, i32 3, i32 4, i32 -5, i32 6, i32 7, i32 8>
+  %m766 = bitcast <8 x i1> %c766 to i8
+  %ok766 = icmp eq i8 %m766, -1
+  br i1 %ok766, label %next766, label %fail47
+next766:
+  %r767 = call <8 x i32> @mixed_c8_si32_ne_8(<8 x i8> <i8 -128, i8 -128, i8 -128, i8 -128, i8 -1, i8 -1, i8 -1, i8 -1>, <8 x i8> <i8 1, i8 127, i8 -128, i8 -1, i8 0, i8 1, i8 127, i8 -128>, <8 x i32> <i32 1, i32 2, i32 3, i32 4, i32 5, i32 6, i32 7, i32 8>, <8 x i32> <i32 -1, i32 -2, i32 -3, i32 -4, i32 -5, i32 -6, i32 -7, i32 -8>)
+  %c767 = icmp eq <8 x i32> %r767, <i32 1, i32 2, i32 -3, i32 4, i32 5, i32 6, i32 7, i32 8>
+  %m767 = bitcast <8 x i1> %c767 to i8
+  %ok767 = icmp eq i8 %m767, -1
+  br i1 %ok767, label %next767, label %fail47
+next767:
+  %r768 = call <8 x i32> @mixed_c8_si32_ne_8(<8 x i8> <i8 -1, i8 -1, i8 -1, i8 -1, i8 -1, i8 -1, i8 -1, i8 -1>, <8 x i8> <i8 -1, i8 -1, i8 -1, i8 -1, i8 -1, i8 -1, i8 -1, i8 -1>, <8 x i32> <i32 1, i32 2, i32 3, i32 4, i32 5, i32 6, i32 7, i32 8>, <8 x i32> <i32 -1, i32 -2, i32 -3, i32 -4, i32 -5, i32 -6, i32 -7, i32 -8>)
+  %c768 = icmp eq <8 x i32> %r768, <i32 -1, i32 -2, i32 -3, i32 -4, i32 -5, i32 -6, i32 -7, i32 -8>
+  %m768 = bitcast <8 x i1> %c768 to i8
+  %ok768 = icmp eq i8 %m768, -1
+  br i1 %ok768, label %next768, label %fail47
+next768:
+  ; 48: sle on <8 x i8> selecting <8 x i32>
+  %r769 = call <8 x i32> @mixed_c8_si32_sle_8(<8 x i8> <i8 0, i8 0, i8 0, i8 0, i8 0, i8 1, i8 1, i8 1>, <8 x i8> <i8 0, i8 1, i8 127, i8 -128, i8 -1, i8 0, i8 1, i8 127>, <8 x i32> <i32 1, i32 2, i32 3, i32 4, i32 5, i32 6, i32 7, i32 8>, <8 x i32> <i32 -1, i32 -2, i32 -3, i32 -4, i32 -5, i32 -6, i32 -7, i32 -8>)
+  %c769 = icmp eq <8 x i32> %r769, <i32 1, i32 2, i32 3, i32 -4, i32 -5, i32 -6, i32 7, i32 8>
+  %m769 = bitcast <8 x i1> %c769 to i8
+  %ok769 = icmp eq i8 %m769, -1
+  br i1 %ok769, label %next769, label %fail48
+next769:
+  %r770 = call <8 x i32> @mixed_c8_si32_sle_8(<8 x i8> <i8 1, i8 1, i8 127, i8 127, i8 127, i8 127, i8 127, i8 -128>, <8 x i8> <i8 -128, i8 -1, i8 0, i8 1, i8 127, i8 -128, i8 -1, i8 0>, <8 x i32> <i32 1, i32 2, i32 3, i32 4, i32 5, i32 6, i32 7, i32 8>, <8 x i32> <i32 -1, i32 -2, i32 -3, i32 -4, i32 -5, i32 -6, i32 -7, i32 -8>)
+  %c770 = icmp eq <8 x i32> %r770, <i32 -1, i32 -2, i32 -3, i32 -4, i32 5, i32 -6, i32 -7, i32 8>
+  %m770 = bitcast <8 x i1> %c770 to i8
+  %ok770 = icmp eq i8 %m770, -1
+  br i1 %ok770, label %next770, label %fail48
+next770:
+  %r771 = call <8 x i32> @mixed_c8_si32_sle_8(<8 x i8> <i8 -128, i8 -128, i8 -128, i8 -128, i8 -1, i8 -1, i8 -1, i8 -1>, <8 x i8> <i8 1, i8 127, i8 -128, i8 -1, i8 0, i8 1, i8 127, i8 -128>, <8 x i32> <i32 1, i32 2, i32 3, i32 4, i32 5, i32 6, i32 7, i32 8>, <8 x i32> <i32 -1, i32 -2, i32 -3, i32 -4, i32 -5, i32 -6, i32 -7, i32 -8>)
+  %c771 = icmp eq <8 x i32> %r771, <i32 1, i32 2, i32 3, i32 4, i32 5, i32 6, i32 7, i32 -8>
+  %m771 = bitcast <8 x i1> %c771 to i8
+  %ok771 = icmp eq i8 %m771, -1
+  br i1 %ok771, label %next771, label %fail48
+next771:
+  %r772 = call <8 x i32> @mixed_c8_si32_sle_8(<8 x i8> <i8 -1, i8 -1, i8 -1, i8 -1, i8 -1, i8 -1, i8 -1, i8 -1>, <8 x i8> <i8 -1, i8 -1, i8 -1, i8 -1, i8 -1, i8 -1, i8 -1, i8 -1>, <8 x i32> <i32 1, i32 2, i32 3, i32 4, i32 5, i32 6, i32 7, i32 8>, <8 x i32> <i32 -1, i32 -2, i32 -3, i32 -4, i32 -5, i32 -6, i32 -7, i32 -8>)
+  %c772 = icmp eq <8 x i32> %r772, <i32 1, i32 2, i32 3, i32 4, i32 5, i32 6, i32 7, i32 8>
+  %m772 = bitcast <8 x i1> %c772 to i8
+  %ok772 = icmp eq i8 %m772, -1
+  br i1 %ok772, label %next772, label %fail48
+next772:
+  ; 49: ult on <8 x i8> selecting <8 x i64>
+  %r773 = call <8 x i64> @mixed_c8_si64_ult_8(<8 x i8> <i8 0, i8 0, i8 0, i8 0, i8 0, i8 1, i8 1, i8 1>, <8 x i8> <i8 0, i8 1, i8 127, i8 -128, i8 -1, i8 0, i8 1, i8 127>, <8 x i64> <i64 1, i64 2, i64 3, i64 4, i64 5, i64 6, i64 7, i64 8>, <8 x i64> <i64 -1, i64 -2, i64 -3, i64 -4, i64 -5, i64 -6, i64 -7, i64 -8>)
+  %c773 = icmp eq <8 x i64> %r773, <i64 -1, i64 2, i64 3, i64 4, i64 5, i64 -6, i64 -7, i64 8>
+  %m773 = bitcast <8 x i1> %c773 to i8
+  %ok773 = icmp eq i8 %m773, -1
+  br i1 %ok773, label %next773, label %fail49
+next773:
+  %r774 = call <8 x i64> @mixed_c8_si64_ult_8(<8 x i8> <i8 1, i8 1, i8 127, i8 127, i8 127, i8 127, i8 127, i8 -128>, <8 x i8> <i8 -128, i8 -1, i8 0, i8 1, i8 127, i8 -128, i8 -1, i8 0>, <8 x i64> <i64 1, i64 2, i64 3, i64 4, i64 5, i64 6, i64 7, i64 8>, <8 x i64> <i64 -1, i64 -2, i64 -3, i64 -4, i64 -5, i64 -6, i64 -7, i64 -8>)
+  %c774 = icmp eq <8 x i64> %r774, <i64 1, i64 2, i64 -3, i64 -4, i64 -5, i64 6, i64 7, i64 -8>
+  %m774 = bitcast <8 x i1> %c774 to i8
+  %ok774 = icmp eq i8 %m774, -1
+  br i1 %ok774, label %next774, label %fail49
+next774:
+  %r775 = call <8 x i64> @mixed_c8_si64_ult_8(<8 x i8> <i8 -128, i8 -128, i8 -128, i8 -128, i8 -1, i8 -1, i8 -1, i8 -1>, <8 x i8> <i8 1, i8 127, i8 -128, i8 -1, i8 0, i8 1, i8 127, i8 -128>, <8 x i64> <i64 1, i64 2, i64 3, i64 4, i64 5, i64 6, i64 7, i64 8>, <8 x i64> <i64 -1, i64 -2, i64 -3, i64 -4, i64 -5, i64 -6, i64 -7, i64 -8>)
+  %c775 = icmp eq <8 x i64> %r775, <i64 -1, i64 -2, i64 -3, i64 4, i64 -5, i64 -6, i64 -7, i64 -8>
+  %m775 = bitcast <8 x i1> %c775 to i8
+  %ok775 = icmp eq i8 %m775, -1
+  br i1 %ok775, label %next775, label %fail49
+next775:
+  %r776 = call <8 x i64> @mixed_c8_si64_ult_8(<8 x i8> <i8 -1, i8 -1, i8 -1, i8 -1, i8 -1, i8 -1, i8 -1, i8 -1>, <8 x i8> <i8 -1, i8 -1, i8 -1, i8 -1, i8 -1, i8 -1, i8 -1, i8 -1>, <8 x i64> <i64 1, i64 2, i64 3, i64 4, i64 5, i64 6, i64 7, i64 8>, <8 x i64> <i64 -1, i64 -2, i64 -3, i64 -4, i64 -5, i64 -6, i64 -7, i64 -8>)
+  %c776 = icmp eq <8 x i64> %r776, <i64 -1, i64 -2, i64 -3, i64 -4, i64 -5, i64 -6, i64 -7, i64 -8>
+  %m776 = bitcast <8 x i1> %c776 to i8
+  %ok776 = icmp eq i8 %m776, -1
+  br i1 %ok776, label %next776, label %fail49
+next776:
+  ; 50: sgt on <8 x i8> selecting <8 x i64>
+  %r777 = call <8 x i64> @mixed_c8_si64_sgt_8(<8 x i8> <i8 0, i8 0, i8 0, i8 0, i8 0, i8 1, i8 1, i8 1>, <8 x i8> <i8 0, i8 1, i8 127, i8 -128, i8 -1, i8 0, i8 1, i8 127>, <8 x i64> <i64 1, i64 2, i64 3, i64 4, i64 5, i64 6, i64 7, i64 8>, <8 x i64> <i64 -1, i64 -2, i64 -3, i64 -4, i64 -5, i64 -6, i64 -7, i64 -8>)
+  %c777 = icmp eq <8 x i64> %r777, <i64 -1, i64 -2, i64 -3, i64 4, i64 5, i64 6, i64 -7, i64 -8>
+  %m777 = bitcast <8 x i1> %c777 to i8
+  %ok777 = icmp eq i8 %m777, -1
+  br i1 %ok777, label %next777, label %fail50
+next777:
+  %r778 = call <8 x i64> @mixed_c8_si64_sgt_8(<8 x i8> <i8 1, i8 1, i8 127, i8 127, i8 127, i8 127, i8 127, i8 -128>, <8 x i8> <i8 -128, i8 -1, i8 0, i8 1, i8 127, i8 -128, i8 -1, i8 0>, <8 x i64> <i64 1, i64 2, i64 3, i64 4, i64 5, i64 6, i64 7, i64 8>, <8 x i64> <i64 -1, i64 -2, i64 -3, i64 -4, i64 -5, i64 -6, i64 -7, i64 -8>)
+  %c778 = icmp eq <8 x i64> %r778, <i64 1, i64 2, i64 3, i64 4, i64 -5, i64 6, i64 7, i64 -8>
+  %m778 = bitcast <8 x i1> %c778 to i8
+  %ok778 = icmp eq i8 %m778, -1
+  br i1 %ok778, label %next778, label %fail50
+next778:
+  %r779 = call <8 x i64> @mixed_c8_si64_sgt_8(<8 x i8> <i8 -128, i8 -128, i8 -128, i8 -128, i8 -1, i8 -1, i8 -1, i8 -1>, <8 x i8> <i8 1, i8 127, i8 -128, i8 -1, i8 0, i8 1, i8 127, i8 -128>, <8 x i64> <i64 1, i64 2, i64 3, i64 4, i64 5, i64 6, i64 7, i64 8>, <8 x i64> <i64 -1, i64 -2, i64 -3, i64 -4, i64 -5, i64 -6, i64 -7, i64 -8>)
+  %c779 = icmp eq <8 x i64> %r779, <i64 -1, i64 -2, i64 -3, i64 -4, i64 -5, i64 -6, i64 -7, i64 8>
+  %m779 = bitcast <8 x i1> %c779 to i8
+  %ok779 = icmp eq i8 %m779, -1
+  br i1 %ok779, label %next779, label %fail50
+next779:
+  %r780 = call <8 x i64> @mixed_c8_si64_sgt_8(<8 x i8> <i8 -1, i8 -1, i8 -1, i8 -1, i8 -1, i8 -1, i8 -1, i8 -1>, <8 x i8> <i8 -1, i8 -1, i8 -1, i8 -1, i8 -1, i8 -1, i8 -1, i8 -1>, <8 x i64> <i64 1, i64 2, i64 3, i64 4, i64 5, i64 6, i64 7, i64 8>, <8 x i64> <i64 -1, i64 -2, i64 -3, i64 -4, i64 -5, i64 -6, i64 -7, i64 -8>)
+  %c780 = icmp eq <8 x i64> %r780, <i64 -1, i64 -2, i64 -3, i64 -4, i64 -5, i64 -6, i64 -7, i64 -8>
+  %m780 = bitcast <8 x i1> %c780 to i8
+  %ok780 = icmp eq i8 %m780, -1
+  br i1 %ok780, label %next780, label %fail50
+next780:
+  ; 51: ne on <8 x i8> selecting <8 x i64>
+  %r781 = call <8 x i64> @mixed_c8_si64_ne_8(<8 x i8> <i8 0, i8 0, i8 0, i8 0, i8 0, i8 1, i8 1, i8 1>, <8 x i8> <i8 0, i8 1, i8 127, i8 -128, i8 -1, i8 0, i8 1, i8 127>, <8 x i64> <i64 1, i64 2, i64 3, i64 4, i64 5, i64 6, i64 7, i64 8>, <8 x i64> <i64 -1, i64 -2, i64 -3, i64 -4, i64 -5, i64 -6, i64 -7, i64 -8>)
+  %c781 = icmp eq <8 x i64> %r781, <i64 -1, i64 2, i64 3, i64 4, i64 5, i64 6, i64 -7, i64 8>
+  %m781 = bitcast <8 x i1> %c781 to i8
+  %ok781 = icmp eq i8 %m781, -1
+  br i1 %ok781, label %next781, label %fail51
+next781:
+  %r782 = call <8 x i64> @mixed_c8_si64_ne_8(<8 x i8> <i8 1, i8 1, i8 127, i8 127, i8 127, i8 127, i8 127, i8 -128>, <8 x i8> <i8 -128, i8 -1, i8 0, i8 1, i8 127, i8 -128, i8 -1, i8 0>, <8 x i64> <i64 1, i64 2, i64 3, i64 4, i64 5, i64 6, i64 7, i64 8>, <8 x i64> <i64 -1, i64 -2, i64 -3, i64 -4, i64 -5, i64 -6, i64 -7, i64 -8>)
+  %c782 = icmp eq <8 x i64> %r782, <i64 1, i64 2, i64 3, i64 4, i64 -5, i64 6, i64 7, i64 8>
+  %m782 = bitcast <8 x i1> %c782 to i8
+  %ok782 = icmp eq i8 %m782, -1
+  br i1 %ok782, label %next782, label %fail51
+next782:
+  %r783 = call <8 x i64> @mixed_c8_si64_ne_8(<8 x i8> <i8 -128, i8 -128, i8 -128, i8 -128, i8 -1, i8 -1, i8 -1, i8 -1>, <8 x i8> <i8 1, i8 127, i8 -128, i8 -1, i8 0, i8 1, i8 127, i8 -128>, <8 x i64> <i64 1, i64 2, i64 3, i64 4, i64 5, i64 6, i64 7, i64 8>, <8 x i64> <i64 -1, i64 -2, i64 -3, i64 -4, i64 -5, i64 -6, i64 -7, i64 -8>)
+  %c783 = icmp eq <8 x i64> %r783, <i64 1, i64 2, i64 -3, i64 4, i64 5, i64 6, i64 7, i64 8>
+  %m783 = bitcast <8 x i1> %c783 to i8
+  %ok783 = icmp eq i8 %m783, -1
+  br i1 %ok783, label %next783, label %fail51
+next783:
+  %r784 = call <8 x i64> @mixed_c8_si64_ne_8(<8 x i8> <i8 -1, i8 -1, i8 -1, i8 -1, i8 -1, i8 -1, i8 -1, i8 -1>, <8 x i8> <i8 -1, i8 -1, i8 -1, i8 -1, i8 -1, i8 -1, i8 -1, i8 -1>, <8 x i64> <i64 1, i64 2, i64 3, i64 4, i64 5, i64 6, i64 7, i64 8>, <8 x i64> <i64 -1, i64 -2, i64 -3, i64 -4, i64 -5, i64 -6, i64 -7, i64 -8>)
+  %c784 = icmp eq <8 x i64> %r784, <i64 -1, i64 -2, i64 -3, i64 -4, i64 -5, i64 -6, i64 -7, i64 -8>
+  %m784 = bitcast <8 x i1> %c784 to i8
+  %ok784 = icmp eq i8 %m784, -1
+  br i1 %ok784, label %next784, label %fail51
+next784:
+  ; 52: sle on <8 x i8> selecting <8 x i64>
+  %r785 = call <8 x i64> @mixed_c8_si64_sle_8(<8 x i8> <i8 0, i8 0, i8 0, i8 0, i8 0, i8 1, i8 1, i8 1>, <8 x i8> <i8 0, i8 1, i8 127, i8 -128, i8 -1, i8 0, i8 1, i8 127>, <8 x i64> <i64 1, i64 2, i64 3, i64 4, i64 5, i64 6, i64 7, i64 8>, <8 x i64> <i64 -1, i64 -2, i64 -3, i64 -4, i64 -5, i64 -6, i64 -7, i64 -8>)
+  %c785 = icmp eq <8 x i64> %r785, <i64 1, i64 2, i64 3, i64 -4, i64 -5, i64 -6, i64 7, i64 8>
+  %m785 = bitcast <8 x i1> %c785 to i8
+  %ok785 = icmp eq i8 %m785, -1
+  br i1 %ok785, label %next785, label %fail52
+next785:
+  %r786 = call <8 x i64> @mixed_c8_si64_sle_8(<8 x i8> <i8 1, i8 1, i8 127, i8 127, i8 127, i8 127, i8 127, i8 -128>, <8 x i8> <i8 -128, i8 -1, i8 0, i8 1, i8 127, i8 -128, i8 -1, i8 0>, <8 x i64> <i64 1, i64 2, i64 3, i64 4, i64 5, i64 6, i64 7, i64 8>, <8 x i64> <i64 -1, i64 -2, i64 -3, i64 -4, i64 -5, i64 -6, i64 -7, i64 -8>)
+  %c786 = icmp eq <8 x i64> %r786, <i64 -1, i64 -2, i64 -3, i64 -4, i64 5, i64 -6, i64 -7, i64 8>
+  %m786 = bitcast <8 x i1> %c786 to i8
+  %ok786 = icmp eq i8 %m786, -1
+  br i1 %ok786, label %next786, label %fail52
+next786:
+  %r787 = call <8 x i64> @mixed_c8_si64_sle_8(<8 x i8> <i8 -128, i8 -128, i8 -128, i8 -128, i8 -1, i8 -1, i8 -1, i8 -1>, <8 x i8> <i8 1, i8 127, i8 -128, i8 -1, i8 0, i8 1, i8 127, i8 -128>, <8 x i64> <i64 1, i64 2, i64 3, i64 4, i64 5, i64 6, i64 7, i64 8>, <8 x i64> <i64 -1, i64 -2, i64 -3, i64 -4, i64 -5, i64 -6, i64 -7, i64 -8>)
+  %c787 = icmp eq <8 x i64> %r787, <i64 1, i64 2, i64 3, i64 4, i64 5, i64 6, i64 7, i64 -8>
+  %m787 = bitcast <8 x i1> %c787 to i8
+  %ok787 = icmp eq i8 %m787, -1
+  br i1 %ok787, label %next787, label %fail52
+next787:
+  %r788 = call <8 x i64> @mixed_c8_si64_sle_8(<8 x i8> <i8 -1, i8 -1, i8 -1, i8 -1, i8 -1, i8 -1, i8 -1, i8 -1>, <8 x i8> <i8 -1, i8 -1, i8 -1, i8 -1, i8 -1, i8 -1, i8 -1, i8 -1>, <8 x i64> <i64 1, i64 2, i64 3, i64 4, i64 5, i64 6, i64 7, i64 8>, <8 x i64> <i64 -1, i64 -2, i64 -3, i64 -4, i64 -5, i64 -6, i64 -7, i64 -8>)
+  %c788 = icmp eq <8 x i64> %r788, <i64 1, i64 2, i64 3, i64 4, i64 5, i64 6, i64 7, i64 8>
+  %m788 = bitcast <8 x i1> %c788 to i8
+  %ok788 = icmp eq i8 %m788, -1
+  br i1 %ok788, label %next788, label %fail52
+next788:
+  ; 53: ult on <8 x i16> selecting <8 x i8>
+  %r789 = call <8 x i8> @mixed_c16_si8_ult_8(<8 x i16> <i16 0, i16 0, i16 0, i16 0, i16 0, i16 1, i16 1, i16 1>, <8 x i16> <i16 0, i16 1, i16 32767, i16 -32768, i16 -1, i16 0, i16 1, i16 32767>, <8 x i8> <i8 1, i8 2, i8 3, i8 4, i8 5, i8 6, i8 7, i8 8>, <8 x i8> <i8 -1, i8 -2, i8 -3, i8 -4, i8 -5, i8 -6, i8 -7, i8 -8>)
+  %c789 = icmp eq <8 x i8> %r789, <i8 -1, i8 2, i8 3, i8 4, i8 5, i8 -6, i8 -7, i8 8>
+  %m789 = bitcast <8 x i1> %c789 to i8
+  %ok789 = icmp eq i8 %m789, -1
+  br i1 %ok789, label %next789, label %fail53
+next789:
+  %r790 = call <8 x i8> @mixed_c16_si8_ult_8(<8 x i16> <i16 1, i16 1, i16 32767, i16 32767, i16 32767, i16 32767, i16 32767, i16 -32768>, <8 x i16> <i16 -32768, i16 -1, i16 0, i16 1, i16 32767, i16 -32768, i16 -1, i16 0>, <8 x i8> <i8 1, i8 2, i8 3, i8 4, i8 5, i8 6, i8 7, i8 8>, <8 x i8> <i8 -1, i8 -2, i8 -3, i8 -4, i8 -5, i8 -6, i8 -7, i8 -8>)
+  %c790 = icmp eq <8 x i8> %r790, <i8 1, i8 2, i8 -3, i8 -4, i8 -5, i8 6, i8 7, i8 -8>
+  %m790 = bitcast <8 x i1> %c790 to i8
+  %ok790 = icmp eq i8 %m790, -1
+  br i1 %ok790, label %next790, label %fail53
+next790:
+  %r791 = call <8 x i8> @mixed_c16_si8_ult_8(<8 x i16> <i16 -32768, i16 -32768, i16 -32768, i16 -32768, i16 -1, i16 -1, i16 -1, i16 -1>, <8 x i16> <i16 1, i16 32767, i16 -32768, i16 -1, i16 0, i16 1, i16 32767, i16 -32768>, <8 x i8> <i8 1, i8 2, i8 3, i8 4, i8 5, i8 6, i8 7, i8 8>, <8 x i8> <i8 -1, i8 -2, i8 -3, i8 -4, i8 -5, i8 -6, i8 -7, i8 -8>)
+  %c791 = icmp eq <8 x i8> %r791, <i8 -1, i8 -2, i8 -3, i8 4, i8 -5, i8 -6, i8 -7, i8 -8>
+  %m791 = bitcast <8 x i1> %c791 to i8
+  %ok791 = icmp eq i8 %m791, -1
+  br i1 %ok791, label %next791, label %fail53
+next791:
+  %r792 = call <8 x i8> @mixed_c16_si8_ult_8(<8 x i16> <i16 -1, i16 -1, i16 -1, i16 -1, i16 -1, i16 -1, i16 -1, i16 -1>, <8 x i16> <i16 -1, i16 -1, i16 -1, i16 -1, i16 -1, i16 -1, i16 -1, i16 -1>, <8 x i8> <i8 1, i8 2, i8 3, i8 4, i8 5, i8 6, i8 7, i8 8>, <8 x i8> <i8 -1, i8 -2, i8 -3, i8 -4, i8 -5, i8 -6, i8 -7, i8 -8>)
+  %c792 = icmp eq <8 x i8> %r792, <i8 -1, i8 -2, i8 -3, i8 -4, i8 -5, i8 -6, i8 -7, i8 -8>
+  %m792 = bitcast <8 x i1> %c792 to i8
+  %ok792 = icmp eq i8 %m792, -1
+  br i1 %ok792, label %next792, label %fail53
+next792:
+  ; 54: sgt on <8 x i16> selecting <8 x i8>
+  %r793 = call <8 x i8> @mixed_c16_si8_sgt_8(<8 x i16> <i16 0, i16 0, i16 0, i16 0, i16 0, i16 1, i16 1, i16 1>, <8 x i16> <i16 0, i16 1, i16 32767, i16 -32768, i16 -1, i16 0, i16 1, i16 32767>, <8 x i8> <i8 1, i8 2, i8 3, i8 4, i8 5, i8 6, i8 7, i8 8>, <8 x i8> <i8 -1, i8 -2, i8 -3, i8 -4, i8 -5, i8 -6, i8 -7, i8 -8>)
+  %c793 = icmp eq <8 x i8> %r793, <i8 -1, i8 -2, i8 -3, i8 4, i8 5, i8 6, i8 -7, i8 -8>
+  %m793 = bitcast <8 x i1> %c793 to i8
+  %ok793 = icmp eq i8 %m793, -1
+  br i1 %ok793, label %next793, label %fail54
+next793:
+  %r794 = call <8 x i8> @mixed_c16_si8_sgt_8(<8 x i16> <i16 1, i16 1, i16 32767, i16 32767, i16 32767, i16 32767, i16 32767, i16 -32768>, <8 x i16> <i16 -32768, i16 -1, i16 0, i16 1, i16 32767, i16 -32768, i16 -1, i16 0>, <8 x i8> <i8 1, i8 2, i8 3, i8 4, i8 5, i8 6, i8 7, i8 8>, <8 x i8> <i8 -1, i8 -2, i8 -3, i8 -4, i8 -5, i8 -6, i8 -7, i8 -8>)
+  %c794 = icmp eq <8 x i8> %r794, <i8 1, i8 2, i8 3, i8 4, i8 -5, i8 6, i8 7, i8 -8>
+  %m794 = bitcast <8 x i1> %c794 to i8
+  %ok794 = icmp eq i8 %m794, -1
+  br i1 %ok794, label %next794, label %fail54
+next794:
+  %r795 = call <8 x i8> @mixed_c16_si8_sgt_8(<8 x i16> <i16 -32768, i16 -32768, i16 -32768, i16 -32768, i16 -1, i16 -1, i16 -1, i16 -1>, <8 x i16> <i16 1, i16 32767, i16 -32768, i16 -1, i16 0, i16 1, i16 32767, i16 -32768>, <8 x i8> <i8 1, i8 2, i8 3, i8 4, i8 5, i8 6, i8 7, i8 8>, <8 x i8> <i8 -1, i8 -2, i8 -3, i8 -4, i8 -5, i8 -6, i8 -7, i8 -8>)
+  %c795 = icmp eq <8 x i8> %r795, <i8 -1, i8 -2, i8 -3, i8 -4, i8 -5, i8 -6, i8 -7, i8 8>
+  %m795 = bitcast <8 x i1> %c795 to i8
+  %ok795 = icmp eq i8 %m795, -1
+  br i1 %ok795, label %next795, label %fail54
+next795:
+  %r796 = call <8 x i8> @mixed_c16_si8_sgt_8(<8 x i16> <i16 -1, i16 -1, i16 -1, i16 -1, i16 -1, i16 -1, i16 -1, i16 -1>, <8 x i16> <i16 -1, i16 -1, i16 -1, i16 -1, i16 -1, i16 -1, i16 -1, i16 -1>, <8 x i8> <i8 1, i8 2, i8 3, i8 4, i8 5, i8 6, i8 7, i8 8>, <8 x i8> <i8 -1, i8 -2, i8 -3, i8 -4, i8 -5, i8 -6, i8 -7, i8 -8>)
+  %c796 = icmp eq <8 x i8> %r796, <i8 -1, i8 -2, i8 -3, i8 -4, i8 -5, i8 -6, i8 -7, i8 -8>
+  %m796 = bitcast <8 x i1> %c796 to i8
+  %ok796 = icmp eq i8 %m796, -1
+  br i1 %ok796, label %next796, label %fail54
+next796:
+  ; 55: ne on <8 x i16> selecting <8 x i8>
+  %r797 = call <8 x i8> @mixed_c16_si8_ne_8(<8 x i16> <i16 0, i16 0, i16 0, i16 0, i16 0, i16 1, i16 1, i16 1>, <8 x i16> <i16 0, i16 1, i16 32767, i16 -32768, i16 -1, i16 0, i16 1, i16 32767>, <8 x i8> <i8 1, i8 2, i8 3, i8 4, i8 5, i8 6, i8 7, i8 8>, <8 x i8> <i8 -1, i8 -2, i8 -3, i8 -4, i8 -5, i8 -6, i8 -7, i8 -8>)
+  %c797 = icmp eq <8 x i8> %r797, <i8 -1, i8 2, i8 3, i8 4, i8 5, i8 6, i8 -7, i8 8>
+  %m797 = bitcast <8 x i1> %c797 to i8
+  %ok797 = icmp eq i8 %m797, -1
+  br i1 %ok797, label %next797, label %fail55
+next797:
+  %r798 = call <8 x i8> @mixed_c16_si8_ne_8(<8 x i16> <i16 1, i16 1, i16 32767, i16 32767, i16 32767, i16 32767, i16 32767, i16 -32768>, <8 x i16> <i16 -32768, i16 -1, i16 0, i16 1, i16 32767, i16 -32768, i16 -1, i16 0>, <8 x i8> <i8 1, i8 2, i8 3, i8 4, i8 5, i8 6, i8 7, i8 8>, <8 x i8> <i8 -1, i8 -2, i8 -3, i8 -4, i8 -5, i8 -6, i8 -7, i8 -8>)
+  %c798 = icmp eq <8 x i8> %r798, <i8 1, i8 2, i8 3, i8 4, i8 -5, i8 6, i8 7, i8 8>
+  %m798 = bitcast <8 x i1> %c798 to i8
+  %ok798 = icmp eq i8 %m798, -1
+  br i1 %ok798, label %next798, label %fail55
+next798:
+  %r799 = call <8 x i8> @mixed_c16_si8_ne_8(<8 x i16> <i16 -32768, i16 -32768, i16 -32768, i16 -32768, i16 -1, i16 -1, i16 -1, i16 -1>, <8 x i16> <i16 1, i16 32767, i16 -32768, i16 -1, i16 0, i16 1, i16 32767, i16 -32768>, <8 x i8> <i8 1, i8 2, i8 3, i8 4, i8 5, i8 6, i8 7, i8 8>, <8 x i8> <i8 -1, i8 -2, i8 -3, i8 -4, i8 -5, i8 -6, i8 -7, i8 -8>)
+  %c799 = icmp eq <8 x i8> %r799, <i8 1, i8 2, i8 -3, i8 4, i8 5, i8 6, i8 7, i8 8>
+  %m799 = bitcast <8 x i1> %c799 to i8
+  %ok799 = icmp eq i8 %m799, -1
+  br i1 %ok799, label %next799, label %fail55
+next799:
+  %r800 = call <8 x i8> @mixed_c16_si8_ne_8(<8 x i16> <i16 -1, i16 -1, i16 -1, i16 -1, i16 -1, i16 -1, i16 -1, i16 -1>, <8 x i16> <i16 -1, i16 -1, i16 -1, i16 -1, i16 -1, i16 -1, i16 -1, i16 -1>, <8 x i8> <i8 1, i8 2, i8 3, i8 4, i8 5, i8 6, i8 7, i8 8>, <8 x i8> <i8 -1, i8 -2, i8 -3, i8 -4, i8 -5, i8 -6, i8 -7, i8 -8>)
+  %c800 = icmp eq <8 x i8> %r800, <i8 -1, i8 -2, i8 -3, i8 -4, i8 -5, i8 -6, i8 -7, i8 -8>
+  %m800 = bitcast <8 x i1> %c800 to i8
+  %ok800 = icmp eq i8 %m800, -1
+  br i1 %ok800, label %next800, label %fail55
+next800:
+  ; 56: sle on <8 x i16> selecting <8 x i8>
+  %r801 = call <8 x i8> @mixed_c16_si8_sle_8(<8 x i16> <i16 0, i16 0, i16 0, i16 0, i16 0, i16 1, i16 1, i16 1>, <8 x i16> <i16 0, i16 1, i16 32767, i16 -32768, i16 -1, i16 0, i16 1, i16 32767>, <8 x i8> <i8 1, i8 2, i8 3, i8 4, i8 5, i8 6, i8 7, i8 8>, <8 x i8> <i8 -1, i8 -2, i8 -3, i8 -4, i8 -5, i8 -6, i8 -7, i8 -8>)
+  %c801 = icmp eq <8 x i8> %r801, <i8 1, i8 2, i8 3, i8 -4, i8 -5, i8 -6, i8 7, i8 8>
+  %m801 = bitcast <8 x i1> %c801 to i8
+  %ok801 = icmp eq i8 %m801, -1
+  br i1 %ok801, label %next801, label %fail56
+next801:
+  %r802 = call <8 x i8> @mixed_c16_si8_sle_8(<8 x i16> <i16 1, i16 1, i16 32767, i16 32767, i16 32767, i16 32767, i16 32767, i16 -32768>, <8 x i16> <i16 -32768, i16 -1, i16 0, i16 1, i16 32767, i16 -32768, i16 -1, i16 0>, <8 x i8> <i8 1, i8 2, i8 3, i8 4, i8 5, i8 6, i8 7, i8 8>, <8 x i8> <i8 -1, i8 -2, i8 -3, i8 -4, i8 -5, i8 -6, i8 -7, i8 -8>)
+  %c802 = icmp eq <8 x i8> %r802, <i8 -1, i8 -2, i8 -3, i8 -4, i8 5, i8 -6, i8 -7, i8 8>
+  %m802 = bitcast <8 x i1> %c802 to i8
+  %ok802 = icmp eq i8 %m802, -1
+  br i1 %ok802, label %next802, label %fail56
+next802:
+  %r803 = call <8 x i8> @mixed_c16_si8_sle_8(<8 x i16> <i16 -32768, i16 -32768, i16 -32768, i16 -32768, i16 -1, i16 -1, i16 -1, i16 -1>, <8 x i16> <i16 1, i16 32767, i16 -32768, i16 -1, i16 0, i16 1, i16 32767, i16 -32768>, <8 x i8> <i8 1, i8 2, i8 3, i8 4, i8 5, i8 6, i8 7, i8 8>, <8 x i8> <i8 -1, i8 -2, i8 -3, i8 -4, i8 -5, i8 -6, i8 -7, i8 -8>)
+  %c803 = icmp eq <8 x i8> %r803, <i8 1, i8 2, i8 3, i8 4, i8 5, i8 6, i8 7, i8 -8>
+  %m803 = bitcast <8 x i1> %c803 to i8
+  %ok803 = icmp eq i8 %m803, -1
+  br i1 %ok803, label %next803, label %fail56
+next803:
+  %r804 = call <8 x i8> @mixed_c16_si8_sle_8(<8 x i16> <i16 -1, i16 -1, i16 -1, i16 -1, i16 -1, i16 -1, i16 -1, i16 -1>, <8 x i16> <i16 -1, i16 -1, i16 -1, i16 -1, i16 -1, i16 -1, i16 -1, i16 -1>, <8 x i8> <i8 1, i8 2, i8 3, i8 4, i8 5, i8 6, i8 7, i8 8>, <8 x i8> <i8 -1, i8 -2, i8 -3, i8 -4, i8 -5, i8 -6, i8 -7, i8 -8>)
+  %c804 = icmp eq <8 x i8> %r804, <i8 1, i8 2, i8 3, i8 4, i8 5, i8 6, i8 7, i8 8>
+  %m804 = bitcast <8 x i1> %c804 to i8
+  %ok804 = icmp eq i8 %m804, -1
+  br i1 %ok804, label %next804, label %fail56
+next804:
+  ; 57: ult on <8 x i16> selecting <8 x i32>
+  %r805 = call <8 x i32> @mixed_c16_si32_ult_8(<8 x i16> <i16 0, i16 0, i16 0, i16 0, i16 0, i16 1, i16 1, i16 1>, <8 x i16> <i16 0, i16 1, i16 32767, i16 -32768, i16 -1, i16 0, i16 1, i16 32767>, <8 x i32> <i32 1, i32 2, i32 3, i32 4, i32 5, i32 6, i32 7, i32 8>, <8 x i32> <i32 -1, i32 -2, i32 -3, i32 -4, i32 -5, i32 -6, i32 -7, i32 -8>)
+  %c805 = icmp eq <8 x i32> %r805, <i32 -1, i32 2, i32 3, i32 4, i32 5, i32 -6, i32 -7, i32 8>
+  %m805 = bitcast <8 x i1> %c805 to i8
+  %ok805 = icmp eq i8 %m805, -1
+  br i1 %ok805, label %next805, label %fail57
+next805:
+  %r806 = call <8 x i32> @mixed_c16_si32_ult_8(<8 x i16> <i16 1, i16 1, i16 32767, i16 32767, i16 32767, i16 32767, i16 32767, i16 -32768>, <8 x i16> <i16 -32768, i16 -1, i16 0, i16 1, i16 32767, i16 -32768, i16 -1, i16 0>, <8 x i32> <i32 1, i32 2, i32 3, i32 4, i32 5, i32 6, i32 7, i32 8>, <8 x i32> <i32 -1, i32 -2, i32 -3, i32 -4, i32 -5, i32 -6, i32 -7, i32 -8>)
+  %c806 = icmp eq <8 x i32> %r806, <i32 1, i32 2, i32 -3, i32 -4, i32 -5, i32 6, i32 7, i32 -8>
+  %m806 = bitcast <8 x i1> %c806 to i8
+  %ok806 = icmp eq i8 %m806, -1
+  br i1 %ok806, label %next806, label %fail57
+next806:
+  %r807 = call <8 x i32> @mixed_c16_si32_ult_8(<8 x i16> <i16 -32768, i16 -32768, i16 -32768, i16 -32768, i16 -1, i16 -1, i16 -1, i16 -1>, <8 x i16> <i16 1, i16 32767, i16 -32768, i16 -1, i16 0, i16 1, i16 32767, i16 -32768>, <8 x i32> <i32 1, i32 2, i32 3, i32 4, i32 5, i32 6, i32 7, i32 8>, <8 x i32> <i32 -1, i32 -2, i32 -3, i32 -4, i32 -5, i32 -6, i32 -7, i32 -8>)
+  %c807 = icmp eq <8 x i32> %r807, <i32 -1, i32 -2, i32 -3, i32 4, i32 -5, i32 -6, i32 -7, i32 -8>
+  %m807 = bitcast <8 x i1> %c807 to i8
+  %ok807 = icmp eq i8 %m807, -1
+  br i1 %ok807, label %next807, label %fail57
+next807:
+  %r808 = call <8 x i32> @mixed_c16_si32_ult_8(<8 x i16> <i16 -1, i16 -1, i16 -1, i16 -1, i16 -1, i16 -1, i16 -1, i16 -1>, <8 x i16> <i16 -1, i16 -1, i16 -1, i16 -1, i16 -1, i16 -1, i16 -1, i16 -1>, <8 x i32> <i32 1, i32 2, i32 3, i32 4, i32 5, i32 6, i32 7, i32 8>, <8 x i32> <i32 -1, i32 -2, i32 -3, i32 -4, i32 -5, i32 -6, i32 -7, i32 -8>)
+  %c808 = icmp eq <8 x i32> %r808, <i32 -1, i32 -2, i32 -3, i32 -4, i32 -5, i32 -6, i32 -7, i32 -8>
+  %m808 = bitcast <8 x i1> %c808 to i8
+  %ok808 = icmp eq i8 %m808, -1
+  br i1 %ok808, label %next808, label %fail57
+next808:
+  ; 58: sgt on <8 x i16> selecting <8 x i32>
+  %r809 = call <8 x i32> @mixed_c16_si32_sgt_8(<8 x i16> <i16 0, i16 0, i16 0, i16 0, i16 0, i16 1, i16 1, i16 1>, <8 x i16> <i16 0, i16 1, i16 32767, i16 -32768, i16 -1, i16 0, i16 1, i16 32767>, <8 x i32> <i32 1, i32 2, i32 3, i32 4, i32 5, i32 6, i32 7, i32 8>, <8 x i32> <i32 -1, i32 -2, i32 -3, i32 -4, i32 -5, i32 -6, i32 -7, i32 -8>)
+  %c809 = icmp eq <8 x i32> %r809, <i32 -1, i32 -2, i32 -3, i32 4, i32 5, i32 6, i32 -7, i32 -8>
+  %m809 = bitcast <8 x i1> %c809 to i8
+  %ok809 = icmp eq i8 %m809, -1
+  br i1 %ok809, label %next809, label %fail58
+next809:
+  %r810 = call <8 x i32> @mixed_c16_si32_sgt_8(<8 x i16> <i16 1, i16 1, i16 32767, i16 32767, i16 32767, i16 32767, i16 32767, i16 -32768>, <8 x i16> <i16 -32768, i16 -1, i16 0, i16 1, i16 32767, i16 -32768, i16 -1, i16 0>, <8 x i32> <i32 1, i32 2, i32 3, i32 4, i32 5, i32 6, i32 7, i32 8>, <8 x i32> <i32 -1, i32 -2, i32 -3, i32 -4, i32 -5, i32 -6, i32 -7, i32 -8>)
+  %c810 = icmp eq <8 x i32> %r810, <i32 1, i32 2, i32 3, i32 4, i32 -5, i32 6, i32 7, i32 -8>
+  %m810 = bitcast <8 x i1> %c810 to i8
+  %ok810 = icmp eq i8 %m810, -1
+  br i1 %ok810, label %next810, label %fail58
+next810:
+  %r811 = call <8 x i32> @mixed_c16_si32_sgt_8(<8 x i16> <i16 -32768, i16 -32768, i16 -32768, i16 -32768, i16 -1, i16 -1, i16 -1, i16 -1>, <8 x i16> <i16 1, i16 32767, i16 -32768, i16 -1, i16 0, i16 1, i16 32767, i16 -32768>, <8 x i32> <i32 1, i32 2, i32 3, i32 4, i32 5, i32 6, i32 7, i32 8>, <8 x i32> <i32 -1, i32 -2, i32 -3, i32 -4, i32 -5, i32 -6, i32 -7, i32 -8>)
+  %c811 = icmp eq <8 x i32> %r811, <i32 -1, i32 -2, i32 -3, i32 -4, i32 -5, i32 -6, i32 -7, i32 8>
+  %m811 = bitcast <8 x i1> %c811 to i8
+  %ok811 = icmp eq i8 %m811, -1
+  br i1 %ok811, label %next811, label %fail58
+next811:
+  %r812 = call <8 x i32> @mixed_c16_si32_sgt_8(<8 x i16> <i16 -1, i16 -1, i16 -1, i16 -1, i16 -1, i16 -1, i16 -1, i16 -1>, <8 x i16> <i16 -1, i16 -1, i16 -1, i16 -1, i16 -1, i16 -1, i16 -1, i16 -1>, <8 x i32> <i32 1, i32 2, i32 3, i32 4, i32 5, i32 6, i32 7, i32 8>, <8 x i32> <i32 -1, i32 -2, i32 -3, i32 -4, i32 -5, i32 -6, i32 -7, i32 -8>)
+  %c812 = icmp eq <8 x i32> %r812, <i32 -1, i32 -2, i32 -3, i32 -4, i32 -5, i32 -6, i32 -7, i32 -8>
+  %m812 = bitcast <8 x i1> %c812 to i8
+  %ok812 = icmp eq i8 %m812, -1
+  br i1 %ok812, label %next812, label %fail58
+next812:
+  ; 59: ne on <8 x i16> selecting <8 x i32>
+  %r813 = call <8 x i32> @mixed_c16_si32_ne_8(<8 x i16> <i16 0, i16 0, i16 0, i16 0, i16 0, i16 1, i16 1, i16 1>, <8 x i16> <i16 0, i16 1, i16 32767, i16 -32768, i16 -1, i16 0, i16 1, i16 32767>, <8 x i32> <i32 1, i32 2, i32 3, i32 4, i32 5, i32 6, i32 7, i32 8>, <8 x i32> <i32 -1, i32 -2, i32 -3, i32 -4, i32 -5, i32 -6, i32 -7, i32 -8>)
+  %c813 = icmp eq <8 x i32> %r813, <i32 -1, i32 2, i32 3, i32 4, i32 5, i32 6, i32 -7, i32 8>
+  %m813 = bitcast <8 x i1> %c813 to i8
+  %ok813 = icmp eq i8 %m813, -1
+  br i1 %ok813, label %next813, label %fail59
+next813:
+  %r814 = call <8 x i32> @mixed_c16_si32_ne_8(<8 x i16> <i16 1, i16 1, i16 32767, i16 32767, i16 32767, i16 32767, i16 32767, i16 -32768>, <8 x i16> <i16 -32768, i16 -1, i16 0, i16 1, i16 32767, i16 -32768, i16 -1, i16 0>, <8 x i32> <i32 1, i32 2, i32 3, i32 4, i32 5, i32 6, i32 7, i32 8>, <8 x i32> <i32 -1, i32 -2, i32 -3, i32 -4, i32 -5, i32 -6, i32 -7, i32 -8>)
+  %c814 = icmp eq <8 x i32> %r814, <i32 1, i32 2, i32 3, i32 4, i32 -5, i32 6, i32 7, i32 8>
+  %m814 = bitcast <8 x i1> %c814 to i8
+  %ok814 = icmp eq i8 %m814, -1
+  br i1 %ok814, label %next814, label %fail59
+next814:
+  %r815 = call <8 x i32> @mixed_c16_si32_ne_8(<8 x i16> <i16 -32768, i16 -32768, i16 -32768, i16 -32768, i16 -1, i16 -1, i16 -1, i16 -1>, <8 x i16> <i16 1, i16 32767, i16 -32768, i16 -1, i16 0, i16 1, i16 32767, i16 -32768>, <8 x i32> <i32 1, i32 2, i32 3, i32 4, i32 5, i32 6, i32 7, i32 8>, <8 x i32> <i32 -1, i32 -2, i32 -3, i32 -4, i32 -5, i32 -6, i32 -7, i32 -8>)
+  %c815 = icmp eq <8 x i32> %r815, <i32 1, i32 2, i32 -3, i32 4, i32 5, i32 6, i32 7, i32 8>
+  %m815 = bitcast <8 x i1> %c815 to i8
+  %ok815 = icmp eq i8 %m815, -1
+  br i1 %ok815, label %next815, label %fail59
+next815:
+  %r816 = call <8 x i32> @mixed_c16_si32_ne_8(<8 x i16> <i16 -1, i16 -1, i16 -1, i16 -1, i16 -1, i16 -1, i16 -1, i16 -1>, <8 x i16> <i16 -1, i16 -1, i16 -1, i16 -1, i16 -1, i16 -1, i16 -1, i16 -1>, <8 x i32> <i32 1, i32 2, i32 3, i32 4, i32 5, i32 6, i32 7, i32 8>, <8 x i32> <i32 -1, i32 -2, i32 -3, i32 -4, i32 -5, i32 -6, i32 -7, i32 -8>)
+  %c816 = icmp eq <8 x i32> %r816, <i32 -1, i32 -2, i32 -3, i32 -4, i32 -5, i32 -6, i32 -7, i32 -8>
+  %m816 = bitcast <8 x i1> %c816 to i8
+  %ok816 = icmp eq i8 %m816, -1
+  br i1 %ok816, label %next816, label %fail59
+next816:
+  ; 60: sle on <8 x i16> selecting <8 x i32>
+  %r817 = call <8 x i32> @mixed_c16_si32_sle_8(<8 x i16> <i16 0, i16 0, i16 0, i16 0, i16 0, i16 1, i16 1, i16 1>, <8 x i16> <i16 0, i16 1, i16 32767, i16 -32768, i16 -1, i16 0, i16 1, i16 32767>, <8 x i32> <i32 1, i32 2, i32 3, i32 4, i32 5, i32 6, i32 7, i32 8>, <8 x i32> <i32 -1, i32 -2, i32 -3, i32 -4, i32 -5, i32 -6, i32 -7, i32 -8>)
+  %c817 = icmp eq <8 x i32> %r817, <i32 1, i32 2, i32 3, i32 -4, i32 -5, i32 -6, i32 7, i32 8>
+  %m817 = bitcast <8 x i1> %c817 to i8
+  %ok817 = icmp eq i8 %m817, -1
+  br i1 %ok817, label %next817, label %fail60
+next817:
+  %r818 = call <8 x i32> @mixed_c16_si32_sle_8(<8 x i16> <i16 1, i16 1, i16 32767, i16 32767, i16 32767, i16 32767, i16 32767, i16 -32768>, <8 x i16> <i16 -32768, i16 -1, i16 0, i16 1, i16 32767, i16 -32768, i16 -1, i16 0>, <8 x i32> <i32 1, i32 2, i32 3, i32 4, i32 5, i32 6, i32 7, i32 8>, <8 x i32> <i32 -1, i32 -2, i32 -3, i32 -4, i32 -5, i32 -6, i32 -7, i32 -8>)
+  %c818 = icmp eq <8 x i32> %r818, <i32 -1, i32 -2, i32 -3, i32 -4, i32 5, i32 -6, i32 -7, i32 8>
+  %m818 = bitcast <8 x i1> %c818 to i8
+  %ok818 = icmp eq i8 %m818, -1
+  br i1 %ok818, label %next818, label %fail60
+next818:
+  %r819 = call <8 x i32> @mixed_c16_si32_sle_8(<8 x i16> <i16 -32768, i16 -32768, i16 -32768, i16 -32768, i16 -1, i16 -1, i16 -1, i16 -1>, <8 x i16> <i16 1, i16 32767, i16 -32768, i16 -1, i16 0, i16 1, i16 32767, i16 -32768>, <8 x i32> <i32 1, i32 2, i32 3, i32 4, i32 5, i32 6, i32 7, i32 8>, <8 x i32> <i32 -1, i32 -2, i32 -3, i32 -4, i32 -5, i32 -6, i32 -7, i32 -8>)
+  %c819 = icmp eq <8 x i32> %r819, <i32 1, i32 2, i32 3, i32 4, i32 5, i32 6, i32 7, i32 -8>
+  %m819 = bitcast <8 x i1> %c819 to i8
+  %ok819 = icmp eq i8 %m819, -1
+  br i1 %ok819, label %next819, label %fail60
+next819:
+  %r820 = call <8 x i32> @mixed_c16_si32_sle_8(<8 x i16> <i16 -1, i16 -1, i16 -1, i16 -1, i16 -1, i16 -1, i16 -1, i16 -1>, <8 x i16> <i16 -1, i16 -1, i16 -1, i16 -1, i16 -1, i16 -1, i16 -1, i16 -1>, <8 x i32> <i32 1, i32 2, i32 3, i32 4, i32 5, i32 6, i32 7, i32 8>, <8 x i32> <i32 -1, i32 -2, i32 -3, i32 -4, i32 -5, i32 -6, i32 -7, i32 -8>)
+  %c820 = icmp eq <8 x i32> %r820, <i32 1, i32 2, i32 3, i32 4, i32 5, i32 6, i32 7, i32 8>
+  %m820 = bitcast <8 x i1> %c820 to i8
+  %ok820 = icmp eq i8 %m820, -1
+  br i1 %ok820, label %next820, label %fail60
+next820:
+  ; 61: ult on <8 x i16> selecting <8 x i64>
+  %r821 = call <8 x i64> @mixed_c16_si64_ult_8(<8 x i16> <i16 0, i16 0, i16 0, i16 0, i16 0, i16 1, i16 1, i16 1>, <8 x i16> <i16 0, i16 1, i16 32767, i16 -32768, i16 -1, i16 0, i16 1, i16 32767>, <8 x i64> <i64 1, i64 2, i64 3, i64 4, i64 5, i64 6, i64 7, i64 8>, <8 x i64> <i64 -1, i64 -2, i64 -3, i64 -4, i64 -5, i64 -6, i64 -7, i64 -8>)
+  %c821 = icmp eq <8 x i64> %r821, <i64 -1, i64 2, i64 3, i64 4, i64 5, i64 -6, i64 -7, i64 8>
+  %m821 = bitcast <8 x i1> %c821 to i8
+  %ok821 = icmp eq i8 %m821, -1
+  br i1 %ok821, label %next821, label %fail61
+next821:
+  %r822 = call <8 x i64> @mixed_c16_si64_ult_8(<8 x i16> <i16 1, i16 1, i16 32767, i16 32767, i16 32767, i16 32767, i16 32767, i16 -32768>, <8 x i16> <i16 -32768, i16 -1, i16 0, i16 1, i16 32767, i16 -32768, i16 -1, i16 0>, <8 x i64> <i64 1, i64 2, i64 3, i64 4, i64 5, i64 6, i64 7, i64 8>, <8 x i64> <i64 -1, i64 -2, i64 -3, i64 -4, i64 -5, i64 -6, i64 -7, i64 -8>)
+  %c822 = icmp eq <8 x i64> %r822, <i64 1, i64 2, i64 -3, i64 -4, i64 -5, i64 6, i64 7, i64 -8>
+  %m822 = bitcast <8 x i1> %c822 to i8
+  %ok822 = icmp eq i8 %m822, -1
+  br i1 %ok822, label %next822, label %fail61
+next822:
+  %r823 = call <8 x i64> @mixed_c16_si64_ult_8(<8 x i16> <i16 -32768, i16 -32768, i16 -32768, i16 -32768, i16 -1, i16 -1, i16 -1, i16 -1>, <8 x i16> <i16 1, i16 32767, i16 -32768, i16 -1, i16 0, i16 1, i16 32767, i16 -32768>, <8 x i64> <i64 1, i64 2, i64 3, i64 4, i64 5, i64 6, i64 7, i64 8>, <8 x i64> <i64 -1, i64 -2, i64 -3, i64 -4, i64 -5, i64 -6, i64 -7, i64 -8>)
+  %c823 = icmp eq <8 x i64> %r823, <i64 -1, i64 -2, i64 -3, i64 4, i64 -5, i64 -6, i64 -7, i64 -8>
+  %m823 = bitcast <8 x i1> %c823 to i8
+  %ok823 = icmp eq i8 %m823, -1
+  br i1 %ok823, label %next823, label %fail61
+next823:
+  %r824 = call <8 x i64> @mixed_c16_si64_ult_8(<8 x i16> <i16 -1, i16 -1, i16 -1, i16 -1, i16 -1, i16 -1, i16 -1, i16 -1>, <8 x i16> <i16 -1, i16 -1, i16 -1, i16 -1, i16 -1, i16 -1, i16 -1, i16 -1>, <8 x i64> <i64 1, i64 2, i64 3, i64 4, i64 5, i64 6, i64 7, i64 8>, <8 x i64> <i64 -1, i64 -2, i64 -3, i64 -4, i64 -5, i64 -6, i64 -7, i64 -8>)
+  %c824 = icmp eq <8 x i64> %r824, <i64 -1, i64 -2, i64 -3, i64 -4, i64 -5, i64 -6, i64 -7, i64 -8>
+  %m824 = bitcast <8 x i1> %c824 to i8
+  %ok824 = icmp eq i8 %m824, -1
+  br i1 %ok824, label %next824, label %fail61
+next824:
+  ; 62: sgt on <8 x i16> selecting <8 x i64>
+  %r825 = call <8 x i64> @mixed_c16_si64_sgt_8(<8 x i16> <i16 0, i16 0, i16 0, i16 0, i16 0, i16 1, i16 1, i16 1>, <8 x i16> <i16 0, i16 1, i16 32767, i16 -32768, i16 -1, i16 0, i16 1, i16 32767>, <8 x i64> <i64 1, i64 2, i64 3, i64 4, i64 5, i64 6, i64 7, i64 8>, <8 x i64> <i64 -1, i64 -2, i64 -3, i64 -4, i64 -5, i64 -6, i64 -7, i64 -8>)
+  %c825 = icmp eq <8 x i64> %r825, <i64 -1, i64 -2, i64 -3, i64 4, i64 5, i64 6, i64 -7, i64 -8>
+  %m825 = bitcast <8 x i1> %c825 to i8
+  %ok825 = icmp eq i8 %m825, -1
+  br i1 %ok825, label %next825, label %fail62
+next825:
+  %r826 = call <8 x i64> @mixed_c16_si64_sgt_8(<8 x i16> <i16 1, i16 1, i16 32767, i16 32767, i16 32767, i16 32767, i16 32767, i16 -32768>, <8 x i16> <i16 -32768, i16 -1, i16 0, i16 1, i16 32767, i16 -32768, i16 -1, i16 0>, <8 x i64> <i64 1, i64 2, i64 3, i64 4, i64 5, i64 6, i64 7, i64 8>, <8 x i64> <i64 -1, i64 -2, i64 -3, i64 -4, i64 -5, i64 -6, i64 -7, i64 -8>)
+  %c826 = icmp eq <8 x i64> %r826, <i64 1, i64 2, i64 3, i64 4, i64 -5, i64 6, i64 7, i64 -8>
+  %m826 = bitcast <8 x i1> %c826 to i8
+  %ok826 = icmp eq i8 %m826, -1
+  br i1 %ok826, label %next826, label %fail62
+next826:
+  %r827 = call <8 x i64> @mixed_c16_si64_sgt_8(<8 x i16> <i16 -32768, i16 -32768, i16 -32768, i16 -32768, i16 -1, i16 -1, i16 -1, i16 -1>, <8 x i16> <i16 1, i16 32767, i16 -32768, i16 -1, i16 0, i16 1, i16 32767, i16 -32768>, <8 x i64> <i64 1, i64 2, i64 3, i64 4, i64 5, i64 6, i64 7, i64 8>, <8 x i64> <i64 -1, i64 -2, i64 -3, i64 -4, i64 -5, i64 -6, i64 -7, i64 -8>)
+  %c827 = icmp eq <8 x i64> %r827, <i64 -1, i64 -2, i64 -3, i64 -4, i64 -5, i64 -6, i64 -7, i64 8>
+  %m827 = bitcast <8 x i1> %c827 to i8
+  %ok827 = icmp eq i8 %m827, -1
+  br i1 %ok827, label %next827, label %fail62
+next827:
+  %r828 = call <8 x i64> @mixed_c16_si64_sgt_8(<8 x i16> <i16 -1, i16 -1, i16 -1, i16 -1, i16 -1, i16 -1, i16 -1, i16 -1>, <8 x i16> <i16 -1, i16 -1, i16 -1, i16 -1, i16 -1, i16 -1, i16 -1, i16 -1>, <8 x i64> <i64 1, i64 2, i64 3, i64 4, i64 5, i64 6, i64 7, i64 8>, <8 x i64> <i64 -1, i64 -2, i64 -3, i64 -4, i64 -5, i64 -6, i64 -7, i64 -8>)
+  %c828 = icmp eq <8 x i64> %r828, <i64 -1, i64 -2, i64 -3, i64 -4, i64 -5, i64 -6, i64 -7, i64 -8>
+  %m828 = bitcast <8 x i1> %c828 to i8
+  %ok828 = icmp eq i8 %m828, -1
+  br i1 %ok828, label %next828, label %fail62
+next828:
+  ; 63: ne on <8 x i16> selecting <8 x i64>
+  %r829 = call <8 x i64> @mixed_c16_si64_ne_8(<8 x i16> <i16 0, i16 0, i16 0, i16 0, i16 0, i16 1, i16 1, i16 1>, <8 x i16> <i16 0, i16 1, i16 32767, i16 -32768, i16 -1, i16 0, i16 1, i16 32767>, <8 x i64> <i64 1, i64 2, i64 3, i64 4, i64 5, i64 6, i64 7, i64 8>, <8 x i64> <i64 -1, i64 -2, i64 -3, i64 -4, i64 -5, i64 -6, i64 -7, i64 -8>)
+  %c829 = icmp eq <8 x i64> %r829, <i64 -1, i64 2, i64 3, i64 4, i64 5, i64 6, i64 -7, i64 8>
+  %m829 = bitcast <8 x i1> %c829 to i8
+  %ok829 = icmp eq i8 %m829, -1
+  br i1 %ok829, label %next829, label %fail63
+next829:
+  %r830 = call <8 x i64> @mixed_c16_si64_ne_8(<8 x i16> <i16 1, i16 1, i16 32767, i16 32767, i16 32767, i16 32767, i16 32767, i16 -32768>, <8 x i16> <i16 -32768, i16 -1, i16 0, i16 1, i16 32767, i16 -32768, i16 -1, i16 0>, <8 x i64> <i64 1, i64 2, i64 3, i64 4, i64 5, i64 6, i64 7, i64 8>, <8 x i64> <i64 -1, i64 -2, i64 -3, i64 -4, i64 -5, i64 -6, i64 -7, i64 -8>)
+  %c830 = icmp eq <8 x i64> %r830, <i64 1, i64 2, i64 3, i64 4, i64 -5, i64 6, i64 7, i64 8>
+  %m830 = bitcast <8 x i1> %c830 to i8
+  %ok830 = icmp eq i8 %m830, -1
+  br i1 %ok830, label %next830, label %fail63
+next830:
+  %r831 = call <8 x i64> @mixed_c16_si64_ne_8(<8 x i16> <i16 -32768, i16 -32768, i16 -32768, i16 -32768, i16 -1, i16 -1, i16 -1, i16 -1>, <8 x i16> <i16 1, i16 32767, i16 -32768, i16 -1, i16 0, i16 1, i16 32767, i16 -32768>, <8 x i64> <i64 1, i64 2, i64 3, i64 4, i64 5, i64 6, i64 7, i64 8>, <8 x i64> <i64 -1, i64 -2, i64 -3, i64 -4, i64 -5, i64 -6, i64 -7, i64 -8>)
+  %c831 = icmp eq <8 x i64> %r831, <i64 1, i64 2, i64 -3, i64 4, i64 5, i64 6, i64 7, i64 8>
+  %m831 = bitcast <8 x i1> %c831 to i8
+  %ok831 = icmp eq i8 %m831, -1
+  br i1 %ok831, label %next831, label %fail63
+next831:
+  %r832 = call <8 x i64> @mixed_c16_si64_ne_8(<8 x i16> <i16 -1, i16 -1, i16 -1, i16 -1, i16 -1, i16 -1, i16 -1, i16 -1>, <8 x i16> <i16 -1, i16 -1, i16 -1, i16 -1, i16 -1, i16 -1, i16 -1, i16 -1>, <8 x i64> <i64 1, i64 2, i64 3, i64 4, i64 5, i64 6, i64 7, i64 8>, <8 x i64> <i64 -1, i64 -2, i64 -3, i64 -4, i64 -5, i64 -6, i64 -7, i64 -8>)
+  %c832 = icmp eq <8 x i64> %r832, <i64 -1, i64 -2, i64 -3, i64 -4, i64 -5, i64 -6, i64 -7, i64 -8>
+  %m832 = bitcast <8 x i1> %c832 to i8
+  %ok832 = icmp eq i8 %m832, -1
+  br i1 %ok832, label %next832, label %fail63
+next832:
+  ; 64: sle on <8 x i16> selecting <8 x i64>
+  %r833 = call <8 x i64> @mixed_c16_si64_sle_8(<8 x i16> <i16 0, i16 0, i16 0, i16 0, i16 0, i16 1, i16 1, i16 1>, <8 x i16> <i16 0, i16 1, i16 32767, i16 -32768, i16 -1, i16 0, i16 1, i16 32767>, <8 x i64> <i64 1, i64 2, i64 3, i64 4, i64 5, i64 6, i64 7, i64 8>, <8 x i64> <i64 -1, i64 -2, i64 -3, i64 -4, i64 -5, i64 -6, i64 -7, i64 -8>)
+  %c833 = icmp eq <8 x i64> %r833, <i64 1, i64 2, i64 3, i64 -4, i64 -5, i64 -6, i64 7, i64 8>
+  %m833 = bitcast <8 x i1> %c833 to i8
+  %ok833 = icmp eq i8 %m833, -1
+  br i1 %ok833, label %next833, label %fail64
+next833:
+  %r834 = call <8 x i64> @mixed_c16_si64_sle_8(<8 x i16> <i16 1, i16 1, i16 32767, i16 32767, i16 32767, i16 32767, i16 32767, i16 -32768>, <8 x i16> <i16 -32768, i16 -1, i16 0, i16 1, i16 32767, i16 -32768, i16 -1, i16 0>, <8 x i64> <i64 1, i64 2, i64 3, i64 4, i64 5, i64 6, i64 7, i64 8>, <8 x i64> <i64 -1, i64 -2, i64 -3, i64 -4, i64 -5, i64 -6, i64 -7, i64 -8>)
+  %c834 = icmp eq <8 x i64> %r834, <i64 -1, i64 -2, i64 -3, i64 -4, i64 5, i64 -6, i64 -7, i64 8>
+  %m834 = bitcast <8 x i1> %c834 to i8
+  %ok834 = icmp eq i8 %m834, -1
+  br i1 %ok834, label %next834, label %fail64
+next834:
+  %r835 = call <8 x i64> @mixed_c16_si64_sle_8(<8 x i16> <i16 -32768, i16 -32768, i16 -32768, i16 -32768, i16 -1, i16 -1, i16 -1, i16 -1>, <8 x i16> <i16 1, i16 32767, i16 -32768, i16 -1, i16 0, i16 1, i16 32767, i16 -32768>, <8 x i64> <i64 1, i64 2, i64 3, i64 4, i64 5, i64 6, i64 7, i64 8>, <8 x i64> <i64 -1, i64 -2, i64 -3, i64 -4, i64 -5, i64 -6, i64 -7, i64 -8>)
+  %c835 = icmp eq <8 x i64> %r835, <i64 1, i64 2, i64 3, i64 4, i64 5, i64 6, i64 7, i64 -8>
+  %m835 = bitcast <8 x i1> %c835 to i8
+  %ok835 = icmp eq i8 %m835, -1
+  br i1 %ok835, label %next835, label %fail64
+next835:
+  %r836 = call <8 x i64> @mixed_c16_si64_sle_8(<8 x i16> <i16 -1, i16 -1, i16 -1, i16 -1, i16 -1, i16 -1, i16 -1, i16 -1>, <8 x i16> <i16 -1, i16 -1, i16 -1, i16 -1, i16 -1, i16 -1, i16 -1, i16 -1>, <8 x i64> <i64 1, i64 2, i64 3, i64 4, i64 5, i64 6, i64 7, i64 8>, <8 x i64> <i64 -1, i64 -2, i64 -3, i64 -4, i64 -5, i64 -6, i64 -7, i64 -8>)
+  %c836 = icmp eq <8 x i64> %r836, <i64 1, i64 2, i64 3, i64 4, i64 5, i64 6, i64 7, i64 8>
+  %m836 = bitcast <8 x i1> %c836 to i8
+  %ok836 = icmp eq i8 %m836, -1
+  br i1 %ok836, label %next836, label %fail64
+next836:
+  ; 65: ult on <8 x i32> selecting <8 x i8>
+  %r837 = call <8 x i8> @mixed_c32_si8_ult_8(<8 x i32> <i32 0, i32 0, i32 0, i32 0, i32 0, i32 1, i32 1, i32 1>, <8 x i32> <i32 0, i32 1, i32 2147483647, i32 -2147483648, i32 -1, i32 0, i32 1, i32 2147483647>, <8 x i8> <i8 1, i8 2, i8 3, i8 4, i8 5, i8 6, i8 7, i8 8>, <8 x i8> <i8 -1, i8 -2, i8 -3, i8 -4, i8 -5, i8 -6, i8 -7, i8 -8>)
+  %c837 = icmp eq <8 x i8> %r837, <i8 -1, i8 2, i8 3, i8 4, i8 5, i8 -6, i8 -7, i8 8>
+  %m837 = bitcast <8 x i1> %c837 to i8
+  %ok837 = icmp eq i8 %m837, -1
+  br i1 %ok837, label %next837, label %fail65
+next837:
+  %r838 = call <8 x i8> @mixed_c32_si8_ult_8(<8 x i32> <i32 1, i32 1, i32 2147483647, i32 2147483647, i32 2147483647, i32 2147483647, i32 2147483647, i32 -2147483648>, <8 x i32> <i32 -2147483648, i32 -1, i32 0, i32 1, i32 2147483647, i32 -2147483648, i32 -1, i32 0>, <8 x i8> <i8 1, i8 2, i8 3, i8 4, i8 5, i8 6, i8 7, i8 8>, <8 x i8> <i8 -1, i8 -2, i8 -3, i8 -4, i8 -5, i8 -6, i8 -7, i8 -8>)
+  %c838 = icmp eq <8 x i8> %r838, <i8 1, i8 2, i8 -3, i8 -4, i8 -5, i8 6, i8 7, i8 -8>
+  %m838 = bitcast <8 x i1> %c838 to i8
+  %ok838 = icmp eq i8 %m838, -1
+  br i1 %ok838, label %next838, label %fail65
+next838:
+  %r839 = call <8 x i8> @mixed_c32_si8_ult_8(<8 x i32> <i32 -2147483648, i32 -2147483648, i32 -2147483648, i32 -2147483648, i32 -1, i32 -1, i32 -1, i32 -1>, <8 x i32> <i32 1, i32 2147483647, i32 -2147483648, i32 -1, i32 0, i32 1, i32 2147483647, i32 -2147483648>, <8 x i8> <i8 1, i8 2, i8 3, i8 4, i8 5, i8 6, i8 7, i8 8>, <8 x i8> <i8 -1, i8 -2, i8 -3, i8 -4, i8 -5, i8 -6, i8 -7, i8 -8>)
+  %c839 = icmp eq <8 x i8> %r839, <i8 -1, i8 -2, i8 -3, i8 4, i8 -5, i8 -6, i8 -7, i8 -8>
+  %m839 = bitcast <8 x i1> %c839 to i8
+  %ok839 = icmp eq i8 %m839, -1
+  br i1 %ok839, label %next839, label %fail65
+next839:
+  %r840 = call <8 x i8> @mixed_c32_si8_ult_8(<8 x i32> <i32 -1, i32 -1, i32 -1, i32 -1, i32 -1, i32 -1, i32 -1, i32 -1>, <8 x i32> <i32 -1, i32 -1, i32 -1, i32 -1, i32 -1, i32 -1, i32 -1, i32 -1>, <8 x i8> <i8 1, i8 2, i8 3, i8 4, i8 5, i8 6, i8 7, i8 8>, <8 x i8> <i8 -1, i8 -2, i8 -3, i8 -4, i8 -5, i8 -6, i8 -7, i8 -8>)
+  %c840 = icmp eq <8 x i8> %r840, <i8 -1, i8 -2, i8 -3, i8 -4, i8 -5, i8 -6, i8 -7, i8 -8>
+  %m840 = bitcast <8 x i1> %c840 to i8
+  %ok840 = icmp eq i8 %m840, -1
+  br i1 %ok840, label %next840, label %fail65
+next840:
+  ; 66: sgt on <8 x i32> selecting <8 x i8>
+  %r841 = call <8 x i8> @mixed_c32_si8_sgt_8(<8 x i32> <i32 0, i32 0, i32 0, i32 0, i32 0, i32 1, i32 1, i32 1>, <8 x i32> <i32 0, i32 1, i32 2147483647, i32 -2147483648, i32 -1, i32 0, i32 1, i32 2147483647>, <8 x i8> <i8 1, i8 2, i8 3, i8 4, i8 5, i8 6, i8 7, i8 8>, <8 x i8> <i8 -1, i8 -2, i8 -3, i8 -4, i8 -5, i8 -6, i8 -7, i8 -8>)
+  %c841 = icmp eq <8 x i8> %r841, <i8 -1, i8 -2, i8 -3, i8 4, i8 5, i8 6, i8 -7, i8 -8>
+  %m841 = bitcast <8 x i1> %c841 to i8
+  %ok841 = icmp eq i8 %m841, -1
+  br i1 %ok841, label %next841, label %fail66
+next841:
+  %r842 = call <8 x i8> @mixed_c32_si8_sgt_8(<8 x i32> <i32 1, i32 1, i32 2147483647, i32 2147483647, i32 2147483647, i32 2147483647, i32 2147483647, i32 -2147483648>, <8 x i32> <i32 -2147483648, i32 -1, i32 0, i32 1, i32 2147483647, i32 -2147483648, i32 -1, i32 0>, <8 x i8> <i8 1, i8 2, i8 3, i8 4, i8 5, i8 6, i8 7, i8 8>, <8 x i8> <i8 -1, i8 -2, i8 -3, i8 -4, i8 -5, i8 -6, i8 -7, i8 -8>)
+  %c842 = icmp eq <8 x i8> %r842, <i8 1, i8 2, i8 3, i8 4, i8 -5, i8 6, i8 7, i8 -8>
+  %m842 = bitcast <8 x i1> %c842 to i8
+  %ok842 = icmp eq i8 %m842, -1
+  br i1 %ok842, label %next842, label %fail66
+next842:
+  %r843 = call <8 x i8> @mixed_c32_si8_sgt_8(<8 x i32> <i32 -2147483648, i32 -2147483648, i32 -2147483648, i32 -2147483648, i32 -1, i32 -1, i32 -1, i32 -1>, <8 x i32> <i32 1, i32 2147483647, i32 -2147483648, i32 -1, i32 0, i32 1, i32 2147483647, i32 -2147483648>, <8 x i8> <i8 1, i8 2, i8 3, i8 4, i8 5, i8 6, i8 7, i8 8>, <8 x i8> <i8 -1, i8 -2, i8 -3, i8 -4, i8 -5, i8 -6, i8 -7, i8 -8>)
+  %c843 = icmp eq <8 x i8> %r843, <i8 -1, i8 -2, i8 -3, i8 -4, i8 -5, i8 -6, i8 -7, i8 8>
+  %m843 = bitcast <8 x i1> %c843 to i8
+  %ok843 = icmp eq i8 %m843, -1
+  br i1 %ok843, label %next843, label %fail66
+next843:
+  %r844 = call <8 x i8> @mixed_c32_si8_sgt_8(<8 x i32> <i32 -1, i32 -1, i32 -1, i32 -1, i32 -1, i32 -1, i32 -1, i32 -1>, <8 x i32> <i32 -1, i32 -1, i32 -1, i32 -1, i32 -1, i32 -1, i32 -1, i32 -1>, <8 x i8> <i8 1, i8 2, i8 3, i8 4, i8 5, i8 6, i8 7, i8 8>, <8 x i8> <i8 -1, i8 -2, i8 -3, i8 -4, i8 -5, i8 -6, i8 -7, i8 -8>)
+  %c844 = icmp eq <8 x i8> %r844, <i8 -1, i8 -2, i8 -3, i8 -4, i8 -5, i8 -6, i8 -7, i8 -8>
+  %m844 = bitcast <8 x i1> %c844 to i8
+  %ok844 = icmp eq i8 %m844, -1
+  br i1 %ok844, label %next844, label %fail66
+next844:
+  ; 67: ne on <8 x i32> selecting <8 x i8>
+  %r845 = call <8 x i8> @mixed_c32_si8_ne_8(<8 x i32> <i32 0, i32 0, i32 0, i32 0, i32 0, i32 1, i32 1, i32 1>, <8 x i32> <i32 0, i32 1, i32 2147483647, i32 -2147483648, i32 -1, i32 0, i32 1, i32 2147483647>, <8 x i8> <i8 1, i8 2, i8 3, i8 4, i8 5, i8 6, i8 7, i8 8>, <8 x i8> <i8 -1, i8 -2, i8 -3, i8 -4, i8 -5, i8 -6, i8 -7, i8 -8>)
+  %c845 = icmp eq <8 x i8> %r845, <i8 -1, i8 2, i8 3, i8 4, i8 5, i8 6, i8 -7, i8 8>
+  %m845 = bitcast <8 x i1> %c845 to i8
+  %ok845 = icmp eq i8 %m845, -1
+  br i1 %ok845, label %next845, label %fail67
+next845:
+  %r846 = call <8 x i8> @mixed_c32_si8_ne_8(<8 x i32> <i32 1, i32 1, i32 2147483647, i32 2147483647, i32 2147483647, i32 2147483647, i32 2147483647, i32 -2147483648>, <8 x i32> <i32 -2147483648, i32 -1, i32 0, i32 1, i32 2147483647, i32 -2147483648, i32 -1, i32 0>, <8 x i8> <i8 1, i8 2, i8 3, i8 4, i8 5, i8 6, i8 7, i8 8>, <8 x i8> <i8 -1, i8 -2, i8 -3, i8 -4, i8 -5, i8 -6, i8 -7, i8 -8>)
+  %c846 = icmp eq <8 x i8> %r846, <i8 1, i8 2, i8 3, i8 4, i8 -5, i8 6, i8 7, i8 8>
+  %m846 = bitcast <8 x i1> %c846 to i8
+  %ok846 = icmp eq i8 %m846, -1
+  br i1 %ok846, label %next846, label %fail67
+next846:
+  %r847 = call <8 x i8> @mixed_c32_si8_ne_8(<8 x i32> <i32 -2147483648, i32 -2147483648, i32 -2147483648, i32 -2147483648, i32 -1, i32 -1, i32 -1, i32 -1>, <8 x i32> <i32 1, i32 2147483647, i32 -2147483648, i32 -1, i32 0, i32 1, i32 2147483647, i32 -2147483648>, <8 x i8> <i8 1, i8 2, i8 3, i8 4, i8 5, i8 6, i8 7, i8 8>, <8 x i8> <i8 -1, i8 -2, i8 -3, i8 -4, i8 -5, i8 -6, i8 -7, i8 -8>)
+  %c847 = icmp eq <8 x i8> %r847, <i8 1, i8 2, i8 -3, i8 4, i8 5, i8 6, i8 7, i8 8>
+  %m847 = bitcast <8 x i1> %c847 to i8
+  %ok847 = icmp eq i8 %m847, -1
+  br i1 %ok847, label %next847, label %fail67
+next847:
+  %r848 = call <8 x i8> @mixed_c32_si8_ne_8(<8 x i32> <i32 -1, i32 -1, i32 -1, i32 -1, i32 -1, i32 -1, i32 -1, i32 -1>, <8 x i32> <i32 -1, i32 -1, i32 -1, i32 -1, i32 -1, i32 -1, i32 -1, i32 -1>, <8 x i8> <i8 1, i8 2, i8 3, i8 4, i8 5, i8 6, i8 7, i8 8>, <8 x i8> <i8 -1, i8 -2, i8 -3, i8 -4, i8 -5, i8 -6, i8 -7, i8 -8>)
+  %c848 = icmp eq <8 x i8> %r848, <i8 -1, i8 -2, i8 -3, i8 -4, i8 -5, i8 -6, i8 -7, i8 -8>
+  %m848 = bitcast <8 x i1> %c848 to i8
+  %ok848 = icmp eq i8 %m848, -1
+  br i1 %ok848, label %next848, label %fail67
+next848:
+  ; 68: sle on <8 x i32> selecting <8 x i8>
+  %r849 = call <8 x i8> @mixed_c32_si8_sle_8(<8 x i32> <i32 0, i32 0, i32 0, i32 0, i32 0, i32 1, i32 1, i32 1>, <8 x i32> <i32 0, i32 1, i32 2147483647, i32 -2147483648, i32 -1, i32 0, i32 1, i32 2147483647>, <8 x i8> <i8 1, i8 2, i8 3, i8 4, i8 5, i8 6, i8 7, i8 8>, <8 x i8> <i8 -1, i8 -2, i8 -3, i8 -4, i8 -5, i8 -6, i8 -7, i8 -8>)
+  %c849 = icmp eq <8 x i8> %r849, <i8 1, i8 2, i8 3, i8 -4, i8 -5, i8 -6, i8 7, i8 8>
+  %m849 = bitcast <8 x i1> %c849 to i8
+  %ok849 = icmp eq i8 %m849, -1
+  br i1 %ok849, label %next849, label %fail68
+next849:
+  %r850 = call <8 x i8> @mixed_c32_si8_sle_8(<8 x i32> <i32 1, i32 1, i32 2147483647, i32 2147483647, i32 2147483647, i32 2147483647, i32 2147483647, i32 -2147483648>, <8 x i32> <i32 -2147483648, i32 -1, i32 0, i32 1, i32 2147483647, i32 -2147483648, i32 -1, i32 0>, <8 x i8> <i8 1, i8 2, i8 3, i8 4, i8 5, i8 6, i8 7, i8 8>, <8 x i8> <i8 -1, i8 -2, i8 -3, i8 -4, i8 -5, i8 -6, i8 -7, i8 -8>)
+  %c850 = icmp eq <8 x i8> %r850, <i8 -1, i8 -2, i8 -3, i8 -4, i8 5, i8 -6, i8 -7, i8 8>
+  %m850 = bitcast <8 x i1> %c850 to i8
+  %ok850 = icmp eq i8 %m850, -1
+  br i1 %ok850, label %next850, label %fail68
+next850:
+  %r851 = call <8 x i8> @mixed_c32_si8_sle_8(<8 x i32> <i32 -2147483648, i32 -2147483648, i32 -2147483648, i32 -2147483648, i32 -1, i32 -1, i32 -1, i32 -1>, <8 x i32> <i32 1, i32 2147483647, i32 -2147483648, i32 -1, i32 0, i32 1, i32 2147483647, i32 -2147483648>, <8 x i8> <i8 1, i8 2, i8 3, i8 4, i8 5, i8 6, i8 7, i8 8>, <8 x i8> <i8 -1, i8 -2, i8 -3, i8 -4, i8 -5, i8 -6, i8 -7, i8 -8>)
+  %c851 = icmp eq <8 x i8> %r851, <i8 1, i8 2, i8 3, i8 4, i8 5, i8 6, i8 7, i8 -8>
+  %m851 = bitcast <8 x i1> %c851 to i8
+  %ok851 = icmp eq i8 %m851, -1
+  br i1 %ok851, label %next851, label %fail68
+next851:
+  %r852 = call <8 x i8> @mixed_c32_si8_sle_8(<8 x i32> <i32 -1, i32 -1, i32 -1, i32 -1, i32 -1, i32 -1, i32 -1, i32 -1>, <8 x i32> <i32 -1, i32 -1, i32 -1, i32 -1, i32 -1, i32 -1, i32 -1, i32 -1>, <8 x i8> <i8 1, i8 2, i8 3, i8 4, i8 5, i8 6, i8 7, i8 8>, <8 x i8> <i8 -1, i8 -2, i8 -3, i8 -4, i8 -5, i8 -6, i8 -7, i8 -8>)
+  %c852 = icmp eq <8 x i8> %r852, <i8 1, i8 2, i8 3, i8 4, i8 5, i8 6, i8 7, i8 8>
+  %m852 = bitcast <8 x i1> %c852 to i8
+  %ok852 = icmp eq i8 %m852, -1
+  br i1 %ok852, label %next852, label %fail68
+next852:
+  ; 69: ult on <8 x i32> selecting <8 x i16>
+  %r853 = call <8 x i16> @mixed_c32_si16_ult_8(<8 x i32> <i32 0, i32 0, i32 0, i32 0, i32 0, i32 1, i32 1, i32 1>, <8 x i32> <i32 0, i32 1, i32 2147483647, i32 -2147483648, i32 -1, i32 0, i32 1, i32 2147483647>, <8 x i16> <i16 1, i16 2, i16 3, i16 4, i16 5, i16 6, i16 7, i16 8>, <8 x i16> <i16 -1, i16 -2, i16 -3, i16 -4, i16 -5, i16 -6, i16 -7, i16 -8>)
+  %c853 = icmp eq <8 x i16> %r853, <i16 -1, i16 2, i16 3, i16 4, i16 5, i16 -6, i16 -7, i16 8>
+  %m853 = bitcast <8 x i1> %c853 to i8
+  %ok853 = icmp eq i8 %m853, -1
+  br i1 %ok853, label %next853, label %fail69
+next853:
+  %r854 = call <8 x i16> @mixed_c32_si16_ult_8(<8 x i32> <i32 1, i32 1, i32 2147483647, i32 2147483647, i32 2147483647, i32 2147483647, i32 2147483647, i32 -2147483648>, <8 x i32> <i32 -2147483648, i32 -1, i32 0, i32 1, i32 2147483647, i32 -2147483648, i32 -1, i32 0>, <8 x i16> <i16 1, i16 2, i16 3, i16 4, i16 5, i16 6, i16 7, i16 8>, <8 x i16> <i16 -1, i16 -2, i16 -3, i16 -4, i16 -5, i16 -6, i16 -7, i16 -8>)
+  %c854 = icmp eq <8 x i16> %r854, <i16 1, i16 2, i16 -3, i16 -4, i16 -5, i16 6, i16 7, i16 -8>
+  %m854 = bitcast <8 x i1> %c854 to i8
+  %ok854 = icmp eq i8 %m854, -1
+  br i1 %ok854, label %next854, label %fail69
+next854:
+  %r855 = call <8 x i16> @mixed_c32_si16_ult_8(<8 x i32> <i32 -2147483648, i32 -2147483648, i32 -2147483648, i32 -2147483648, i32 -1, i32 -1, i32 -1, i32 -1>, <8 x i32> <i32 1, i32 2147483647, i32 -2147483648, i32 -1, i32 0, i32 1, i32 2147483647, i32 -2147483648>, <8 x i16> <i16 1, i16 2, i16 3, i16 4, i16 5, i16 6, i16 7, i16 8>, <8 x i16> <i16 -1, i16 -2, i16 -3, i16 -4, i16 -5, i16 -6, i16 -7, i16 -8>)
+  %c855 = icmp eq <8 x i16> %r855, <i16 -1, i16 -2, i16 -3, i16 4, i16 -5, i16 -6, i16 -7, i16 -8>
+  %m855 = bitcast <8 x i1> %c855 to i8
+  %ok855 = icmp eq i8 %m855, -1
+  br i1 %ok855, label %next855, label %fail69
+next855:
+  %r856 = call <8 x i16> @mixed_c32_si16_ult_8(<8 x i32> <i32 -1, i32 -1, i32 -1, i32 -1, i32 -1, i32 -1, i32 -1, i32 -1>, <8 x i32> <i32 -1, i32 -1, i32 -1, i32 -1, i32 -1, i32 -1, i32 -1, i32 -1>, <8 x i16> <i16 1, i16 2, i16 3, i16 4, i16 5, i16 6, i16 7, i16 8>, <8 x i16> <i16 -1, i16 -2, i16 -3, i16 -4, i16 -5, i16 -6, i16 -7, i16 -8>)
+  %c856 = icmp eq <8 x i16> %r856, <i16 -1, i16 -2, i16 -3, i16 -4, i16 -5, i16 -6, i16 -7, i16 -8>
+  %m856 = bitcast <8 x i1> %c856 to i8
+  %ok856 = icmp eq i8 %m856, -1
+  br i1 %ok856, label %next856, label %fail69
+next856:
+  ; 70: sgt on <8 x i32> selecting <8 x i16>
+  %r857 = call <8 x i16> @mixed_c32_si16_sgt_8(<8 x i32> <i32 0, i32 0, i32 0, i32 0, i32 0, i32 1, i32 1, i32 1>, <8 x i32> <i32 0, i32 1, i32 2147483647, i32 -2147483648, i32 -1, i32 0, i32 1, i32 2147483647>, <8 x i16> <i16 1, i16 2, i16 3, i16 4, i16 5, i16 6, i16 7, i16 8>, <8 x i16> <i16 -1, i16 -2, i16 -3, i16 -4, i16 -5, i16 -6, i16 -7, i16 -8>)
+  %c857 = icmp eq <8 x i16> %r857, <i16 -1, i16 -2, i16 -3, i16 4, i16 5, i16 6, i16 -7, i16 -8>
+  %m857 = bitcast <8 x i1> %c857 to i8
+  %ok857 = icmp eq i8 %m857, -1
+  br i1 %ok857, label %next857, label %fail70
+next857:
+  %r858 = call <8 x i16> @mixed_c32_si16_sgt_8(<8 x i32> <i32 1, i32 1, i32 2147483647, i32 2147483647, i32 2147483647, i32 2147483647, i32 2147483647, i32 -2147483648>, <8 x i32> <i32 -2147483648, i32 -1, i32 0, i32 1, i32 2147483647, i32 -2147483648, i32 -1, i32 0>, <8 x i16> <i16 1, i16 2, i16 3, i16 4, i16 5, i16 6, i16 7, i16 8>, <8 x i16> <i16 -1, i16 -2, i16 -3, i16 -4, i16 -5, i16 -6, i16 -7, i16 -8>)
+  %c858 = icmp eq <8 x i16> %r858, <i16 1, i16 2, i16 3, i16 4, i16 -5, i16 6, i16 7, i16 -8>
+  %m858 = bitcast <8 x i1> %c858 to i8
+  %ok858 = icmp eq i8 %m858, -1
+  br i1 %ok858, label %next858, label %fail70
+next858:
+  %r859 = call <8 x i16> @mixed_c32_si16_sgt_8(<8 x i32> <i32 -2147483648, i32 -2147483648, i32 -2147483648, i32 -2147483648, i32 -1, i32 -1, i32 -1, i32 -1>, <8 x i32> <i32 1, i32 2147483647, i32 -2147483648, i32 -1, i32 0, i32 1, i32 2147483647, i32 -2147483648>, <8 x i16> <i16 1, i16 2, i16 3, i16 4, i16 5, i16 6, i16 7, i16 8>, <8 x i16> <i16 -1, i16 -2, i16 -3, i16 -4, i16 -5, i16 -6, i16 -7, i16 -8>)
+  %c859 = icmp eq <8 x i16> %r859, <i16 -1, i16 -2, i16 -3, i16 -4, i16 -5, i16 -6, i16 -7, i16 8>
+  %m859 = bitcast <8 x i1> %c859 to i8
+  %ok859 = icmp eq i8 %m859, -1
+  br i1 %ok859, label %next859, label %fail70
+next859:
+  %r860 = call <8 x i16> @mixed_c32_si16_sgt_8(<8 x i32> <i32 -1, i32 -1, i32 -1, i32 -1, i32 -1, i32 -1, i32 -1, i32 -1>, <8 x i32> <i32 -1, i32 -1, i32 -1, i32 -1, i32 -1, i32 -1, i32 -1, i32 -1>, <8 x i16> <i16 1, i16 2, i16 3, i16 4, i16 5, i16 6, i16 7, i16 8>, <8 x i16> <i16 -1, i16 -2, i16 -3, i16 -4, i16 -5, i16 -6, i16 -7, i16 -8>)
+  %c860 = icmp eq <8 x i16> %r860, <i16 -1, i16 -2, i16 -3, i16 -4, i16 -5, i16 -6, i16 -7, i16 -8>
+  %m860 = bitcast <8 x i1> %c860 to i8
+  %ok860 = icmp eq i8 %m860, -1
+  br i1 %ok860, label %next860, label %fail70
+next860:
+  ; 71: ne on <8 x i32> selecting <8 x i16>
+  %r861 = call <8 x i16> @mixed_c32_si16_ne_8(<8 x i32> <i32 0, i32 0, i32 0, i32 0, i32 0, i32 1, i32 1, i32 1>, <8 x i32> <i32 0, i32 1, i32 2147483647, i32 -2147483648, i32 -1, i32 0, i32 1, i32 2147483647>, <8 x i16> <i16 1, i16 2, i16 3, i16 4, i16 5, i16 6, i16 7, i16 8>, <8 x i16> <i16 -1, i16 -2, i16 -3, i16 -4, i16 -5, i16 -6, i16 -7, i16 -8>)
+  %c861 = icmp eq <8 x i16> %r861, <i16 -1, i16 2, i16 3, i16 4, i16 5, i16 6, i16 -7, i16 8>
+  %m861 = bitcast <8 x i1> %c861 to i8
+  %ok861 = icmp eq i8 %m861, -1
+  br i1 %ok861, label %next861, label %fail71
+next861:
+  %r862 = call <8 x i16> @mixed_c32_si16_ne_8(<8 x i32> <i32 1, i32 1, i32 2147483647, i32 2147483647, i32 2147483647, i32 2147483647, i32 2147483647, i32 -2147483648>, <8 x i32> <i32 -2147483648, i32 -1, i32 0, i32 1, i32 2147483647, i32 -2147483648, i32 -1, i32 0>, <8 x i16> <i16 1, i16 2, i16 3, i16 4, i16 5, i16 6, i16 7, i16 8>, <8 x i16> <i16 -1, i16 -2, i16 -3, i16 -4, i16 -5, i16 -6, i16 -7, i16 -8>)
+  %c862 = icmp eq <8 x i16> %r862, <i16 1, i16 2, i16 3, i16 4, i16 -5, i16 6, i16 7, i16 8>
+  %m862 = bitcast <8 x i1> %c862 to i8
+  %ok862 = icmp eq i8 %m862, -1
+  br i1 %ok862, label %next862, label %fail71
+next862:
+  %r863 = call <8 x i16> @mixed_c32_si16_ne_8(<8 x i32> <i32 -2147483648, i32 -2147483648, i32 -2147483648, i32 -2147483648, i32 -1, i32 -1, i32 -1, i32 -1>, <8 x i32> <i32 1, i32 2147483647, i32 -2147483648, i32 -1, i32 0, i32 1, i32 2147483647, i32 -2147483648>, <8 x i16> <i16 1, i16 2, i16 3, i16 4, i16 5, i16 6, i16 7, i16 8>, <8 x i16> <i16 -1, i16 -2, i16 -3, i16 -4, i16 -5, i16 -6, i16 -7, i16 -8>)
+  %c863 = icmp eq <8 x i16> %r863, <i16 1, i16 2, i16 -3, i16 4, i16 5, i16 6, i16 7, i16 8>
+  %m863 = bitcast <8 x i1> %c863 to i8
+  %ok863 = icmp eq i8 %m863, -1
+  br i1 %ok863, label %next863, label %fail71
+next863:
+  %r864 = call <8 x i16> @mixed_c32_si16_ne_8(<8 x i32> <i32 -1, i32 -1, i32 -1, i32 -1, i32 -1, i32 -1, i32 -1, i32 -1>, <8 x i32> <i32 -1, i32 -1, i32 -1, i32 -1, i32 -1, i32 -1, i32 -1, i32 -1>, <8 x i16> <i16 1, i16 2, i16 3, i16 4, i16 5, i16 6, i16 7, i16 8>, <8 x i16> <i16 -1, i16 -2, i16 -3, i16 -4, i16 -5, i16 -6, i16 -7, i16 -8>)
+  %c864 = icmp eq <8 x i16> %r864, <i16 -1, i16 -2, i16 -3, i16 -4, i16 -5, i16 -6, i16 -7, i16 -8>
+  %m864 = bitcast <8 x i1> %c864 to i8
+  %ok864 = icmp eq i8 %m864, -1
+  br i1 %ok864, label %next864, label %fail71
+next864:
+  ; 72: sle on <8 x i32> selecting <8 x i16>
+  %r865 = call <8 x i16> @mixed_c32_si16_sle_8(<8 x i32> <i32 0, i32 0, i32 0, i32 0, i32 0, i32 1, i32 1, i32 1>, <8 x i32> <i32 0, i32 1, i32 2147483647, i32 -2147483648, i32 -1, i32 0, i32 1, i32 2147483647>, <8 x i16> <i16 1, i16 2, i16 3, i16 4, i16 5, i16 6, i16 7, i16 8>, <8 x i16> <i16 -1, i16 -2, i16 -3, i16 -4, i16 -5, i16 -6, i16 -7, i16 -8>)
+  %c865 = icmp eq <8 x i16> %r865, <i16 1, i16 2, i16 3, i16 -4, i16 -5, i16 -6, i16 7, i16 8>
+  %m865 = bitcast <8 x i1> %c865 to i8
+  %ok865 = icmp eq i8 %m865, -1
+  br i1 %ok865, label %next865, label %fail72
+next865:
+  %r866 = call <8 x i16> @mixed_c32_si16_sle_8(<8 x i32> <i32 1, i32 1, i32 2147483647, i32 2147483647, i32 2147483647, i32 2147483647, i32 2147483647, i32 -2147483648>, <8 x i32> <i32 -2147483648, i32 -1, i32 0, i32 1, i32 2147483647, i32 -2147483648, i32 -1, i32 0>, <8 x i16> <i16 1, i16 2, i16 3, i16 4, i16 5, i16 6, i16 7, i16 8>, <8 x i16> <i16 -1, i16 -2, i16 -3, i16 -4, i16 -5, i16 -6, i16 -7, i16 -8>)
+  %c866 = icmp eq <8 x i16> %r866, <i16 -1, i16 -2, i16 -3, i16 -4, i16 5, i16 -6, i16 -7, i16 8>
+  %m866 = bitcast <8 x i1> %c866 to i8
+  %ok866 = icmp eq i8 %m866, -1
+  br i1 %ok866, label %next866, label %fail72
+next866:
+  %r867 = call <8 x i16> @mixed_c32_si16_sle_8(<8 x i32> <i32 -2147483648, i32 -2147483648, i32 -2147483648, i32 -2147483648, i32 -1, i32 -1, i32 -1, i32 -1>, <8 x i32> <i32 1, i32 2147483647, i32 -2147483648, i32 -1, i32 0, i32 1, i32 2147483647, i32 -2147483648>, <8 x i16> <i16 1, i16 2, i16 3, i16 4, i16 5, i16 6, i16 7, i16 8>, <8 x i16> <i16 -1, i16 -2, i16 -3, i16 -4, i16 -5, i16 -6, i16 -7, i16 -8>)
+  %c867 = icmp eq <8 x i16> %r867, <i16 1, i16 2, i16 3, i16 4, i16 5, i16 6, i16 7, i16 -8>
+  %m867 = bitcast <8 x i1> %c867 to i8
+  %ok867 = icmp eq i8 %m867, -1
+  br i1 %ok867, label %next867, label %fail72
+next867:
+  %r868 = call <8 x i16> @mixed_c32_si16_sle_8(<8 x i32> <i32 -1, i32 -1, i32 -1, i32 -1, i32 -1, i32 -1, i32 -1, i32 -1>, <8 x i32> <i32 -1, i32 -1, i32 -1, i32 -1, i32 -1, i32 -1, i32 -1, i32 -1>, <8 x i16> <i16 1, i16 2, i16 3, i16 4, i16 5, i16 6, i16 7, i16 8>, <8 x i16> <i16 -1, i16 -2, i16 -3, i16 -4, i16 -5, i16 -6, i16 -7, i16 -8>)
+  %c868 = icmp eq <8 x i16> %r868, <i16 1, i16 2, i16 3, i16 4, i16 5, i16 6, i16 7, i16 8>
+  %m868 = bitcast <8 x i1> %c868 to i8
+  %ok868 = icmp eq i8 %m868, -1
+  br i1 %ok868, label %next868, label %fail72
+next868:
+  ; 73: ult on <8 x i32> selecting <8 x i64>
+  %r869 = call <8 x i64> @mixed_c32_si64_ult_8(<8 x i32> <i32 0, i32 0, i32 0, i32 0, i32 0, i32 1, i32 1, i32 1>, <8 x i32> <i32 0, i32 1, i32 2147483647, i32 -2147483648, i32 -1, i32 0, i32 1, i32 2147483647>, <8 x i64> <i64 1, i64 2, i64 3, i64 4, i64 5, i64 6, i64 7, i64 8>, <8 x i64> <i64 -1, i64 -2, i64 -3, i64 -4, i64 -5, i64 -6, i64 -7, i64 -8>)
+  %c869 = icmp eq <8 x i64> %r869, <i64 -1, i64 2, i64 3, i64 4, i64 5, i64 -6, i64 -7, i64 8>
+  %m869 = bitcast <8 x i1> %c869 to i8
+  %ok869 = icmp eq i8 %m869, -1
+  br i1 %ok869, label %next869, label %fail73
+next869:
+  %r870 = call <8 x i64> @mixed_c32_si64_ult_8(<8 x i32> <i32 1, i32 1, i32 2147483647, i32 2147483647, i32 2147483647, i32 2147483647, i32 2147483647, i32 -2147483648>, <8 x i32> <i32 -2147483648, i32 -1, i32 0, i32 1, i32 2147483647, i32 -2147483648, i32 -1, i32 0>, <8 x i64> <i64 1, i64 2, i64 3, i64 4, i64 5, i64 6, i64 7, i64 8>, <8 x i64> <i64 -1, i64 -2, i64 -3, i64 -4, i64 -5, i64 -6, i64 -7, i64 -8>)
+  %c870 = icmp eq <8 x i64> %r870, <i64 1, i64 2, i64 -3, i64 -4, i64 -5, i64 6, i64 7, i64 -8>
+  %m870 = bitcast <8 x i1> %c870 to i8
+  %ok870 = icmp eq i8 %m870, -1
+  br i1 %ok870, label %next870, label %fail73
+next870:
+  %r871 = call <8 x i64> @mixed_c32_si64_ult_8(<8 x i32> <i32 -2147483648, i32 -2147483648, i32 -2147483648, i32 -2147483648, i32 -1, i32 -1, i32 -1, i32 -1>, <8 x i32> <i32 1, i32 2147483647, i32 -2147483648, i32 -1, i32 0, i32 1, i32 2147483647, i32 -2147483648>, <8 x i64> <i64 1, i64 2, i64 3, i64 4, i64 5, i64 6, i64 7, i64 8>, <8 x i64> <i64 -1, i64 -2, i64 -3, i64 -4, i64 -5, i64 -6, i64 -7, i64 -8>)
+  %c871 = icmp eq <8 x i64> %r871, <i64 -1, i64 -2, i64 -3, i64 4, i64 -5, i64 -6, i64 -7, i64 -8>
+  %m871 = bitcast <8 x i1> %c871 to i8
+  %ok871 = icmp eq i8 %m871, -1
+  br i1 %ok871, label %next871, label %fail73
+next871:
+  %r872 = call <8 x i64> @mixed_c32_si64_ult_8(<8 x i32> <i32 -1, i32 -1, i32 -1, i32 -1, i32 -1, i32 -1, i32 -1, i32 -1>, <8 x i32> <i32 -1, i32 -1, i32 -1, i32 -1, i32 -1, i32 -1, i32 -1, i32 -1>, <8 x i64> <i64 1, i64 2, i64 3, i64 4, i64 5, i64 6, i64 7, i64 8>, <8 x i64> <i64 -1, i64 -2, i64 -3, i64 -4, i64 -5, i64 -6, i64 -7, i64 -8>)
+  %c872 = icmp eq <8 x i64> %r872, <i64 -1, i64 -2, i64 -3, i64 -4, i64 -5, i64 -6, i64 -7, i64 -8>
+  %m872 = bitcast <8 x i1> %c872 to i8
+  %ok872 = icmp eq i8 %m872, -1
+  br i1 %ok872, label %next872, label %fail73
+next872:
+  ; 74: sgt on <8 x i32> selecting <8 x i64>
+  %r873 = call <8 x i64> @mixed_c32_si64_sgt_8(<8 x i32> <i32 0, i32 0, i32 0, i32 0, i32 0, i32 1, i32 1, i32 1>, <8 x i32> <i32 0, i32 1, i32 2147483647, i32 -2147483648, i32 -1, i32 0, i32 1, i32 2147483647>, <8 x i64> <i64 1, i64 2, i64 3, i64 4, i64 5, i64 6, i64 7, i64 8>, <8 x i64> <i64 -1, i64 -2, i64 -3, i64 -4, i64 -5, i64 -6, i64 -7, i64 -8>)
+  %c873 = icmp eq <8 x i64> %r873, <i64 -1, i64 -2, i64 -3, i64 4, i64 5, i64 6, i64 -7, i64 -8>
+  %m873 = bitcast <8 x i1> %c873 to i8
+  %ok873 = icmp eq i8 %m873, -1
+  br i1 %ok873, label %next873, label %fail74
+next873:
+  %r874 = call <8 x i64> @mixed_c32_si64_sgt_8(<8 x i32> <i32 1, i32 1, i32 2147483647, i32 2147483647, i32 2147483647, i32 2147483647, i32 2147483647, i32 -2147483648>, <8 x i32> <i32 -2147483648, i32 -1, i32 0, i32 1, i32 2147483647, i32 -2147483648, i32 -1, i32 0>, <8 x i64> <i64 1, i64 2, i64 3, i64 4, i64 5, i64 6, i64 7, i64 8>, <8 x i64> <i64 -1, i64 -2, i64 -3, i64 -4, i64 -5, i64 -6, i64 -7, i64 -8>)
+  %c874 = icmp eq <8 x i64> %r874, <i64 1, i64 2, i64 3, i64 4, i64 -5, i64 6, i64 7, i64 -8>
+  %m874 = bitcast <8 x i1> %c874 to i8
+  %ok874 = icmp eq i8 %m874, -1
+  br i1 %ok874, label %next874, label %fail74
+next874:
+  %r875 = call <8 x i64> @mixed_c32_si64_sgt_8(<8 x i32> <i32 -2147483648, i32 -2147483648, i32 -2147483648, i32 -2147483648, i32 -1, i32 -1, i32 -1, i32 -1>, <8 x i32> <i32 1, i32 2147483647, i32 -2147483648, i32 -1, i32 0, i32 1, i32 2147483647, i32 -2147483648>, <8 x i64> <i64 1, i64 2, i64 3, i64 4, i64 5, i64 6, i64 7, i64 8>, <8 x i64> <i64 -1, i64 -2, i64 -3, i64 -4, i64 -5, i64 -6, i64 -7, i64 -8>)
+  %c875 = icmp eq <8 x i64> %r875, <i64 -1, i64 -2, i64 -3, i64 -4, i64 -5, i64 -6, i64 -7, i64 8>
+  %m875 = bitcast <8 x i1> %c875 to i8
+  %ok875 = icmp eq i8 %m875, -1
+  br i1 %ok875, label %next875, label %fail74
+next875:
+  %r876 = call <8 x i64> @mixed_c32_si64_sgt_8(<8 x i32> <i32 -1, i32 -1, i32 -1, i32 -1, i32 -1, i32 -1, i32 -1, i32 -1>, <8 x i32> <i32 -1, i32 -1, i32 -1, i32 -1, i32 -1, i32 -1, i32 -1, i32 -1>, <8 x i64> <i64 1, i64 2, i64 3, i64 4, i64 5, i64 6, i64 7, i64 8>, <8 x i64> <i64 -1, i64 -2, i64 -3, i64 -4, i64 -5, i64 -6, i64 -7, i64 -8>)
+  %c876 = icmp eq <8 x i64> %r876, <i64 -1, i64 -2, i64 -3, i64 -4, i64 -5, i64 -6, i64 -7, i64 -8>
+  %m876 = bitcast <8 x i1> %c876 to i8
+  %ok876 = icmp eq i8 %m876, -1
+  br i1 %ok876, label %next876, label %fail74
+next876:
+  ; 75: ne on <8 x i32> selecting <8 x i64>
+  %r877 = call <8 x i64> @mixed_c32_si64_ne_8(<8 x i32> <i32 0, i32 0, i32 0, i32 0, i32 0, i32 1, i32 1, i32 1>, <8 x i32> <i32 0, i32 1, i32 2147483647, i32 -2147483648, i32 -1, i32 0, i32 1, i32 2147483647>, <8 x i64> <i64 1, i64 2, i64 3, i64 4, i64 5, i64 6, i64 7, i64 8>, <8 x i64> <i64 -1, i64 -2, i64 -3, i64 -4, i64 -5, i64 -6, i64 -7, i64 -8>)
+  %c877 = icmp eq <8 x i64> %r877, <i64 -1, i64 2, i64 3, i64 4, i64 5, i64 6, i64 -7, i64 8>
+  %m877 = bitcast <8 x i1> %c877 to i8
+  %ok877 = icmp eq i8 %m877, -1
+  br i1 %ok877, label %next877, label %fail75
+next877:
+  %r878 = call <8 x i64> @mixed_c32_si64_ne_8(<8 x i32> <i32 1, i32 1, i32 2147483647, i32 2147483647, i32 2147483647, i32 2147483647, i32 2147483647, i32 -2147483648>, <8 x i32> <i32 -2147483648, i32 -1, i32 0, i32 1, i32 2147483647, i32 -2147483648, i32 -1, i32 0>, <8 x i64> <i64 1, i64 2, i64 3, i64 4, i64 5, i64 6, i64 7, i64 8>, <8 x i64> <i64 -1, i64 -2, i64 -3, i64 -4, i64 -5, i64 -6, i64 -7, i64 -8>)
+  %c878 = icmp eq <8 x i64> %r878, <i64 1, i64 2, i64 3, i64 4, i64 -5, i64 6, i64 7, i64 8>
+  %m878 = bitcast <8 x i1> %c878 to i8
+  %ok878 = icmp eq i8 %m878, -1
+  br i1 %ok878, label %next878, label %fail75
+next878:
+  %r879 = call <8 x i64> @mixed_c32_si64_ne_8(<8 x i32> <i32 -2147483648, i32 -2147483648, i32 -2147483648, i32 -2147483648, i32 -1, i32 -1, i32 -1, i32 -1>, <8 x i32> <i32 1, i32 2147483647, i32 -2147483648, i32 -1, i32 0, i32 1, i32 2147483647, i32 -2147483648>, <8 x i64> <i64 1, i64 2, i64 3, i64 4, i64 5, i64 6, i64 7, i64 8>, <8 x i64> <i64 -1, i64 -2, i64 -3, i64 -4, i64 -5, i64 -6, i64 -7, i64 -8>)
+  %c879 = icmp eq <8 x i64> %r879, <i64 1, i64 2, i64 -3, i64 4, i64 5, i64 6, i64 7, i64 8>
+  %m879 = bitcast <8 x i1> %c879 to i8
+  %ok879 = icmp eq i8 %m879, -1
+  br i1 %ok879, label %next879, label %fail75
+next879:
+  %r880 = call <8 x i64> @mixed_c32_si64_ne_8(<8 x i32> <i32 -1, i32 -1, i32 -1, i32 -1, i32 -1, i32 -1, i32 -1, i32 -1>, <8 x i32> <i32 -1, i32 -1, i32 -1, i32 -1, i32 -1, i32 -1, i32 -1, i32 -1>, <8 x i64> <i64 1, i64 2, i64 3, i64 4, i64 5, i64 6, i64 7, i64 8>, <8 x i64> <i64 -1, i64 -2, i64 -3, i64 -4, i64 -5, i64 -6, i64 -7, i64 -8>)
+  %c880 = icmp eq <8 x i64> %r880, <i64 -1, i64 -2, i64 -3, i64 -4, i64 -5, i64 -6, i64 -7, i64 -8>
+  %m880 = bitcast <8 x i1> %c880 to i8
+  %ok880 = icmp eq i8 %m880, -1
+  br i1 %ok880, label %next880, label %fail75
+next880:
+  ; 76: sle on <8 x i32> selecting <8 x i64>
+  %r881 = call <8 x i64> @mixed_c32_si64_sle_8(<8 x i32> <i32 0, i32 0, i32 0, i32 0, i32 0, i32 1, i32 1, i32 1>, <8 x i32> <i32 0, i32 1, i32 2147483647, i32 -2147483648, i32 -1, i32 0, i32 1, i32 2147483647>, <8 x i64> <i64 1, i64 2, i64 3, i64 4, i64 5, i64 6, i64 7, i64 8>, <8 x i64> <i64 -1, i64 -2, i64 -3, i64 -4, i64 -5, i64 -6, i64 -7, i64 -8>)
+  %c881 = icmp eq <8 x i64> %r881, <i64 1, i64 2, i64 3, i64 -4, i64 -5, i64 -6, i64 7, i64 8>
+  %m881 = bitcast <8 x i1> %c881 to i8
+  %ok881 = icmp eq i8 %m881, -1
+  br i1 %ok881, label %next881, label %fail76
+next881:
+  %r882 = call <8 x i64> @mixed_c32_si64_sle_8(<8 x i32> <i32 1, i32 1, i32 2147483647, i32 2147483647, i32 2147483647, i32 2147483647, i32 2147483647, i32 -2147483648>, <8 x i32> <i32 -2147483648, i32 -1, i32 0, i32 1, i32 2147483647, i32 -2147483648, i32 -1, i32 0>, <8 x i64> <i64 1, i64 2, i64 3, i64 4, i64 5, i64 6, i64 7, i64 8>, <8 x i64> <i64 -1, i64 -2, i64 -3, i64 -4, i64 -5, i64 -6, i64 -7, i64 -8>)
+  %c882 = icmp eq <8 x i64> %r882, <i64 -1, i64 -2, i64 -3, i64 -4, i64 5, i64 -6, i64 -7, i64 8>
+  %m882 = bitcast <8 x i1> %c882 to i8
+  %ok882 = icmp eq i8 %m882, -1
+  br i1 %ok882, label %next882, label %fail76
+next882:
+  %r883 = call <8 x i64> @mixed_c32_si64_sle_8(<8 x i32> <i32 -2147483648, i32 -2147483648, i32 -2147483648, i32 -2147483648, i32 -1, i32 -1, i32 -1, i32 -1>, <8 x i32> <i32 1, i32 2147483647, i32 -2147483648, i32 -1, i32 0, i32 1, i32 2147483647, i32 -2147483648>, <8 x i64> <i64 1, i64 2, i64 3, i64 4, i64 5, i64 6, i64 7, i64 8>, <8 x i64> <i64 -1, i64 -2, i64 -3, i64 -4, i64 -5, i64 -6, i64 -7, i64 -8>)
+  %c883 = icmp eq <8 x i64> %r883, <i64 1, i64 2, i64 3, i64 4, i64 5, i64 6, i64 7, i64 -8>
+  %m883 = bitcast <8 x i1> %c883 to i8
+  %ok883 = icmp eq i8 %m883, -1
+  br i1 %ok883, label %next883, label %fail76
+next883:
+  %r884 = call <8 x i64> @mixed_c32_si64_sle_8(<8 x i32> <i32 -1, i32 -1, i32 -1, i32 -1, i32 -1, i32 -1, i32 -1, i32 -1>, <8 x i32> <i32 -1, i32 -1, i32 -1, i32 -1, i32 -1, i32 -1, i32 -1, i32 -1>, <8 x i64> <i64 1, i64 2, i64 3, i64 4, i64 5, i64 6, i64 7, i64 8>, <8 x i64> <i64 -1, i64 -2, i64 -3, i64 -4, i64 -5, i64 -6, i64 -7, i64 -8>)
+  %c884 = icmp eq <8 x i64> %r884, <i64 1, i64 2, i64 3, i64 4, i64 5, i64 6, i64 7, i64 8>
+  %m884 = bitcast <8 x i1> %c884 to i8
+  %ok884 = icmp eq i8 %m884, -1
+  br i1 %ok884, label %next884, label %fail76
+next884:
+  ; 77: ult on <8 x i64> selecting <8 x i8>
+  %r885 = call <8 x i8> @mixed_c64_si8_ult_8(<8 x i64> <i64 0, i64 0, i64 0, i64 0, i64 0, i64 1, i64 1, i64 1>, <8 x i64> <i64 0, i64 1, i64 9223372036854775807, i64 -9223372036854775808, i64 -1, i64 0, i64 1, i64 9223372036854775807>, <8 x i8> <i8 1, i8 2, i8 3, i8 4, i8 5, i8 6, i8 7, i8 8>, <8 x i8> <i8 -1, i8 -2, i8 -3, i8 -4, i8 -5, i8 -6, i8 -7, i8 -8>)
+  %c885 = icmp eq <8 x i8> %r885, <i8 -1, i8 2, i8 3, i8 4, i8 5, i8 -6, i8 -7, i8 8>
+  %m885 = bitcast <8 x i1> %c885 to i8
+  %ok885 = icmp eq i8 %m885, -1
+  br i1 %ok885, label %next885, label %fail77
+next885:
+  %r886 = call <8 x i8> @mixed_c64_si8_ult_8(<8 x i64> <i64 1, i64 1, i64 9223372036854775807, i64 9223372036854775807, i64 9223372036854775807, i64 9223372036854775807, i64 9223372036854775807, i64 -9223372036854775808>, <8 x i64> <i64 -9223372036854775808, i64 -1, i64 0, i64 1, i64 9223372036854775807, i64 -9223372036854775808, i64 -1, i64 0>, <8 x i8> <i8 1, i8 2, i8 3, i8 4, i8 5, i8 6, i8 7, i8 8>, <8 x i8> <i8 -1, i8 -2, i8 -3, i8 -4, i8 -5, i8 -6, i8 -7, i8 -8>)
+  %c886 = icmp eq <8 x i8> %r886, <i8 1, i8 2, i8 -3, i8 -4, i8 -5, i8 6, i8 7, i8 -8>
+  %m886 = bitcast <8 x i1> %c886 to i8
+  %ok886 = icmp eq i8 %m886, -1
+  br i1 %ok886, label %next886, label %fail77
+next886:
+  %r887 = call <8 x i8> @mixed_c64_si8_ult_8(<8 x i64> <i64 -9223372036854775808, i64 -9223372036854775808, i64 -9223372036854775808, i64 -9223372036854775808, i64 -1, i64 -1, i64 -1, i64 -1>, <8 x i64> <i64 1, i64 9223372036854775807, i64 -9223372036854775808, i64 -1, i64 0, i64 1, i64 9223372036854775807, i64 -9223372036854775808>, <8 x i8> <i8 1, i8 2, i8 3, i8 4, i8 5, i8 6, i8 7, i8 8>, <8 x i8> <i8 -1, i8 -2, i8 -3, i8 -4, i8 -5, i8 -6, i8 -7, i8 -8>)
+  %c887 = icmp eq <8 x i8> %r887, <i8 -1, i8 -2, i8 -3, i8 4, i8 -5, i8 -6, i8 -7, i8 -8>
+  %m887 = bitcast <8 x i1> %c887 to i8
+  %ok887 = icmp eq i8 %m887, -1
+  br i1 %ok887, label %next887, label %fail77
+next887:
+  %r888 = call <8 x i8> @mixed_c64_si8_ult_8(<8 x i64> <i64 -1, i64 -1, i64 -1, i64 -1, i64 -1, i64 -1, i64 -1, i64 -1>, <8 x i64> <i64 -1, i64 -1, i64 -1, i64 -1, i64 -1, i64 -1, i64 -1, i64 -1>, <8 x i8> <i8 1, i8 2, i8 3, i8 4, i8 5, i8 6, i8 7, i8 8>, <8 x i8> <i8 -1, i8 -2, i8 -3, i8 -4, i8 -5, i8 -6, i8 -7, i8 -8>)
+  %c888 = icmp eq <8 x i8> %r888, <i8 -1, i8 -2, i8 -3, i8 -4, i8 -5, i8 -6, i8 -7, i8 -8>
+  %m888 = bitcast <8 x i1> %c888 to i8
+  %ok888 = icmp eq i8 %m888, -1
+  br i1 %ok888, label %next888, label %fail77
+next888:
+  ; 78: sgt on <8 x i64> selecting <8 x i8>
+  %r889 = call <8 x i8> @mixed_c64_si8_sgt_8(<8 x i64> <i64 0, i64 0, i64 0, i64 0, i64 0, i64 1, i64 1, i64 1>, <8 x i64> <i64 0, i64 1, i64 9223372036854775807, i64 -9223372036854775808, i64 -1, i64 0, i64 1, i64 9223372036854775807>, <8 x i8> <i8 1, i8 2, i8 3, i8 4, i8 5, i8 6, i8 7, i8 8>, <8 x i8> <i8 -1, i8 -2, i8 -3, i8 -4, i8 -5, i8 -6, i8 -7, i8 -8>)
+  %c889 = icmp eq <8 x i8> %r889, <i8 -1, i8 -2, i8 -3, i8 4, i8 5, i8 6, i8 -7, i8 -8>
+  %m889 = bitcast <8 x i1> %c889 to i8
+  %ok889 = icmp eq i8 %m889, -1
+  br i1 %ok889, label %next889, label %fail78
+next889:
+  %r890 = call <8 x i8> @mixed_c64_si8_sgt_8(<8 x i64> <i64 1, i64 1, i64 9223372036854775807, i64 9223372036854775807, i64 9223372036854775807, i64 9223372036854775807, i64 9223372036854775807, i64 -9223372036854775808>, <8 x i64> <i64 -9223372036854775808, i64 -1, i64 0, i64 1, i64 9223372036854775807, i64 -9223372036854775808, i64 -1, i64 0>, <8 x i8> <i8 1, i8 2, i8 3, i8 4, i8 5, i8 6, i8 7, i8 8>, <8 x i8> <i8 -1, i8 -2, i8 -3, i8 -4, i8 -5, i8 -6, i8 -7, i8 -8>)
+  %c890 = icmp eq <8 x i8> %r890, <i8 1, i8 2, i8 3, i8 4, i8 -5, i8 6, i8 7, i8 -8>
+  %m890 = bitcast <8 x i1> %c890 to i8
+  %ok890 = icmp eq i8 %m890, -1
+  br i1 %ok890, label %next890, label %fail78
+next890:
+  %r891 = call <8 x i8> @mixed_c64_si8_sgt_8(<8 x i64> <i64 -9223372036854775808, i64 -9223372036854775808, i64 -9223372036854775808, i64 -9223372036854775808, i64 -1, i64 -1, i64 -1, i64 -1>, <8 x i64> <i64 1, i64 9223372036854775807, i64 -9223372036854775808, i64 -1, i64 0, i64 1, i64 9223372036854775807, i64 -9223372036854775808>, <8 x i8> <i8 1, i8 2, i8 3, i8 4, i8 5, i8 6, i8 7, i8 8>, <8 x i8> <i8 -1, i8 -2, i8 -3, i8 -4, i8 -5, i8 -6, i8 -7, i8 -8>)
+  %c891 = icmp eq <8 x i8> %r891, <i8 -1, i8 -2, i8 -3, i8 -4, i8 -5, i8 -6, i8 -7, i8 8>
+  %m891 = bitcast <8 x i1> %c891 to i8
+  %ok891 = icmp eq i8 %m891, -1
+  br i1 %ok891, label %next891, label %fail78
+next891:
+  %r892 = call <8 x i8> @mixed_c64_si8_sgt_8(<8 x i64> <i64 -1, i64 -1, i64 -1, i64 -1, i64 -1, i64 -1, i64 -1, i64 -1>, <8 x i64> <i64 -1, i64 -1, i64 -1, i64 -1, i64 -1, i64 -1, i64 -1, i64 -1>, <8 x i8> <i8 1, i8 2, i8 3, i8 4, i8 5, i8 6, i8 7, i8 8>, <8 x i8> <i8 -1, i8 -2, i8 -3, i8 -4, i8 -5, i8 -6, i8 -7, i8 -8>)
+  %c892 = icmp eq <8 x i8> %r892, <i8 -1, i8 -2, i8 -3, i8 -4, i8 -5, i8 -6, i8 -7, i8 -8>
+  %m892 = bitcast <8 x i1> %c892 to i8
+  %ok892 = icmp eq i8 %m892, -1
+  br i1 %ok892, label %next892, label %fail78
+next892:
+  ; 79: ne on <8 x i64> selecting <8 x i8>
+  %r893 = call <8 x i8> @mixed_c64_si8_ne_8(<8 x i64> <i64 0, i64 0, i64 0, i64 0, i64 0, i64 1, i64 1, i64 1>, <8 x i64> <i64 0, i64 1, i64 9223372036854775807, i64 -9223372036854775808, i64 -1, i64 0, i64 1, i64 9223372036854775807>, <8 x i8> <i8 1, i8 2, i8 3, i8 4, i8 5, i8 6, i8 7, i8 8>, <8 x i8> <i8 -1, i8 -2, i8 -3, i8 -4, i8 -5, i8 -6, i8 -7, i8 -8>)
+  %c893 = icmp eq <8 x i8> %r893, <i8 -1, i8 2, i8 3, i8 4, i8 5, i8 6, i8 -7, i8 8>
+  %m893 = bitcast <8 x i1> %c893 to i8
+  %ok893 = icmp eq i8 %m893, -1
+  br i1 %ok893, label %next893, label %fail79
+next893:
+  %r894 = call <8 x i8> @mixed_c64_si8_ne_8(<8 x i64> <i64 1, i64 1, i64 9223372036854775807, i64 9223372036854775807, i64 9223372036854775807, i64 9223372036854775807, i64 9223372036854775807, i64 -9223372036854775808>, <8 x i64> <i64 -9223372036854775808, i64 -1, i64 0, i64 1, i64 9223372036854775807, i64 -9223372036854775808, i64 -1, i64 0>, <8 x i8> <i8 1, i8 2, i8 3, i8 4, i8 5, i8 6, i8 7, i8 8>, <8 x i8> <i8 -1, i8 -2, i8 -3, i8 -4, i8 -5, i8 -6, i8 -7, i8 -8>)
+  %c894 = icmp eq <8 x i8> %r894, <i8 1, i8 2, i8 3, i8 4, i8 -5, i8 6, i8 7, i8 8>
+  %m894 = bitcast <8 x i1> %c894 to i8
+  %ok894 = icmp eq i8 %m894, -1
+  br i1 %ok894, label %next894, label %fail79
+next894:
+  %r895 = call <8 x i8> @mixed_c64_si8_ne_8(<8 x i64> <i64 -9223372036854775808, i64 -9223372036854775808, i64 -9223372036854775808, i64 -9223372036854775808, i64 -1, i64 -1, i64 -1, i64 -1>, <8 x i64> <i64 1, i64 9223372036854775807, i64 -9223372036854775808, i64 -1, i64 0, i64 1, i64 9223372036854775807, i64 -9223372036854775808>, <8 x i8> <i8 1, i8 2, i8 3, i8 4, i8 5, i8 6, i8 7, i8 8>, <8 x i8> <i8 -1, i8 -2, i8 -3, i8 -4, i8 -5, i8 -6, i8 -7, i8 -8>)
+  %c895 = icmp eq <8 x i8> %r895, <i8 1, i8 2, i8 -3, i8 4, i8 5, i8 6, i8 7, i8 8>
+  %m895 = bitcast <8 x i1> %c895 to i8
+  %ok895 = icmp eq i8 %m895, -1
+  br i1 %ok895, label %next895, label %fail79
+next895:
+  %r896 = call <8 x i8> @mixed_c64_si8_ne_8(<8 x i64> <i64 -1, i64 -1, i64 -1, i64 -1, i64 -1, i64 -1, i64 -1, i64 -1>, <8 x i64> <i64 -1, i64 -1, i64 -1, i64 -1, i64 -1, i64 -1, i64 -1, i64 -1>, <8 x i8> <i8 1, i8 2, i8 3, i8 4, i8 5, i8 6, i8 7, i8 8>, <8 x i8> <i8 -1, i8 -2, i8 -3, i8 -4, i8 -5, i8 -6, i8 -7, i8 -8>)
+  %c896 = icmp eq <8 x i8> %r896, <i8 -1, i8 -2, i8 -3, i8 -4, i8 -5, i8 -6, i8 -7, i8 -8>
+  %m896 = bitcast <8 x i1> %c896 to i8
+  %ok896 = icmp eq i8 %m896, -1
+  br i1 %ok896, label %next896, label %fail79
+next896:
+  ; 80: sle on <8 x i64> selecting <8 x i8>
+  %r897 = call <8 x i8> @mixed_c64_si8_sle_8(<8 x i64> <i64 0, i64 0, i64 0, i64 0, i64 0, i64 1, i64 1, i64 1>, <8 x i64> <i64 0, i64 1, i64 9223372036854775807, i64 -9223372036854775808, i64 -1, i64 0, i64 1, i64 9223372036854775807>, <8 x i8> <i8 1, i8 2, i8 3, i8 4, i8 5, i8 6, i8 7, i8 8>, <8 x i8> <i8 -1, i8 -2, i8 -3, i8 -4, i8 -5, i8 -6, i8 -7, i8 -8>)
+  %c897 = icmp eq <8 x i8> %r897, <i8 1, i8 2, i8 3, i8 -4, i8 -5, i8 -6, i8 7, i8 8>
+  %m897 = bitcast <8 x i1> %c897 to i8
+  %ok897 = icmp eq i8 %m897, -1
+  br i1 %ok897, label %next897, label %fail80
+next897:
+  %r898 = call <8 x i8> @mixed_c64_si8_sle_8(<8 x i64> <i64 1, i64 1, i64 9223372036854775807, i64 9223372036854775807, i64 9223372036854775807, i64 9223372036854775807, i64 9223372036854775807, i64 -9223372036854775808>, <8 x i64> <i64 -9223372036854775808, i64 -1, i64 0, i64 1, i64 9223372036854775807, i64 -9223372036854775808, i64 -1, i64 0>, <8 x i8> <i8 1, i8 2, i8 3, i8 4, i8 5, i8 6, i8 7, i8 8>, <8 x i8> <i8 -1, i8 -2, i8 -3, i8 -4, i8 -5, i8 -6, i8 -7, i8 -8>)
+  %c898 = icmp eq <8 x i8> %r898, <i8 -1, i8 -2, i8 -3, i8 -4, i8 5, i8 -6, i8 -7, i8 8>
+  %m898 = bitcast <8 x i1> %c898 to i8
+  %ok898 = icmp eq i8 %m898, -1
+  br i1 %ok898, label %next898, label %fail80
+next898:
+  %r899 = call <8 x i8> @mixed_c64_si8_sle_8(<8 x i64> <i64 -9223372036854775808, i64 -9223372036854775808, i64 -9223372036854775808, i64 -9223372036854775808, i64 -1, i64 -1, i64 -1, i64 -1>, <8 x i64> <i64 1, i64 9223372036854775807, i64 -9223372036854775808, i64 -1, i64 0, i64 1, i64 9223372036854775807, i64 -9223372036854775808>, <8 x i8> <i8 1, i8 2, i8 3, i8 4, i8 5, i8 6, i8 7, i8 8>, <8 x i8> <i8 -1, i8 -2, i8 -3, i8 -4, i8 -5, i8 -6, i8 -7, i8 -8>)
+  %c899 = icmp eq <8 x i8> %r899, <i8 1, i8 2, i8 3, i8 4, i8 5, i8 6, i8 7, i8 -8>
+  %m899 = bitcast <8 x i1> %c899 to i8
+  %ok899 = icmp eq i8 %m899, -1
+  br i1 %ok899, label %next899, label %fail80
+next899:
+  %r900 = call <8 x i8> @mixed_c64_si8_sle_8(<8 x i64> <i64 -1, i64 -1, i64 -1, i64 -1, i64 -1, i64 -1, i64 -1, i64 -1>, <8 x i64> <i64 -1, i64 -1, i64 -1, i64 -1, i64 -1, i64 -1, i64 -1, i64 -1>, <8 x i8> <i8 1, i8 2, i8 3, i8 4, i8 5, i8 6, i8 7, i8 8>, <8 x i8> <i8 -1, i8 -2, i8 -3, i8 -4, i8 -5, i8 -6, i8 -7, i8 -8>)
+  %c900 = icmp eq <8 x i8> %r900, <i8 1, i8 2, i8 3, i8 4, i8 5, i8 6, i8 7, i8 8>
+  %m900 = bitcast <8 x i1> %c900 to i8
+  %ok900 = icmp eq i8 %m900, -1
+  br i1 %ok900, label %next900, label %fail80
+next900:
+  ; 81: ult on <8 x i64> selecting <8 x i16>
+  %r901 = call <8 x i16> @mixed_c64_si16_ult_8(<8 x i64> <i64 0, i64 0, i64 0, i64 0, i64 0, i64 1, i64 1, i64 1>, <8 x i64> <i64 0, i64 1, i64 9223372036854775807, i64 -9223372036854775808, i64 -1, i64 0, i64 1, i64 9223372036854775807>, <8 x i16> <i16 1, i16 2, i16 3, i16 4, i16 5, i16 6, i16 7, i16 8>, <8 x i16> <i16 -1, i16 -2, i16 -3, i16 -4, i16 -5, i16 -6, i16 -7, i16 -8>)
+  %c901 = icmp eq <8 x i16> %r901, <i16 -1, i16 2, i16 3, i16 4, i16 5, i16 -6, i16 -7, i16 8>
+  %m901 = bitcast <8 x i1> %c901 to i8
+  %ok901 = icmp eq i8 %m901, -1
+  br i1 %ok901, label %next901, label %fail81
+next901:
+  %r902 = call <8 x i16> @mixed_c64_si16_ult_8(<8 x i64> <i64 1, i64 1, i64 9223372036854775807, i64 9223372036854775807, i64 9223372036854775807, i64 9223372036854775807, i64 9223372036854775807, i64 -9223372036854775808>, <8 x i64> <i64 -9223372036854775808, i64 -1, i64 0, i64 1, i64 9223372036854775807, i64 -9223372036854775808, i64 -1, i64 0>, <8 x i16> <i16 1, i16 2, i16 3, i16 4, i16 5, i16 6, i16 7, i16 8>, <8 x i16> <i16 -1, i16 -2, i16 -3, i16 -4, i16 -5, i16 -6, i16 -7, i16 -8>)
+  %c902 = icmp eq <8 x i16> %r902, <i16 1, i16 2, i16 -3, i16 -4, i16 -5, i16 6, i16 7, i16 -8>
+  %m902 = bitcast <8 x i1> %c902 to i8
+  %ok902 = icmp eq i8 %m902, -1
+  br i1 %ok902, label %next902, label %fail81
+next902:
+  %r903 = call <8 x i16> @mixed_c64_si16_ult_8(<8 x i64> <i64 -9223372036854775808, i64 -9223372036854775808, i64 -9223372036854775808, i64 -9223372036854775808, i64 -1, i64 -1, i64 -1, i64 -1>, <8 x i64> <i64 1, i64 9223372036854775807, i64 -9223372036854775808, i64 -1, i64 0, i64 1, i64 9223372036854775807, i64 -9223372036854775808>, <8 x i16> <i16 1, i16 2, i16 3, i16 4, i16 5, i16 6, i16 7, i16 8>, <8 x i16> <i16 -1, i16 -2, i16 -3, i16 -4, i16 -5, i16 -6, i16 -7, i16 -8>)
+  %c903 = icmp eq <8 x i16> %r903, <i16 -1, i16 -2, i16 -3, i16 4, i16 -5, i16 -6, i16 -7, i16 -8>
+  %m903 = bitcast <8 x i1> %c903 to i8
+  %ok903 = icmp eq i8 %m903, -1
+  br i1 %ok903, label %next903, label %fail81
+next903:
+  %r904 = call <8 x i16> @mixed_c64_si16_ult_8(<8 x i64> <i64 -1, i64 -1, i64 -1, i64 -1, i64 -1, i64 -1, i64 -1, i64 -1>, <8 x i64> <i64 -1, i64 -1, i64 -1, i64 -1, i64 -1, i64 -1, i64 -1, i64 -1>, <8 x i16> <i16 1, i16 2, i16 3, i16 4, i16 5, i16 6, i16 7, i16 8>, <8 x i16> <i16 -1, i16 -2, i16 -3, i16 -4, i16 -5, i16 -6, i16 -7, i16 -8>)
+  %c904 = icmp eq <8 x i16> %r904, <i16 -1, i16 -2, i16 -3, i16 -4, i16 -5, i16 -6, i16 -7, i16 -8>
+  %m904 = bitcast <8 x i1> %c904 to i8
+  %ok904 = icmp eq i8 %m904, -1
+  br i1 %ok904, label %next904, label %fail81
+next904:
+  ; 82: sgt on <8 x i64> selecting <8 x i16>
+  %r905 = call <8 x i16> @mixed_c64_si16_sgt_8(<8 x i64> <i64 0, i64 0, i64 0, i64 0, i64 0, i64 1, i64 1, i64 1>, <8 x i64> <i64 0, i64 1, i64 9223372036854775807, i64 -9223372036854775808, i64 -1, i64 0, i64 1, i64 9223372036854775807>, <8 x i16> <i16 1, i16 2, i16 3, i16 4, i16 5, i16 6, i16 7, i16 8>, <8 x i16> <i16 -1, i16 -2, i16 -3, i16 -4, i16 -5, i16 -6, i16 -7, i16 -8>)
+  %c905 = icmp eq <8 x i16> %r905, <i16 -1, i16 -2, i16 -3, i16 4, i16 5, i16 6, i16 -7, i16 -8>
+  %m905 = bitcast <8 x i1> %c905 to i8
+  %ok905 = icmp eq i8 %m905, -1
+  br i1 %ok905, label %next905, label %fail82
+next905:
+  %r906 = call <8 x i16> @mixed_c64_si16_sgt_8(<8 x i64> <i64 1, i64 1, i64 9223372036854775807, i64 9223372036854775807, i64 9223372036854775807, i64 9223372036854775807, i64 9223372036854775807, i64 -9223372036854775808>, <8 x i64> <i64 -9223372036854775808, i64 -1, i64 0, i64 1, i64 9223372036854775807, i64 -9223372036854775808, i64 -1, i64 0>, <8 x i16> <i16 1, i16 2, i16 3, i16 4, i16 5, i16 6, i16 7, i16 8>, <8 x i16> <i16 -1, i16 -2, i16 -3, i16 -4, i16 -5, i16 -6, i16 -7, i16 -8>)
+  %c906 = icmp eq <8 x i16> %r906, <i16 1, i16 2, i16 3, i16 4, i16 -5, i16 6, i16 7, i16 -8>
+  %m906 = bitcast <8 x i1> %c906 to i8
+  %ok906 = icmp eq i8 %m906, -1
+  br i1 %ok906, label %next906, label %fail82
+next906:
+  %r907 = call <8 x i16> @mixed_c64_si16_sgt_8(<8 x i64> <i64 -9223372036854775808, i64 -9223372036854775808, i64 -9223372036854775808, i64 -9223372036854775808, i64 -1, i64 -1, i64 -1, i64 -1>, <8 x i64> <i64 1, i64 9223372036854775807, i64 -9223372036854775808, i64 -1, i64 0, i64 1, i64 9223372036854775807, i64 -9223372036854775808>, <8 x i16> <i16 1, i16 2, i16 3, i16 4, i16 5, i16 6, i16 7, i16 8>, <8 x i16> <i16 -1, i16 -2, i16 -3, i16 -4, i16 -5, i16 -6, i16 -7, i16 -8>)
+  %c907 = icmp eq <8 x i16> %r907, <i16 -1, i16 -2, i16 -3, i16 -4, i16 -5, i16 -6, i16 -7, i16 8>
+  %m907 = bitcast <8 x i1> %c907 to i8
+  %ok907 = icmp eq i8 %m907, -1
+  br i1 %ok907, label %next907, label %fail82
+next907:
+  %r908 = call <8 x i16> @mixed_c64_si16_sgt_8(<8 x i64> <i64 -1, i64 -1, i64 -1, i64 -1, i64 -1, i64 -1, i64 -1, i64 -1>, <8 x i64> <i64 -1, i64 -1, i64 -1, i64 -1, i64 -1, i64 -1, i64 -1, i64 -1>, <8 x i16> <i16 1, i16 2, i16 3, i16 4, i16 5, i16 6, i16 7, i16 8>, <8 x i16> <i16 -1, i16 -2, i16 -3, i16 -4, i16 -5, i16 -6, i16 -7, i16 -8>)
+  %c908 = icmp eq <8 x i16> %r908, <i16 -1, i16 -2, i16 -3, i16 -4, i16 -5, i16 -6, i16 -7, i16 -8>
+  %m908 = bitcast <8 x i1> %c908 to i8
+  %ok908 = icmp eq i8 %m908, -1
+  br i1 %ok908, label %next908, label %fail82
+next908:
+  ; 83: ne on <8 x i64> selecting <8 x i16>
+  %r909 = call <8 x i16> @mixed_c64_si16_ne_8(<8 x i64> <i64 0, i64 0, i64 0, i64 0, i64 0, i64 1, i64 1, i64 1>, <8 x i64> <i64 0, i64 1, i64 9223372036854775807, i64 -9223372036854775808, i64 -1, i64 0, i64 1, i64 9223372036854775807>, <8 x i16> <i16 1, i16 2, i16 3, i16 4, i16 5, i16 6, i16 7, i16 8>, <8 x i16> <i16 -1, i16 -2, i16 -3, i16 -4, i16 -5, i16 -6, i16 -7, i16 -8>)
+  %c909 = icmp eq <8 x i16> %r909, <i16 -1, i16 2, i16 3, i16 4, i16 5, i16 6, i16 -7, i16 8>
+  %m909 = bitcast <8 x i1> %c909 to i8
+  %ok909 = icmp eq i8 %m909, -1
+  br i1 %ok909, label %next909, label %fail83
+next909:
+  %r910 = call <8 x i16> @mixed_c64_si16_ne_8(<8 x i64> <i64 1, i64 1, i64 9223372036854775807, i64 9223372036854775807, i64 9223372036854775807, i64 9223372036854775807, i64 9223372036854775807, i64 -9223372036854775808>, <8 x i64> <i64 -9223372036854775808, i64 -1, i64 0, i64 1, i64 9223372036854775807, i64 -9223372036854775808, i64 -1, i64 0>, <8 x i16> <i16 1, i16 2, i16 3, i16 4, i16 5, i16 6, i16 7, i16 8>, <8 x i16> <i16 -1, i16 -2, i16 -3, i16 -4, i16 -5, i16 -6, i16 -7, i16 -8>)
+  %c910 = icmp eq <8 x i16> %r910, <i16 1, i16 2, i16 3, i16 4, i16 -5, i16 6, i16 7, i16 8>
+  %m910 = bitcast <8 x i1> %c910 to i8
+  %ok910 = icmp eq i8 %m910, -1
+  br i1 %ok910, label %next910, label %fail83
+next910:
+  %r911 = call <8 x i16> @mixed_c64_si16_ne_8(<8 x i64> <i64 -9223372036854775808, i64 -9223372036854775808, i64 -9223372036854775808, i64 -9223372036854775808, i64 -1, i64 -1, i64 -1, i64 -1>, <8 x i64> <i64 1, i64 9223372036854775807, i64 -9223372036854775808, i64 -1, i64 0, i64 1, i64 9223372036854775807, i64 -9223372036854775808>, <8 x i16> <i16 1, i16 2, i16 3, i16 4, i16 5, i16 6, i16 7, i16 8>, <8 x i16> <i16 -1, i16 -2, i16 -3, i16 -4, i16 -5, i16 -6, i16 -7, i16 -8>)
+  %c911 = icmp eq <8 x i16> %r911, <i16 1, i16 2, i16 -3, i16 4, i16 5, i16 6, i16 7, i16 8>
+  %m911 = bitcast <8 x i1> %c911 to i8
+  %ok911 = icmp eq i8 %m911, -1
+  br i1 %ok911, label %next911, label %fail83
+next911:
+  %r912 = call <8 x i16> @mixed_c64_si16_ne_8(<8 x i64> <i64 -1, i64 -1, i64 -1, i64 -1, i64 -1, i64 -1, i64 -1, i64 -1>, <8 x i64> <i64 -1, i64 -1, i64 -1, i64 -1, i64 -1, i64 -1, i64 -1, i64 -1>, <8 x i16> <i16 1, i16 2, i16 3, i16 4, i16 5, i16 6, i16 7, i16 8>, <8 x i16> <i16 -1, i16 -2, i16 -3, i16 -4, i16 -5, i16 -6, i16 -7, i16 -8>)
+  %c912 = icmp eq <8 x i16> %r912, <i16 -1, i16 -2, i16 -3, i16 -4, i16 -5, i16 -6, i16 -7, i16 -8>
+  %m912 = bitcast <8 x i1> %c912 to i8
+  %ok912 = icmp eq i8 %m912, -1
+  br i1 %ok912, label %next912, label %fail83
+next912:
+  ; 84: sle on <8 x i64> selecting <8 x i16>
+  %r913 = call <8 x i16> @mixed_c64_si16_sle_8(<8 x i64> <i64 0, i64 0, i64 0, i64 0, i64 0, i64 1, i64 1, i64 1>, <8 x i64> <i64 0, i64 1, i64 9223372036854775807, i64 -9223372036854775808, i64 -1, i64 0, i64 1, i64 9223372036854775807>, <8 x i16> <i16 1, i16 2, i16 3, i16 4, i16 5, i16 6, i16 7, i16 8>, <8 x i16> <i16 -1, i16 -2, i16 -3, i16 -4, i16 -5, i16 -6, i16 -7, i16 -8>)
+  %c913 = icmp eq <8 x i16> %r913, <i16 1, i16 2, i16 3, i16 -4, i16 -5, i16 -6, i16 7, i16 8>
+  %m913 = bitcast <8 x i1> %c913 to i8
+  %ok913 = icmp eq i8 %m913, -1
+  br i1 %ok913, label %next913, label %fail84
+next913:
+  %r914 = call <8 x i16> @mixed_c64_si16_sle_8(<8 x i64> <i64 1, i64 1, i64 9223372036854775807, i64 9223372036854775807, i64 9223372036854775807, i64 9223372036854775807, i64 9223372036854775807, i64 -9223372036854775808>, <8 x i64> <i64 -9223372036854775808, i64 -1, i64 0, i64 1, i64 9223372036854775807, i64 -9223372036854775808, i64 -1, i64 0>, <8 x i16> <i16 1, i16 2, i16 3, i16 4, i16 5, i16 6, i16 7, i16 8>, <8 x i16> <i16 -1, i16 -2, i16 -3, i16 -4, i16 -5, i16 -6, i16 -7, i16 -8>)
+  %c914 = icmp eq <8 x i16> %r914, <i16 -1, i16 -2, i16 -3, i16 -4, i16 5, i16 -6, i16 -7, i16 8>
+  %m914 = bitcast <8 x i1> %c914 to i8
+  %ok914 = icmp eq i8 %m914, -1
+  br i1 %ok914, label %next914, label %fail84
+next914:
+  %r915 = call <8 x i16> @mixed_c64_si16_sle_8(<8 x i64> <i64 -9223372036854775808, i64 -9223372036854775808, i64 -9223372036854775808, i64 -9223372036854775808, i64 -1, i64 -1, i64 -1, i64 -1>, <8 x i64> <i64 1, i64 9223372036854775807, i64 -9223372036854775808, i64 -1, i64 0, i64 1, i64 9223372036854775807, i64 -9223372036854775808>, <8 x i16> <i16 1, i16 2, i16 3, i16 4, i16 5, i16 6, i16 7, i16 8>, <8 x i16> <i16 -1, i16 -2, i16 -3, i16 -4, i16 -5, i16 -6, i16 -7, i16 -8>)
+  %c915 = icmp eq <8 x i16> %r915, <i16 1, i16 2, i16 3, i16 4, i16 5, i16 6, i16 7, i16 -8>
+  %m915 = bitcast <8 x i1> %c915 to i8
+  %ok915 = icmp eq i8 %m915, -1
+  br i1 %ok915, label %next915, label %fail84
+next915:
+  %r916 = call <8 x i16> @mixed_c64_si16_sle_8(<8 x i64> <i64 -1, i64 -1, i64 -1, i64 -1, i64 -1, i64 -1, i64 -1, i64 -1>, <8 x i64> <i64 -1, i64 -1, i64 -1, i64 -1, i64 -1, i64 -1, i64 -1, i64 -1>, <8 x i16> <i16 1, i16 2, i16 3, i16 4, i16 5, i16 6, i16 7, i16 8>, <8 x i16> <i16 -1, i16 -2, i16 -3, i16 -4, i16 -5, i16 -6, i16 -7, i16 -8>)
+  %c916 = icmp eq <8 x i16> %r916, <i16 1, i16 2, i16 3, i16 4, i16 5, i16 6, i16 7, i16 8>
+  %m916 = bitcast <8 x i1> %c916 to i8
+  %ok916 = icmp eq i8 %m916, -1
+  br i1 %ok916, label %next916, label %fail84
+next916:
+  ; 85: ult on <8 x i64> selecting <8 x i32>
+  %r917 = call <8 x i32> @mixed_c64_si32_ult_8(<8 x i64> <i64 0, i64 0, i64 0, i64 0, i64 0, i64 1, i64 1, i64 1>, <8 x i64> <i64 0, i64 1, i64 9223372036854775807, i64 -9223372036854775808, i64 -1, i64 0, i64 1, i64 9223372036854775807>, <8 x i32> <i32 1, i32 2, i32 3, i32 4, i32 5, i32 6, i32 7, i32 8>, <8 x i32> <i32 -1, i32 -2, i32 -3, i32 -4, i32 -5, i32 -6, i32 -7, i32 -8>)
+  %c917 = icmp eq <8 x i32> %r917, <i32 -1, i32 2, i32 3, i32 4, i32 5, i32 -6, i32 -7, i32 8>
+  %m917 = bitcast <8 x i1> %c917 to i8
+  %ok917 = icmp eq i8 %m917, -1
+  br i1 %ok917, label %next917, label %fail85
+next917:
+  %r918 = call <8 x i32> @mixed_c64_si32_ult_8(<8 x i64> <i64 1, i64 1, i64 9223372036854775807, i64 9223372036854775807, i64 9223372036854775807, i64 9223372036854775807, i64 9223372036854775807, i64 -9223372036854775808>, <8 x i64> <i64 -9223372036854775808, i64 -1, i64 0, i64 1, i64 9223372036854775807, i64 -9223372036854775808, i64 -1, i64 0>, <8 x i32> <i32 1, i32 2, i32 3, i32 4, i32 5, i32 6, i32 7, i32 8>, <8 x i32> <i32 -1, i32 -2, i32 -3, i32 -4, i32 -5, i32 -6, i32 -7, i32 -8>)
+  %c918 = icmp eq <8 x i32> %r918, <i32 1, i32 2, i32 -3, i32 -4, i32 -5, i32 6, i32 7, i32 -8>
+  %m918 = bitcast <8 x i1> %c918 to i8
+  %ok918 = icmp eq i8 %m918, -1
+  br i1 %ok918, label %next918, label %fail85
+next918:
+  %r919 = call <8 x i32> @mixed_c64_si32_ult_8(<8 x i64> <i64 -9223372036854775808, i64 -9223372036854775808, i64 -9223372036854775808, i64 -9223372036854775808, i64 -1, i64 -1, i64 -1, i64 -1>, <8 x i64> <i64 1, i64 9223372036854775807, i64 -9223372036854775808, i64 -1, i64 0, i64 1, i64 9223372036854775807, i64 -9223372036854775808>, <8 x i32> <i32 1, i32 2, i32 3, i32 4, i32 5, i32 6, i32 7, i32 8>, <8 x i32> <i32 -1, i32 -2, i32 -3, i32 -4, i32 -5, i32 -6, i32 -7, i32 -8>)
+  %c919 = icmp eq <8 x i32> %r919, <i32 -1, i32 -2, i32 -3, i32 4, i32 -5, i32 -6, i32 -7, i32 -8>
+  %m919 = bitcast <8 x i1> %c919 to i8
+  %ok919 = icmp eq i8 %m919, -1
+  br i1 %ok919, label %next919, label %fail85
+next919:
+  %r920 = call <8 x i32> @mixed_c64_si32_ult_8(<8 x i64> <i64 -1, i64 -1, i64 -1, i64 -1, i64 -1, i64 -1, i64 -1, i64 -1>, <8 x i64> <i64 -1, i64 -1, i64 -1, i64 -1, i64 -1, i64 -1, i64 -1, i64 -1>, <8 x i32> <i32 1, i32 2, i32 3, i32 4, i32 5, i32 6, i32 7, i32 8>, <8 x i32> <i32 -1, i32 -2, i32 -3, i32 -4, i32 -5, i32 -6, i32 -7, i32 -8>)
+  %c920 = icmp eq <8 x i32> %r920, <i32 -1, i32 -2, i32 -3, i32 -4, i32 -5, i32 -6, i32 -7, i32 -8>
+  %m920 = bitcast <8 x i1> %c920 to i8
+  %ok920 = icmp eq i8 %m920, -1
+  br i1 %ok920, label %next920, label %fail85
+next920:
+  ; 86: sgt on <8 x i64> selecting <8 x i32>
+  %r921 = call <8 x i32> @mixed_c64_si32_sgt_8(<8 x i64> <i64 0, i64 0, i64 0, i64 0, i64 0, i64 1, i64 1, i64 1>, <8 x i64> <i64 0, i64 1, i64 9223372036854775807, i64 -9223372036854775808, i64 -1, i64 0, i64 1, i64 9223372036854775807>, <8 x i32> <i32 1, i32 2, i32 3, i32 4, i32 5, i32 6, i32 7, i32 8>, <8 x i32> <i32 -1, i32 -2, i32 -3, i32 -4, i32 -5, i32 -6, i32 -7, i32 -8>)
+  %c921 = icmp eq <8 x i32> %r921, <i32 -1, i32 -2, i32 -3, i32 4, i32 5, i32 6, i32 -7, i32 -8>
+  %m921 = bitcast <8 x i1> %c921 to i8
+  %ok921 = icmp eq i8 %m921, -1
+  br i1 %ok921, label %next921, label %fail86
+next921:
+  %r922 = call <8 x i32> @mixed_c64_si32_sgt_8(<8 x i64> <i64 1, i64 1, i64 9223372036854775807, i64 9223372036854775807, i64 9223372036854775807, i64 9223372036854775807, i64 9223372036854775807, i64 -9223372036854775808>, <8 x i64> <i64 -9223372036854775808, i64 -1, i64 0, i64 1, i64 9223372036854775807, i64 -9223372036854775808, i64 -1, i64 0>, <8 x i32> <i32 1, i32 2, i32 3, i32 4, i32 5, i32 6, i32 7, i32 8>, <8 x i32> <i32 -1, i32 -2, i32 -3, i32 -4, i32 -5, i32 -6, i32 -7, i32 -8>)
+  %c922 = icmp eq <8 x i32> %r922, <i32 1, i32 2, i32 3, i32 4, i32 -5, i32 6, i32 7, i32 -8>
+  %m922 = bitcast <8 x i1> %c922 to i8
+  %ok922 = icmp eq i8 %m922, -1
+  br i1 %ok922, label %next922, label %fail86
+next922:
+  %r923 = call <8 x i32> @mixed_c64_si32_sgt_8(<8 x i64> <i64 -9223372036854775808, i64 -9223372036854775808, i64 -9223372036854775808, i64 -9223372036854775808, i64 -1, i64 -1, i64 -1, i64 -1>, <8 x i64> <i64 1, i64 9223372036854775807, i64 -9223372036854775808, i64 -1, i64 0, i64 1, i64 9223372036854775807, i64 -9223372036854775808>, <8 x i32> <i32 1, i32 2, i32 3, i32 4, i32 5, i32 6, i32 7, i32 8>, <8 x i32> <i32 -1, i32 -2, i32 -3, i32 -4, i32 -5, i32 -6, i32 -7, i32 -8>)
+  %c923 = icmp eq <8 x i32> %r923, <i32 -1, i32 -2, i32 -3, i32 -4, i32 -5, i32 -6, i32 -7, i32 8>
+  %m923 = bitcast <8 x i1> %c923 to i8
+  %ok923 = icmp eq i8 %m923, -1
+  br i1 %ok923, label %next923, label %fail86
+next923:
+  %r924 = call <8 x i32> @mixed_c64_si32_sgt_8(<8 x i64> <i64 -1, i64 -1, i64 -1, i64 -1, i64 -1, i64 -1, i64 -1, i64 -1>, <8 x i64> <i64 -1, i64 -1, i64 -1, i64 -1, i64 -1, i64 -1, i64 -1, i64 -1>, <8 x i32> <i32 1, i32 2, i32 3, i32 4, i32 5, i32 6, i32 7, i32 8>, <8 x i32> <i32 -1, i32 -2, i32 -3, i32 -4, i32 -5, i32 -6, i32 -7, i32 -8>)
+  %c924 = icmp eq <8 x i32> %r924, <i32 -1, i32 -2, i32 -3, i32 -4, i32 -5, i32 -6, i32 -7, i32 -8>
+  %m924 = bitcast <8 x i1> %c924 to i8
+  %ok924 = icmp eq i8 %m924, -1
+  br i1 %ok924, label %next924, label %fail86
+next924:
+  ; 87: ne on <8 x i64> selecting <8 x i32>
+  %r925 = call <8 x i32> @mixed_c64_si32_ne_8(<8 x i64> <i64 0, i64 0, i64 0, i64 0, i64 0, i64 1, i64 1, i64 1>, <8 x i64> <i64 0, i64 1, i64 9223372036854775807, i64 -9223372036854775808, i64 -1, i64 0, i64 1, i64 9223372036854775807>, <8 x i32> <i32 1, i32 2, i32 3, i32 4, i32 5, i32 6, i32 7, i32 8>, <8 x i32> <i32 -1, i32 -2, i32 -3, i32 -4, i32 -5, i32 -6, i32 -7, i32 -8>)
+  %c925 = icmp eq <8 x i32> %r925, <i32 -1, i32 2, i32 3, i32 4, i32 5, i32 6, i32 -7, i32 8>
+  %m925 = bitcast <8 x i1> %c925 to i8
+  %ok925 = icmp eq i8 %m925, -1
+  br i1 %ok925, label %next925, label %fail87
+next925:
+  %r926 = call <8 x i32> @mixed_c64_si32_ne_8(<8 x i64> <i64 1, i64 1, i64 9223372036854775807, i64 9223372036854775807, i64 9223372036854775807, i64 9223372036854775807, i64 9223372036854775807, i64 -9223372036854775808>, <8 x i64> <i64 -9223372036854775808, i64 -1, i64 0, i64 1, i64 9223372036854775807, i64 -9223372036854775808, i64 -1, i64 0>, <8 x i32> <i32 1, i32 2, i32 3, i32 4, i32 5, i32 6, i32 7, i32 8>, <8 x i32> <i32 -1, i32 -2, i32 -3, i32 -4, i32 -5, i32 -6, i32 -7, i32 -8>)
+  %c926 = icmp eq <8 x i32> %r926, <i32 1, i32 2, i32 3, i32 4, i32 -5, i32 6, i32 7, i32 8>
+  %m926 = bitcast <8 x i1> %c926 to i8
+  %ok926 = icmp eq i8 %m926, -1
+  br i1 %ok926, label %next926, label %fail87
+next926:
+  %r927 = call <8 x i32> @mixed_c64_si32_ne_8(<8 x i64> <i64 -9223372036854775808, i64 -9223372036854775808, i64 -9223372036854775808, i64 -9223372036854775808, i64 -1, i64 -1, i64 -1, i64 -1>, <8 x i64> <i64 1, i64 9223372036854775807, i64 -9223372036854775808, i64 -1, i64 0, i64 1, i64 9223372036854775807, i64 -9223372036854775808>, <8 x i32> <i32 1, i32 2, i32 3, i32 4, i32 5, i32 6, i32 7, i32 8>, <8 x i32> <i32 -1, i32 -2, i32 -3, i32 -4, i32 -5, i32 -6, i32 -7, i32 -8>)
+  %c927 = icmp eq <8 x i32> %r927, <i32 1, i32 2, i32 -3, i32 4, i32 5, i32 6, i32 7, i32 8>
+  %m927 = bitcast <8 x i1> %c927 to i8
+  %ok927 = icmp eq i8 %m927, -1
+  br i1 %ok927, label %next927, label %fail87
+next927:
+  %r928 = call <8 x i32> @mixed_c64_si32_ne_8(<8 x i64> <i64 -1, i64 -1, i64 -1, i64 -1, i64 -1, i64 -1, i64 -1, i64 -1>, <8 x i64> <i64 -1, i64 -1, i64 -1, i64 -1, i64 -1, i64 -1, i64 -1, i64 -1>, <8 x i32> <i32 1, i32 2, i32 3, i32 4, i32 5, i32 6, i32 7, i32 8>, <8 x i32> <i32 -1, i32 -2, i32 -3, i32 -4, i32 -5, i32 -6, i32 -7, i32 -8>)
+  %c928 = icmp eq <8 x i32> %r928, <i32 -1, i32 -2, i32 -3, i32 -4, i32 -5, i32 -6, i32 -7, i32 -8>
+  %m928 = bitcast <8 x i1> %c928 to i8
+  %ok928 = icmp eq i8 %m928, -1
+  br i1 %ok928, label %next928, label %fail87
+next928:
+  ; 88: sle on <8 x i64> selecting <8 x i32>
+  %r929 = call <8 x i32> @mixed_c64_si32_sle_8(<8 x i64> <i64 0, i64 0, i64 0, i64 0, i64 0, i64 1, i64 1, i64 1>, <8 x i64> <i64 0, i64 1, i64 9223372036854775807, i64 -9223372036854775808, i64 -1, i64 0, i64 1, i64 9223372036854775807>, <8 x i32> <i32 1, i32 2, i32 3, i32 4, i32 5, i32 6, i32 7, i32 8>, <8 x i32> <i32 -1, i32 -2, i32 -3, i32 -4, i32 -5, i32 -6, i32 -7, i32 -8>)
+  %c929 = icmp eq <8 x i32> %r929, <i32 1, i32 2, i32 3, i32 -4, i32 -5, i32 -6, i32 7, i32 8>
+  %m929 = bitcast <8 x i1> %c929 to i8
+  %ok929 = icmp eq i8 %m929, -1
+  br i1 %ok929, label %next929, label %fail88
+next929:
+  %r930 = call <8 x i32> @mixed_c64_si32_sle_8(<8 x i64> <i64 1, i64 1, i64 9223372036854775807, i64 9223372036854775807, i64 9223372036854775807, i64 9223372036854775807, i64 9223372036854775807, i64 -9223372036854775808>, <8 x i64> <i64 -9223372036854775808, i64 -1, i64 0, i64 1, i64 9223372036854775807, i64 -9223372036854775808, i64 -1, i64 0>, <8 x i32> <i32 1, i32 2, i32 3, i32 4, i32 5, i32 6, i32 7, i32 8>, <8 x i32> <i32 -1, i32 -2, i32 -3, i32 -4, i32 -5, i32 -6, i32 -7, i32 -8>)
+  %c930 = icmp eq <8 x i32> %r930, <i32 -1, i32 -2, i32 -3, i32 -4, i32 5, i32 -6, i32 -7, i32 8>
+  %m930 = bitcast <8 x i1> %c930 to i8
+  %ok930 = icmp eq i8 %m930, -1
+  br i1 %ok930, label %next930, label %fail88
+next930:
+  %r931 = call <8 x i32> @mixed_c64_si32_sle_8(<8 x i64> <i64 -9223372036854775808, i64 -9223372036854775808, i64 -9223372036854775808, i64 -9223372036854775808, i64 -1, i64 -1, i64 -1, i64 -1>, <8 x i64> <i64 1, i64 9223372036854775807, i64 -9223372036854775808, i64 -1, i64 0, i64 1, i64 9223372036854775807, i64 -9223372036854775808>, <8 x i32> <i32 1, i32 2, i32 3, i32 4, i32 5, i32 6, i32 7, i32 8>, <8 x i32> <i32 -1, i32 -2, i32 -3, i32 -4, i32 -5, i32 -6, i32 -7, i32 -8>)
+  %c931 = icmp eq <8 x i32> %r931, <i32 1, i32 2, i32 3, i32 4, i32 5, i32 6, i32 7, i32 -8>
+  %m931 = bitcast <8 x i1> %c931 to i8
+  %ok931 = icmp eq i8 %m931, -1
+  br i1 %ok931, label %next931, label %fail88
+next931:
+  %r932 = call <8 x i32> @mixed_c64_si32_sle_8(<8 x i64> <i64 -1, i64 -1, i64 -1, i64 -1, i64 -1, i64 -1, i64 -1, i64 -1>, <8 x i64> <i64 -1, i64 -1, i64 -1, i64 -1, i64 -1, i64 -1, i64 -1, i64 -1>, <8 x i32> <i32 1, i32 2, i32 3, i32 4, i32 5, i32 6, i32 7, i32 8>, <8 x i32> <i32 -1, i32 -2, i32 -3, i32 -4, i32 -5, i32 -6, i32 -7, i32 -8>)
+  %c932 = icmp eq <8 x i32> %r932, <i32 1, i32 2, i32 3, i32 4, i32 5, i32 6, i32 7, i32 8>
+  %m932 = bitcast <8 x i1> %c932 to i8
+  %ok932 = icmp eq i8 %m932, -1
+  br i1 %ok932, label %next932, label %fail88
+next932:
+  ; 89: ult on <4 x i16> selecting <4 x i32>
+  %r933 = call <4 x i32> @mixed_c16_si32_ult_4(<4 x i16> <i16 0, i16 0, i16 0, i16 0>, <4 x i16> <i16 0, i16 1, i16 32767, i16 -32768>, <4 x i32> <i32 1, i32 2, i32 3, i32 4>, <4 x i32> <i32 -1, i32 -2, i32 -3, i32 -4>)
+  %c933 = icmp eq <4 x i32> %r933, <i32 -1, i32 2, i32 3, i32 4>
+  %m933 = bitcast <4 x i1> %c933 to i4
+  %ok933 = icmp eq i4 %m933, -1
+  br i1 %ok933, label %next933, label %fail89
+next933:
+  %r934 = call <4 x i32> @mixed_c16_si32_ult_4(<4 x i16> <i16 0, i16 1, i16 1, i16 1>, <4 x i16> <i16 -1, i16 0, i16 1, i16 32767>, <4 x i32> <i32 1, i32 2, i32 3, i32 4>, <4 x i32> <i32 -1, i32 -2, i32 -3, i32 -4>)
+  %c934 = icmp eq <4 x i32> %r934, <i32 1, i32 -2, i32 -3, i32 4>
+  %m934 = bitcast <4 x i1> %c934 to i4
+  %ok934 = icmp eq i4 %m934, -1
+  br i1 %ok934, label %next934, label %fail89
+next934:
+  %r935 = call <4 x i32> @mixed_c16_si32_ult_4(<4 x i16> <i16 1, i16 1, i16 32767, i16 32767>, <4 x i16> <i16 -32768, i16 -1, i16 0, i16 1>, <4 x i32> <i32 1, i32 2, i32 3, i32 4>, <4 x i32> <i32 -1, i32 -2, i32 -3, i32 -4>)
+  %c935 = icmp eq <4 x i32> %r935, <i32 1, i32 2, i32 -3, i32 -4>
+  %m935 = bitcast <4 x i1> %c935 to i4
+  %ok935 = icmp eq i4 %m935, -1
+  br i1 %ok935, label %next935, label %fail89
+next935:
+  %r936 = call <4 x i32> @mixed_c16_si32_ult_4(<4 x i16> <i16 32767, i16 32767, i16 32767, i16 -32768>, <4 x i16> <i16 32767, i16 -32768, i16 -1, i16 0>, <4 x i32> <i32 1, i32 2, i32 3, i32 4>, <4 x i32> <i32 -1, i32 -2, i32 -3, i32 -4>)
+  %c936 = icmp eq <4 x i32> %r936, <i32 -1, i32 2, i32 3, i32 -4>
+  %m936 = bitcast <4 x i1> %c936 to i4
+  %ok936 = icmp eq i4 %m936, -1
+  br i1 %ok936, label %next936, label %fail89
+next936:
+  %r937 = call <4 x i32> @mixed_c16_si32_ult_4(<4 x i16> <i16 -32768, i16 -32768, i16 -32768, i16 -32768>, <4 x i16> <i16 1, i16 32767, i16 -32768, i16 -1>, <4 x i32> <i32 1, i32 2, i32 3, i32 4>, <4 x i32> <i32 -1, i32 -2, i32 -3, i32 -4>)
+  %c937 = icmp eq <4 x i32> %r937, <i32 -1, i32 -2, i32 -3, i32 4>
+  %m937 = bitcast <4 x i1> %c937 to i4
+  %ok937 = icmp eq i4 %m937, -1
+  br i1 %ok937, label %next937, label %fail89
+next937:
+  %r938 = call <4 x i32> @mixed_c16_si32_ult_4(<4 x i16> <i16 -1, i16 -1, i16 -1, i16 -1>, <4 x i16> <i16 0, i16 1, i16 32767, i16 -32768>, <4 x i32> <i32 1, i32 2, i32 3, i32 4>, <4 x i32> <i32 -1, i32 -2, i32 -3, i32 -4>)
+  %c938 = icmp eq <4 x i32> %r938, <i32 -1, i32 -2, i32 -3, i32 -4>
+  %m938 = bitcast <4 x i1> %c938 to i4
+  %ok938 = icmp eq i4 %m938, -1
+  br i1 %ok938, label %next938, label %fail89
+next938:
+  %r939 = call <4 x i32> @mixed_c16_si32_ult_4(<4 x i16> <i16 -1, i16 -1, i16 -1, i16 -1>, <4 x i16> <i16 -1, i16 -1, i16 -1, i16 -1>, <4 x i32> <i32 1, i32 2, i32 3, i32 4>, <4 x i32> <i32 -1, i32 -2, i32 -3, i32 -4>)
+  %c939 = icmp eq <4 x i32> %r939, <i32 -1, i32 -2, i32 -3, i32 -4>
+  %m939 = bitcast <4 x i1> %c939 to i4
+  %ok939 = icmp eq i4 %m939, -1
+  br i1 %ok939, label %next939, label %fail89
+next939:
+  ; 90: sgt on <4 x i16> selecting <4 x i32>
+  %r940 = call <4 x i32> @mixed_c16_si32_sgt_4(<4 x i16> <i16 0, i16 0, i16 0, i16 0>, <4 x i16> <i16 0, i16 1, i16 32767, i16 -32768>, <4 x i32> <i32 1, i32 2, i32 3, i32 4>, <4 x i32> <i32 -1, i32 -2, i32 -3, i32 -4>)
+  %c940 = icmp eq <4 x i32> %r940, <i32 -1, i32 -2, i32 -3, i32 4>
+  %m940 = bitcast <4 x i1> %c940 to i4
+  %ok940 = icmp eq i4 %m940, -1
+  br i1 %ok940, label %next940, label %fail90
+next940:
+  %r941 = call <4 x i32> @mixed_c16_si32_sgt_4(<4 x i16> <i16 0, i16 1, i16 1, i16 1>, <4 x i16> <i16 -1, i16 0, i16 1, i16 32767>, <4 x i32> <i32 1, i32 2, i32 3, i32 4>, <4 x i32> <i32 -1, i32 -2, i32 -3, i32 -4>)
+  %c941 = icmp eq <4 x i32> %r941, <i32 1, i32 2, i32 -3, i32 -4>
+  %m941 = bitcast <4 x i1> %c941 to i4
+  %ok941 = icmp eq i4 %m941, -1
+  br i1 %ok941, label %next941, label %fail90
+next941:
+  %r942 = call <4 x i32> @mixed_c16_si32_sgt_4(<4 x i16> <i16 1, i16 1, i16 32767, i16 32767>, <4 x i16> <i16 -32768, i16 -1, i16 0, i16 1>, <4 x i32> <i32 1, i32 2, i32 3, i32 4>, <4 x i32> <i32 -1, i32 -2, i32 -3, i32 -4>)
+  %c942 = icmp eq <4 x i32> %r942, <i32 1, i32 2, i32 3, i32 4>
+  %m942 = bitcast <4 x i1> %c942 to i4
+  %ok942 = icmp eq i4 %m942, -1
+  br i1 %ok942, label %next942, label %fail90
+next942:
+  %r943 = call <4 x i32> @mixed_c16_si32_sgt_4(<4 x i16> <i16 32767, i16 32767, i16 32767, i16 -32768>, <4 x i16> <i16 32767, i16 -32768, i16 -1, i16 0>, <4 x i32> <i32 1, i32 2, i32 3, i32 4>, <4 x i32> <i32 -1, i32 -2, i32 -3, i32 -4>)
+  %c943 = icmp eq <4 x i32> %r943, <i32 -1, i32 2, i32 3, i32 -4>
+  %m943 = bitcast <4 x i1> %c943 to i4
+  %ok943 = icmp eq i4 %m943, -1
+  br i1 %ok943, label %next943, label %fail90
+next943:
+  %r944 = call <4 x i32> @mixed_c16_si32_sgt_4(<4 x i16> <i16 -32768, i16 -32768, i16 -32768, i16 -32768>, <4 x i16> <i16 1, i16 32767, i16 -32768, i16 -1>, <4 x i32> <i32 1, i32 2, i32 3, i32 4>, <4 x i32> <i32 -1, i32 -2, i32 -3, i32 -4>)
+  %c944 = icmp eq <4 x i32> %r944, <i32 -1, i32 -2, i32 -3, i32 -4>
+  %m944 = bitcast <4 x i1> %c944 to i4
+  %ok944 = icmp eq i4 %m944, -1
+  br i1 %ok944, label %next944, label %fail90
+next944:
+  %r945 = call <4 x i32> @mixed_c16_si32_sgt_4(<4 x i16> <i16 -1, i16 -1, i16 -1, i16 -1>, <4 x i16> <i16 0, i16 1, i16 32767, i16 -32768>, <4 x i32> <i32 1, i32 2, i32 3, i32 4>, <4 x i32> <i32 -1, i32 -2, i32 -3, i32 -4>)
+  %c945 = icmp eq <4 x i32> %r945, <i32 -1, i32 -2, i32 -3, i32 4>
+  %m945 = bitcast <4 x i1> %c945 to i4
+  %ok945 = icmp eq i4 %m945, -1
+  br i1 %ok945, label %next945, label %fail90
+next945:
+  %r946 = call <4 x i32> @mixed_c16_si32_sgt_4(<4 x i16> <i16 -1, i16 -1, i16 -1, i16 -1>, <4 x i16> <i16 -1, i16 -1, i16 -1, i16 -1>, <4 x i32> <i32 1, i32 2, i32 3, i32 4>, <4 x i32> <i32 -1, i32 -2, i32 -3, i32 -4>)
+  %c946 = icmp eq <4 x i32> %r946, <i32 -1, i32 -2, i32 -3, i32 -4>
+  %m946 = bitcast <4 x i1> %c946 to i4
+  %ok946 = icmp eq i4 %m946, -1
+  br i1 %ok946, label %next946, label %fail90
+next946:
+  ; 91: ne on <4 x i16> selecting <4 x i32>
+  %r947 = call <4 x i32> @mixed_c16_si32_ne_4(<4 x i16> <i16 0, i16 0, i16 0, i16 0>, <4 x i16> <i16 0, i16 1, i16 32767, i16 -32768>, <4 x i32> <i32 1, i32 2, i32 3, i32 4>, <4 x i32> <i32 -1, i32 -2, i32 -3, i32 -4>)
+  %c947 = icmp eq <4 x i32> %r947, <i32 -1, i32 2, i32 3, i32 4>
+  %m947 = bitcast <4 x i1> %c947 to i4
+  %ok947 = icmp eq i4 %m947, -1
+  br i1 %ok947, label %next947, label %fail91
+next947:
+  %r948 = call <4 x i32> @mixed_c16_si32_ne_4(<4 x i16> <i16 0, i16 1, i16 1, i16 1>, <4 x i16> <i16 -1, i16 0, i16 1, i16 32767>, <4 x i32> <i32 1, i32 2, i32 3, i32 4>, <4 x i32> <i32 -1, i32 -2, i32 -3, i32 -4>)
+  %c948 = icmp eq <4 x i32> %r948, <i32 1, i32 2, i32 -3, i32 4>
+  %m948 = bitcast <4 x i1> %c948 to i4
+  %ok948 = icmp eq i4 %m948, -1
+  br i1 %ok948, label %next948, label %fail91
+next948:
+  %r949 = call <4 x i32> @mixed_c16_si32_ne_4(<4 x i16> <i16 1, i16 1, i16 32767, i16 32767>, <4 x i16> <i16 -32768, i16 -1, i16 0, i16 1>, <4 x i32> <i32 1, i32 2, i32 3, i32 4>, <4 x i32> <i32 -1, i32 -2, i32 -3, i32 -4>)
+  %c949 = icmp eq <4 x i32> %r949, <i32 1, i32 2, i32 3, i32 4>
+  %m949 = bitcast <4 x i1> %c949 to i4
+  %ok949 = icmp eq i4 %m949, -1
+  br i1 %ok949, label %next949, label %fail91
+next949:
+  %r950 = call <4 x i32> @mixed_c16_si32_ne_4(<4 x i16> <i16 32767, i16 32767, i16 32767, i16 -32768>, <4 x i16> <i16 32767, i16 -32768, i16 -1, i16 0>, <4 x i32> <i32 1, i32 2, i32 3, i32 4>, <4 x i32> <i32 -1, i32 -2, i32 -3, i32 -4>)
+  %c950 = icmp eq <4 x i32> %r950, <i32 -1, i32 2, i32 3, i32 4>
+  %m950 = bitcast <4 x i1> %c950 to i4
+  %ok950 = icmp eq i4 %m950, -1
+  br i1 %ok950, label %next950, label %fail91
+next950:
+  %r951 = call <4 x i32> @mixed_c16_si32_ne_4(<4 x i16> <i16 -32768, i16 -32768, i16 -32768, i16 -32768>, <4 x i16> <i16 1, i16 32767, i16 -32768, i16 -1>, <4 x i32> <i32 1, i32 2, i32 3, i32 4>, <4 x i32> <i32 -1, i32 -2, i32 -3, i32 -4>)
+  %c951 = icmp eq <4 x i32> %r951, <i32 1, i32 2, i32 -3, i32 4>
+  %m951 = bitcast <4 x i1> %c951 to i4
+  %ok951 = icmp eq i4 %m951, -1
+  br i1 %ok951, label %next951, label %fail91
+next951:
+  %r952 = call <4 x i32> @mixed_c16_si32_ne_4(<4 x i16> <i16 -1, i16 -1, i16 -1, i16 -1>, <4 x i16> <i16 0, i16 1, i16 32767, i16 -32768>, <4 x i32> <i32 1, i32 2, i32 3, i32 4>, <4 x i32> <i32 -1, i32 -2, i32 -3, i32 -4>)
+  %c952 = icmp eq <4 x i32> %r952, <i32 1, i32 2, i32 3, i32 4>
+  %m952 = bitcast <4 x i1> %c952 to i4
+  %ok952 = icmp eq i4 %m952, -1
+  br i1 %ok952, label %next952, label %fail91
+next952:
+  %r953 = call <4 x i32> @mixed_c16_si32_ne_4(<4 x i16> <i16 -1, i16 -1, i16 -1, i16 -1>, <4 x i16> <i16 -1, i16 -1, i16 -1, i16 -1>, <4 x i32> <i32 1, i32 2, i32 3, i32 4>, <4 x i32> <i32 -1, i32 -2, i32 -3, i32 -4>)
+  %c953 = icmp eq <4 x i32> %r953, <i32 -1, i32 -2, i32 -3, i32 -4>
+  %m953 = bitcast <4 x i1> %c953 to i4
+  %ok953 = icmp eq i4 %m953, -1
+  br i1 %ok953, label %next953, label %fail91
+next953:
+  ; 92: sle on <4 x i16> selecting <4 x i32>
+  %r954 = call <4 x i32> @mixed_c16_si32_sle_4(<4 x i16> <i16 0, i16 0, i16 0, i16 0>, <4 x i16> <i16 0, i16 1, i16 32767, i16 -32768>, <4 x i32> <i32 1, i32 2, i32 3, i32 4>, <4 x i32> <i32 -1, i32 -2, i32 -3, i32 -4>)
+  %c954 = icmp eq <4 x i32> %r954, <i32 1, i32 2, i32 3, i32 -4>
+  %m954 = bitcast <4 x i1> %c954 to i4
+  %ok954 = icmp eq i4 %m954, -1
+  br i1 %ok954, label %next954, label %fail92
+next954:
+  %r955 = call <4 x i32> @mixed_c16_si32_sle_4(<4 x i16> <i16 0, i16 1, i16 1, i16 1>, <4 x i16> <i16 -1, i16 0, i16 1, i16 32767>, <4 x i32> <i32 1, i32 2, i32 3, i32 4>, <4 x i32> <i32 -1, i32 -2, i32 -3, i32 -4>)
+  %c955 = icmp eq <4 x i32> %r955, <i32 -1, i32 -2, i32 3, i32 4>
+  %m955 = bitcast <4 x i1> %c955 to i4
+  %ok955 = icmp eq i4 %m955, -1
+  br i1 %ok955, label %next955, label %fail92
+next955:
+  %r956 = call <4 x i32> @mixed_c16_si32_sle_4(<4 x i16> <i16 1, i16 1, i16 32767, i16 32767>, <4 x i16> <i16 -32768, i16 -1, i16 0, i16 1>, <4 x i32> <i32 1, i32 2, i32 3, i32 4>, <4 x i32> <i32 -1, i32 -2, i32 -3, i32 -4>)
+  %c956 = icmp eq <4 x i32> %r956, <i32 -1, i32 -2, i32 -3, i32 -4>
+  %m956 = bitcast <4 x i1> %c956 to i4
+  %ok956 = icmp eq i4 %m956, -1
+  br i1 %ok956, label %next956, label %fail92
+next956:
+  %r957 = call <4 x i32> @mixed_c16_si32_sle_4(<4 x i16> <i16 32767, i16 32767, i16 32767, i16 -32768>, <4 x i16> <i16 32767, i16 -32768, i16 -1, i16 0>, <4 x i32> <i32 1, i32 2, i32 3, i32 4>, <4 x i32> <i32 -1, i32 -2, i32 -3, i32 -4>)
+  %c957 = icmp eq <4 x i32> %r957, <i32 1, i32 -2, i32 -3, i32 4>
+  %m957 = bitcast <4 x i1> %c957 to i4
+  %ok957 = icmp eq i4 %m957, -1
+  br i1 %ok957, label %next957, label %fail92
+next957:
+  %r958 = call <4 x i32> @mixed_c16_si32_sle_4(<4 x i16> <i16 -32768, i16 -32768, i16 -32768, i16 -32768>, <4 x i16> <i16 1, i16 32767, i16 -32768, i16 -1>, <4 x i32> <i32 1, i32 2, i32 3, i32 4>, <4 x i32> <i32 -1, i32 -2, i32 -3, i32 -4>)
+  %c958 = icmp eq <4 x i32> %r958, <i32 1, i32 2, i32 3, i32 4>
+  %m958 = bitcast <4 x i1> %c958 to i4
+  %ok958 = icmp eq i4 %m958, -1
+  br i1 %ok958, label %next958, label %fail92
+next958:
+  %r959 = call <4 x i32> @mixed_c16_si32_sle_4(<4 x i16> <i16 -1, i16 -1, i16 -1, i16 -1>, <4 x i16> <i16 0, i16 1, i16 32767, i16 -32768>, <4 x i32> <i32 1, i32 2, i32 3, i32 4>, <4 x i32> <i32 -1, i32 -2, i32 -3, i32 -4>)
+  %c959 = icmp eq <4 x i32> %r959, <i32 1, i32 2, i32 3, i32 -4>
+  %m959 = bitcast <4 x i1> %c959 to i4
+  %ok959 = icmp eq i4 %m959, -1
+  br i1 %ok959, label %next959, label %fail92
+next959:
+  %r960 = call <4 x i32> @mixed_c16_si32_sle_4(<4 x i16> <i16 -1, i16 -1, i16 -1, i16 -1>, <4 x i16> <i16 -1, i16 -1, i16 -1, i16 -1>, <4 x i32> <i32 1, i32 2, i32 3, i32 4>, <4 x i32> <i32 -1, i32 -2, i32 -3, i32 -4>)
+  %c960 = icmp eq <4 x i32> %r960, <i32 1, i32 2, i32 3, i32 4>
+  %m960 = bitcast <4 x i1> %c960 to i4
+  %ok960 = icmp eq i4 %m960, -1
+  br i1 %ok960, label %next960, label %fail92
+next960:
+  ; 93: ult on <4 x i16> selecting <4 x i64>
+  %r961 = call <4 x i64> @mixed_c16_si64_ult_4(<4 x i16> <i16 0, i16 0, i16 0, i16 0>, <4 x i16> <i16 0, i16 1, i16 32767, i16 -32768>, <4 x i64> <i64 1, i64 2, i64 3, i64 4>, <4 x i64> <i64 -1, i64 -2, i64 -3, i64 -4>)
+  %c961 = icmp eq <4 x i64> %r961, <i64 -1, i64 2, i64 3, i64 4>
+  %m961 = bitcast <4 x i1> %c961 to i4
+  %ok961 = icmp eq i4 %m961, -1
+  br i1 %ok961, label %next961, label %fail93
+next961:
+  %r962 = call <4 x i64> @mixed_c16_si64_ult_4(<4 x i16> <i16 0, i16 1, i16 1, i16 1>, <4 x i16> <i16 -1, i16 0, i16 1, i16 32767>, <4 x i64> <i64 1, i64 2, i64 3, i64 4>, <4 x i64> <i64 -1, i64 -2, i64 -3, i64 -4>)
+  %c962 = icmp eq <4 x i64> %r962, <i64 1, i64 -2, i64 -3, i64 4>
+  %m962 = bitcast <4 x i1> %c962 to i4
+  %ok962 = icmp eq i4 %m962, -1
+  br i1 %ok962, label %next962, label %fail93
+next962:
+  %r963 = call <4 x i64> @mixed_c16_si64_ult_4(<4 x i16> <i16 1, i16 1, i16 32767, i16 32767>, <4 x i16> <i16 -32768, i16 -1, i16 0, i16 1>, <4 x i64> <i64 1, i64 2, i64 3, i64 4>, <4 x i64> <i64 -1, i64 -2, i64 -3, i64 -4>)
+  %c963 = icmp eq <4 x i64> %r963, <i64 1, i64 2, i64 -3, i64 -4>
+  %m963 = bitcast <4 x i1> %c963 to i4
+  %ok963 = icmp eq i4 %m963, -1
+  br i1 %ok963, label %next963, label %fail93
+next963:
+  %r964 = call <4 x i64> @mixed_c16_si64_ult_4(<4 x i16> <i16 32767, i16 32767, i16 32767, i16 -32768>, <4 x i16> <i16 32767, i16 -32768, i16 -1, i16 0>, <4 x i64> <i64 1, i64 2, i64 3, i64 4>, <4 x i64> <i64 -1, i64 -2, i64 -3, i64 -4>)
+  %c964 = icmp eq <4 x i64> %r964, <i64 -1, i64 2, i64 3, i64 -4>
+  %m964 = bitcast <4 x i1> %c964 to i4
+  %ok964 = icmp eq i4 %m964, -1
+  br i1 %ok964, label %next964, label %fail93
+next964:
+  %r965 = call <4 x i64> @mixed_c16_si64_ult_4(<4 x i16> <i16 -32768, i16 -32768, i16 -32768, i16 -32768>, <4 x i16> <i16 1, i16 32767, i16 -32768, i16 -1>, <4 x i64> <i64 1, i64 2, i64 3, i64 4>, <4 x i64> <i64 -1, i64 -2, i64 -3, i64 -4>)
+  %c965 = icmp eq <4 x i64> %r965, <i64 -1, i64 -2, i64 -3, i64 4>
+  %m965 = bitcast <4 x i1> %c965 to i4
+  %ok965 = icmp eq i4 %m965, -1
+  br i1 %ok965, label %next965, label %fail93
+next965:
+  %r966 = call <4 x i64> @mixed_c16_si64_ult_4(<4 x i16> <i16 -1, i16 -1, i16 -1, i16 -1>, <4 x i16> <i16 0, i16 1, i16 32767, i16 -32768>, <4 x i64> <i64 1, i64 2, i64 3, i64 4>, <4 x i64> <i64 -1, i64 -2, i64 -3, i64 -4>)
+  %c966 = icmp eq <4 x i64> %r966, <i64 -1, i64 -2, i64 -3, i64 -4>
+  %m966 = bitcast <4 x i1> %c966 to i4
+  %ok966 = icmp eq i4 %m966, -1
+  br i1 %ok966, label %next966, label %fail93
+next966:
+  %r967 = call <4 x i64> @mixed_c16_si64_ult_4(<4 x i16> <i16 -1, i16 -1, i16 -1, i16 -1>, <4 x i16> <i16 -1, i16 -1, i16 -1, i16 -1>, <4 x i64> <i64 1, i64 2, i64 3, i64 4>, <4 x i64> <i64 -1, i64 -2, i64 -3, i64 -4>)
+  %c967 = icmp eq <4 x i64> %r967, <i64 -1, i64 -2, i64 -3, i64 -4>
+  %m967 = bitcast <4 x i1> %c967 to i4
+  %ok967 = icmp eq i4 %m967, -1
+  br i1 %ok967, label %next967, label %fail93
+next967:
+  ; 94: sgt on <4 x i16> selecting <4 x i64>
+  %r968 = call <4 x i64> @mixed_c16_si64_sgt_4(<4 x i16> <i16 0, i16 0, i16 0, i16 0>, <4 x i16> <i16 0, i16 1, i16 32767, i16 -32768>, <4 x i64> <i64 1, i64 2, i64 3, i64 4>, <4 x i64> <i64 -1, i64 -2, i64 -3, i64 -4>)
+  %c968 = icmp eq <4 x i64> %r968, <i64 -1, i64 -2, i64 -3, i64 4>
+  %m968 = bitcast <4 x i1> %c968 to i4
+  %ok968 = icmp eq i4 %m968, -1
+  br i1 %ok968, label %next968, label %fail94
+next968:
+  %r969 = call <4 x i64> @mixed_c16_si64_sgt_4(<4 x i16> <i16 0, i16 1, i16 1, i16 1>, <4 x i16> <i16 -1, i16 0, i16 1, i16 32767>, <4 x i64> <i64 1, i64 2, i64 3, i64 4>, <4 x i64> <i64 -1, i64 -2, i64 -3, i64 -4>)
+  %c969 = icmp eq <4 x i64> %r969, <i64 1, i64 2, i64 -3, i64 -4>
+  %m969 = bitcast <4 x i1> %c969 to i4
+  %ok969 = icmp eq i4 %m969, -1
+  br i1 %ok969, label %next969, label %fail94
+next969:
+  %r970 = call <4 x i64> @mixed_c16_si64_sgt_4(<4 x i16> <i16 1, i16 1, i16 32767, i16 32767>, <4 x i16> <i16 -32768, i16 -1, i16 0, i16 1>, <4 x i64> <i64 1, i64 2, i64 3, i64 4>, <4 x i64> <i64 -1, i64 -2, i64 -3, i64 -4>)
+  %c970 = icmp eq <4 x i64> %r970, <i64 1, i64 2, i64 3, i64 4>
+  %m970 = bitcast <4 x i1> %c970 to i4
+  %ok970 = icmp eq i4 %m970, -1
+  br i1 %ok970, label %next970, label %fail94
+next970:
+  %r971 = call <4 x i64> @mixed_c16_si64_sgt_4(<4 x i16> <i16 32767, i16 32767, i16 32767, i16 -32768>, <4 x i16> <i16 32767, i16 -32768, i16 -1, i16 0>, <4 x i64> <i64 1, i64 2, i64 3, i64 4>, <4 x i64> <i64 -1, i64 -2, i64 -3, i64 -4>)
+  %c971 = icmp eq <4 x i64> %r971, <i64 -1, i64 2, i64 3, i64 -4>
+  %m971 = bitcast <4 x i1> %c971 to i4
+  %ok971 = icmp eq i4 %m971, -1
+  br i1 %ok971, label %next971, label %fail94
+next971:
+  %r972 = call <4 x i64> @mixed_c16_si64_sgt_4(<4 x i16> <i16 -32768, i16 -32768, i16 -32768, i16 -32768>, <4 x i16> <i16 1, i16 32767, i16 -32768, i16 -1>, <4 x i64> <i64 1, i64 2, i64 3, i64 4>, <4 x i64> <i64 -1, i64 -2, i64 -3, i64 -4>)
+  %c972 = icmp eq <4 x i64> %r972, <i64 -1, i64 -2, i64 -3, i64 -4>
+  %m972 = bitcast <4 x i1> %c972 to i4
+  %ok972 = icmp eq i4 %m972, -1
+  br i1 %ok972, label %next972, label %fail94
+next972:
+  %r973 = call <4 x i64> @mixed_c16_si64_sgt_4(<4 x i16> <i16 -1, i16 -1, i16 -1, i16 -1>, <4 x i16> <i16 0, i16 1, i16 32767, i16 -32768>, <4 x i64> <i64 1, i64 2, i64 3, i64 4>, <4 x i64> <i64 -1, i64 -2, i64 -3, i64 -4>)
+  %c973 = icmp eq <4 x i64> %r973, <i64 -1, i64 -2, i64 -3, i64 4>
+  %m973 = bitcast <4 x i1> %c973 to i4
+  %ok973 = icmp eq i4 %m973, -1
+  br i1 %ok973, label %next973, label %fail94
+next973:
+  %r974 = call <4 x i64> @mixed_c16_si64_sgt_4(<4 x i16> <i16 -1, i16 -1, i16 -1, i16 -1>, <4 x i16> <i16 -1, i16 -1, i16 -1, i16 -1>, <4 x i64> <i64 1, i64 2, i64 3, i64 4>, <4 x i64> <i64 -1, i64 -2, i64 -3, i64 -4>)
+  %c974 = icmp eq <4 x i64> %r974, <i64 -1, i64 -2, i64 -3, i64 -4>
+  %m974 = bitcast <4 x i1> %c974 to i4
+  %ok974 = icmp eq i4 %m974, -1
+  br i1 %ok974, label %next974, label %fail94
+next974:
+  ; 95: ne on <4 x i16> selecting <4 x i64>
+  %r975 = call <4 x i64> @mixed_c16_si64_ne_4(<4 x i16> <i16 0, i16 0, i16 0, i16 0>, <4 x i16> <i16 0, i16 1, i16 32767, i16 -32768>, <4 x i64> <i64 1, i64 2, i64 3, i64 4>, <4 x i64> <i64 -1, i64 -2, i64 -3, i64 -4>)
+  %c975 = icmp eq <4 x i64> %r975, <i64 -1, i64 2, i64 3, i64 4>
+  %m975 = bitcast <4 x i1> %c975 to i4
+  %ok975 = icmp eq i4 %m975, -1
+  br i1 %ok975, label %next975, label %fail95
+next975:
+  %r976 = call <4 x i64> @mixed_c16_si64_ne_4(<4 x i16> <i16 0, i16 1, i16 1, i16 1>, <4 x i16> <i16 -1, i16 0, i16 1, i16 32767>, <4 x i64> <i64 1, i64 2, i64 3, i64 4>, <4 x i64> <i64 -1, i64 -2, i64 -3, i64 -4>)
+  %c976 = icmp eq <4 x i64> %r976, <i64 1, i64 2, i64 -3, i64 4>
+  %m976 = bitcast <4 x i1> %c976 to i4
+  %ok976 = icmp eq i4 %m976, -1
+  br i1 %ok976, label %next976, label %fail95
+next976:
+  %r977 = call <4 x i64> @mixed_c16_si64_ne_4(<4 x i16> <i16 1, i16 1, i16 32767, i16 32767>, <4 x i16> <i16 -32768, i16 -1, i16 0, i16 1>, <4 x i64> <i64 1, i64 2, i64 3, i64 4>, <4 x i64> <i64 -1, i64 -2, i64 -3, i64 -4>)
+  %c977 = icmp eq <4 x i64> %r977, <i64 1, i64 2, i64 3, i64 4>
+  %m977 = bitcast <4 x i1> %c977 to i4
+  %ok977 = icmp eq i4 %m977, -1
+  br i1 %ok977, label %next977, label %fail95
+next977:
+  %r978 = call <4 x i64> @mixed_c16_si64_ne_4(<4 x i16> <i16 32767, i16 32767, i16 32767, i16 -32768>, <4 x i16> <i16 32767, i16 -32768, i16 -1, i16 0>, <4 x i64> <i64 1, i64 2, i64 3, i64 4>, <4 x i64> <i64 -1, i64 -2, i64 -3, i64 -4>)
+  %c978 = icmp eq <4 x i64> %r978, <i64 -1, i64 2, i64 3, i64 4>
+  %m978 = bitcast <4 x i1> %c978 to i4
+  %ok978 = icmp eq i4 %m978, -1
+  br i1 %ok978, label %next978, label %fail95
+next978:
+  %r979 = call <4 x i64> @mixed_c16_si64_ne_4(<4 x i16> <i16 -32768, i16 -32768, i16 -32768, i16 -32768>, <4 x i16> <i16 1, i16 32767, i16 -32768, i16 -1>, <4 x i64> <i64 1, i64 2, i64 3, i64 4>, <4 x i64> <i64 -1, i64 -2, i64 -3, i64 -4>)
+  %c979 = icmp eq <4 x i64> %r979, <i64 1, i64 2, i64 -3, i64 4>
+  %m979 = bitcast <4 x i1> %c979 to i4
+  %ok979 = icmp eq i4 %m979, -1
+  br i1 %ok979, label %next979, label %fail95
+next979:
+  %r980 = call <4 x i64> @mixed_c16_si64_ne_4(<4 x i16> <i16 -1, i16 -1, i16 -1, i16 -1>, <4 x i16> <i16 0, i16 1, i16 32767, i16 -32768>, <4 x i64> <i64 1, i64 2, i64 3, i64 4>, <4 x i64> <i64 -1, i64 -2, i64 -3, i64 -4>)
+  %c980 = icmp eq <4 x i64> %r980, <i64 1, i64 2, i64 3, i64 4>
+  %m980 = bitcast <4 x i1> %c980 to i4
+  %ok980 = icmp eq i4 %m980, -1
+  br i1 %ok980, label %next980, label %fail95
+next980:
+  %r981 = call <4 x i64> @mixed_c16_si64_ne_4(<4 x i16> <i16 -1, i16 -1, i16 -1, i16 -1>, <4 x i16> <i16 -1, i16 -1, i16 -1, i16 -1>, <4 x i64> <i64 1, i64 2, i64 3, i64 4>, <4 x i64> <i64 -1, i64 -2, i64 -3, i64 -4>)
+  %c981 = icmp eq <4 x i64> %r981, <i64 -1, i64 -2, i64 -3, i64 -4>
+  %m981 = bitcast <4 x i1> %c981 to i4
+  %ok981 = icmp eq i4 %m981, -1
+  br i1 %ok981, label %next981, label %fail95
+next981:
+  ; 96: sle on <4 x i16> selecting <4 x i64>
+  %r982 = call <4 x i64> @mixed_c16_si64_sle_4(<4 x i16> <i16 0, i16 0, i16 0, i16 0>, <4 x i16> <i16 0, i16 1, i16 32767, i16 -32768>, <4 x i64> <i64 1, i64 2, i64 3, i64 4>, <4 x i64> <i64 -1, i64 -2, i64 -3, i64 -4>)
+  %c982 = icmp eq <4 x i64> %r982, <i64 1, i64 2, i64 3, i64 -4>
+  %m982 = bitcast <4 x i1> %c982 to i4
+  %ok982 = icmp eq i4 %m982, -1
+  br i1 %ok982, label %next982, label %fail96
+next982:
+  %r983 = call <4 x i64> @mixed_c16_si64_sle_4(<4 x i16> <i16 0, i16 1, i16 1, i16 1>, <4 x i16> <i16 -1, i16 0, i16 1, i16 32767>, <4 x i64> <i64 1, i64 2, i64 3, i64 4>, <4 x i64> <i64 -1, i64 -2, i64 -3, i64 -4>)
+  %c983 = icmp eq <4 x i64> %r983, <i64 -1, i64 -2, i64 3, i64 4>
+  %m983 = bitcast <4 x i1> %c983 to i4
+  %ok983 = icmp eq i4 %m983, -1
+  br i1 %ok983, label %next983, label %fail96
+next983:
+  %r984 = call <4 x i64> @mixed_c16_si64_sle_4(<4 x i16> <i16 1, i16 1, i16 32767, i16 32767>, <4 x i16> <i16 -32768, i16 -1, i16 0, i16 1>, <4 x i64> <i64 1, i64 2, i64 3, i64 4>, <4 x i64> <i64 -1, i64 -2, i64 -3, i64 -4>)
+  %c984 = icmp eq <4 x i64> %r984, <i64 -1, i64 -2, i64 -3, i64 -4>
+  %m984 = bitcast <4 x i1> %c984 to i4
+  %ok984 = icmp eq i4 %m984, -1
+  br i1 %ok984, label %next984, label %fail96
+next984:
+  %r985 = call <4 x i64> @mixed_c16_si64_sle_4(<4 x i16> <i16 32767, i16 32767, i16 32767, i16 -32768>, <4 x i16> <i16 32767, i16 -32768, i16 -1, i16 0>, <4 x i64> <i64 1, i64 2, i64 3, i64 4>, <4 x i64> <i64 -1, i64 -2, i64 -3, i64 -4>)
+  %c985 = icmp eq <4 x i64> %r985, <i64 1, i64 -2, i64 -3, i64 4>
+  %m985 = bitcast <4 x i1> %c985 to i4
+  %ok985 = icmp eq i4 %m985, -1
+  br i1 %ok985, label %next985, label %fail96
+next985:
+  %r986 = call <4 x i64> @mixed_c16_si64_sle_4(<4 x i16> <i16 -32768, i16 -32768, i16 -32768, i16 -32768>, <4 x i16> <i16 1, i16 32767, i16 -32768, i16 -1>, <4 x i64> <i64 1, i64 2, i64 3, i64 4>, <4 x i64> <i64 -1, i64 -2, i64 -3, i64 -4>)
+  %c986 = icmp eq <4 x i64> %r986, <i64 1, i64 2, i64 3, i64 4>
+  %m986 = bitcast <4 x i1> %c986 to i4
+  %ok986 = icmp eq i4 %m986, -1
+  br i1 %ok986, label %next986, label %fail96
+next986:
+  %r987 = call <4 x i64> @mixed_c16_si64_sle_4(<4 x i16> <i16 -1, i16 -1, i16 -1, i16 -1>, <4 x i16> <i16 0, i16 1, i16 32767, i16 -32768>, <4 x i64> <i64 1, i64 2, i64 3, i64 4>, <4 x i64> <i64 -1, i64 -2, i64 -3, i64 -4>)
+  %c987 = icmp eq <4 x i64> %r987, <i64 1, i64 2, i64 3, i64 -4>
+  %m987 = bitcast <4 x i1> %c987 to i4
+  %ok987 = icmp eq i4 %m987, -1
+  br i1 %ok987, label %next987, label %fail96
+next987:
+  %r988 = call <4 x i64> @mixed_c16_si64_sle_4(<4 x i16> <i16 -1, i16 -1, i16 -1, i16 -1>, <4 x i16> <i16 -1, i16 -1, i16 -1, i16 -1>, <4 x i64> <i64 1, i64 2, i64 3, i64 4>, <4 x i64> <i64 -1, i64 -2, i64 -3, i64 -4>)
+  %c988 = icmp eq <4 x i64> %r988, <i64 1, i64 2, i64 3, i64 4>
+  %m988 = bitcast <4 x i1> %c988 to i4
+  %ok988 = icmp eq i4 %m988, -1
+  br i1 %ok988, label %next988, label %fail96
+next988:
+  ; 97: ult on <4 x i32> selecting <4 x i16>
+  %r989 = call <4 x i16> @mixed_c32_si16_ult_4(<4 x i32> <i32 0, i32 0, i32 0, i32 0>, <4 x i32> <i32 0, i32 1, i32 2147483647, i32 -2147483648>, <4 x i16> <i16 1, i16 2, i16 3, i16 4>, <4 x i16> <i16 -1, i16 -2, i16 -3, i16 -4>)
+  %c989 = icmp eq <4 x i16> %r989, <i16 -1, i16 2, i16 3, i16 4>
+  %m989 = bitcast <4 x i1> %c989 to i4
+  %ok989 = icmp eq i4 %m989, -1
+  br i1 %ok989, label %next989, label %fail97
+next989:
+  %r990 = call <4 x i16> @mixed_c32_si16_ult_4(<4 x i32> <i32 0, i32 1, i32 1, i32 1>, <4 x i32> <i32 -1, i32 0, i32 1, i32 2147483647>, <4 x i16> <i16 1, i16 2, i16 3, i16 4>, <4 x i16> <i16 -1, i16 -2, i16 -3, i16 -4>)
+  %c990 = icmp eq <4 x i16> %r990, <i16 1, i16 -2, i16 -3, i16 4>
+  %m990 = bitcast <4 x i1> %c990 to i4
+  %ok990 = icmp eq i4 %m990, -1
+  br i1 %ok990, label %next990, label %fail97
+next990:
+  %r991 = call <4 x i16> @mixed_c32_si16_ult_4(<4 x i32> <i32 1, i32 1, i32 2147483647, i32 2147483647>, <4 x i32> <i32 -2147483648, i32 -1, i32 0, i32 1>, <4 x i16> <i16 1, i16 2, i16 3, i16 4>, <4 x i16> <i16 -1, i16 -2, i16 -3, i16 -4>)
+  %c991 = icmp eq <4 x i16> %r991, <i16 1, i16 2, i16 -3, i16 -4>
+  %m991 = bitcast <4 x i1> %c991 to i4
+  %ok991 = icmp eq i4 %m991, -1
+  br i1 %ok991, label %next991, label %fail97
+next991:
+  %r992 = call <4 x i16> @mixed_c32_si16_ult_4(<4 x i32> <i32 2147483647, i32 2147483647, i32 2147483647, i32 -2147483648>, <4 x i32> <i32 2147483647, i32 -2147483648, i32 -1, i32 0>, <4 x i16> <i16 1, i16 2, i16 3, i16 4>, <4 x i16> <i16 -1, i16 -2, i16 -3, i16 -4>)
+  %c992 = icmp eq <4 x i16> %r992, <i16 -1, i16 2, i16 3, i16 -4>
+  %m992 = bitcast <4 x i1> %c992 to i4
+  %ok992 = icmp eq i4 %m992, -1
+  br i1 %ok992, label %next992, label %fail97
+next992:
+  %r993 = call <4 x i16> @mixed_c32_si16_ult_4(<4 x i32> <i32 -2147483648, i32 -2147483648, i32 -2147483648, i32 -2147483648>, <4 x i32> <i32 1, i32 2147483647, i32 -2147483648, i32 -1>, <4 x i16> <i16 1, i16 2, i16 3, i16 4>, <4 x i16> <i16 -1, i16 -2, i16 -3, i16 -4>)
+  %c993 = icmp eq <4 x i16> %r993, <i16 -1, i16 -2, i16 -3, i16 4>
+  %m993 = bitcast <4 x i1> %c993 to i4
+  %ok993 = icmp eq i4 %m993, -1
+  br i1 %ok993, label %next993, label %fail97
+next993:
+  %r994 = call <4 x i16> @mixed_c32_si16_ult_4(<4 x i32> <i32 -1, i32 -1, i32 -1, i32 -1>, <4 x i32> <i32 0, i32 1, i32 2147483647, i32 -2147483648>, <4 x i16> <i16 1, i16 2, i16 3, i16 4>, <4 x i16> <i16 -1, i16 -2, i16 -3, i16 -4>)
+  %c994 = icmp eq <4 x i16> %r994, <i16 -1, i16 -2, i16 -3, i16 -4>
+  %m994 = bitcast <4 x i1> %c994 to i4
+  %ok994 = icmp eq i4 %m994, -1
+  br i1 %ok994, label %next994, label %fail97
+next994:
+  %r995 = call <4 x i16> @mixed_c32_si16_ult_4(<4 x i32> <i32 -1, i32 -1, i32 -1, i32 -1>, <4 x i32> <i32 -1, i32 -1, i32 -1, i32 -1>, <4 x i16> <i16 1, i16 2, i16 3, i16 4>, <4 x i16> <i16 -1, i16 -2, i16 -3, i16 -4>)
+  %c995 = icmp eq <4 x i16> %r995, <i16 -1, i16 -2, i16 -3, i16 -4>
+  %m995 = bitcast <4 x i1> %c995 to i4
+  %ok995 = icmp eq i4 %m995, -1
+  br i1 %ok995, label %next995, label %fail97
+next995:
+  ; 98: sgt on <4 x i32> selecting <4 x i16>
+  %r996 = call <4 x i16> @mixed_c32_si16_sgt_4(<4 x i32> <i32 0, i32 0, i32 0, i32 0>, <4 x i32> <i32 0, i32 1, i32 2147483647, i32 -2147483648>, <4 x i16> <i16 1, i16 2, i16 3, i16 4>, <4 x i16> <i16 -1, i16 -2, i16 -3, i16 -4>)
+  %c996 = icmp eq <4 x i16> %r996, <i16 -1, i16 -2, i16 -3, i16 4>
+  %m996 = bitcast <4 x i1> %c996 to i4
+  %ok996 = icmp eq i4 %m996, -1
+  br i1 %ok996, label %next996, label %fail98
+next996:
+  %r997 = call <4 x i16> @mixed_c32_si16_sgt_4(<4 x i32> <i32 0, i32 1, i32 1, i32 1>, <4 x i32> <i32 -1, i32 0, i32 1, i32 2147483647>, <4 x i16> <i16 1, i16 2, i16 3, i16 4>, <4 x i16> <i16 -1, i16 -2, i16 -3, i16 -4>)
+  %c997 = icmp eq <4 x i16> %r997, <i16 1, i16 2, i16 -3, i16 -4>
+  %m997 = bitcast <4 x i1> %c997 to i4
+  %ok997 = icmp eq i4 %m997, -1
+  br i1 %ok997, label %next997, label %fail98
+next997:
+  %r998 = call <4 x i16> @mixed_c32_si16_sgt_4(<4 x i32> <i32 1, i32 1, i32 2147483647, i32 2147483647>, <4 x i32> <i32 -2147483648, i32 -1, i32 0, i32 1>, <4 x i16> <i16 1, i16 2, i16 3, i16 4>, <4 x i16> <i16 -1, i16 -2, i16 -3, i16 -4>)
+  %c998 = icmp eq <4 x i16> %r998, <i16 1, i16 2, i16 3, i16 4>
+  %m998 = bitcast <4 x i1> %c998 to i4
+  %ok998 = icmp eq i4 %m998, -1
+  br i1 %ok998, label %next998, label %fail98
+next998:
+  %r999 = call <4 x i16> @mixed_c32_si16_sgt_4(<4 x i32> <i32 2147483647, i32 2147483647, i32 2147483647, i32 -2147483648>, <4 x i32> <i32 2147483647, i32 -2147483648, i32 -1, i32 0>, <4 x i16> <i16 1, i16 2, i16 3, i16 4>, <4 x i16> <i16 -1, i16 -2, i16 -3, i16 -4>)
+  %c999 = icmp eq <4 x i16> %r999, <i16 -1, i16 2, i16 3, i16 -4>
+  %m999 = bitcast <4 x i1> %c999 to i4
+  %ok999 = icmp eq i4 %m999, -1
+  br i1 %ok999, label %next999, label %fail98
+next999:
+  %r1000 = call <4 x i16> @mixed_c32_si16_sgt_4(<4 x i32> <i32 -2147483648, i32 -2147483648, i32 -2147483648, i32 -2147483648>, <4 x i32> <i32 1, i32 2147483647, i32 -2147483648, i32 -1>, <4 x i16> <i16 1, i16 2, i16 3, i16 4>, <4 x i16> <i16 -1, i16 -2, i16 -3, i16 -4>)
+  %c1000 = icmp eq <4 x i16> %r1000, <i16 -1, i16 -2, i16 -3, i16 -4>
+  %m1000 = bitcast <4 x i1> %c1000 to i4
+  %ok1000 = icmp eq i4 %m1000, -1
+  br i1 %ok1000, label %next1000, label %fail98
+next1000:
+  %r1001 = call <4 x i16> @mixed_c32_si16_sgt_4(<4 x i32> <i32 -1, i32 -1, i32 -1, i32 -1>, <4 x i32> <i32 0, i32 1, i32 2147483647, i32 -2147483648>, <4 x i16> <i16 1, i16 2, i16 3, i16 4>, <4 x i16> <i16 -1, i16 -2, i16 -3, i16 -4>)
+  %c1001 = icmp eq <4 x i16> %r1001, <i16 -1, i16 -2, i16 -3, i16 4>
+  %m1001 = bitcast <4 x i1> %c1001 to i4
+  %ok1001 = icmp eq i4 %m1001, -1
+  br i1 %ok1001, label %next1001, label %fail98
+next1001:
+  %r1002 = call <4 x i16> @mixed_c32_si16_sgt_4(<4 x i32> <i32 -1, i32 -1, i32 -1, i32 -1>, <4 x i32> <i32 -1, i32 -1, i32 -1, i32 -1>, <4 x i16> <i16 1, i16 2, i16 3, i16 4>, <4 x i16> <i16 -1, i16 -2, i16 -3, i16 -4>)
+  %c1002 = icmp eq <4 x i16> %r1002, <i16 -1, i16 -2, i16 -3, i16 -4>
+  %m1002 = bitcast <4 x i1> %c1002 to i4
+  %ok1002 = icmp eq i4 %m1002, -1
+  br i1 %ok1002, label %next1002, label %fail98
+next1002:
+  ; 99: ne on <4 x i32> selecting <4 x i16>
+  %r1003 = call <4 x i16> @mixed_c32_si16_ne_4(<4 x i32> <i32 0, i32 0, i32 0, i32 0>, <4 x i32> <i32 0, i32 1, i32 2147483647, i32 -2147483648>, <4 x i16> <i16 1, i16 2, i16 3, i16 4>, <4 x i16> <i16 -1, i16 -2, i16 -3, i16 -4>)
+  %c1003 = icmp eq <4 x i16> %r1003, <i16 -1, i16 2, i16 3, i16 4>
+  %m1003 = bitcast <4 x i1> %c1003 to i4
+  %ok1003 = icmp eq i4 %m1003, -1
+  br i1 %ok1003, label %next1003, label %fail99
+next1003:
+  %r1004 = call <4 x i16> @mixed_c32_si16_ne_4(<4 x i32> <i32 0, i32 1, i32 1, i32 1>, <4 x i32> <i32 -1, i32 0, i32 1, i32 2147483647>, <4 x i16> <i16 1, i16 2, i16 3, i16 4>, <4 x i16> <i16 -1, i16 -2, i16 -3, i16 -4>)
+  %c1004 = icmp eq <4 x i16> %r1004, <i16 1, i16 2, i16 -3, i16 4>
+  %m1004 = bitcast <4 x i1> %c1004 to i4
+  %ok1004 = icmp eq i4 %m1004, -1
+  br i1 %ok1004, label %next1004, label %fail99
+next1004:
+  %r1005 = call <4 x i16> @mixed_c32_si16_ne_4(<4 x i32> <i32 1, i32 1, i32 2147483647, i32 2147483647>, <4 x i32> <i32 -2147483648, i32 -1, i32 0, i32 1>, <4 x i16> <i16 1, i16 2, i16 3, i16 4>, <4 x i16> <i16 -1, i16 -2, i16 -3, i16 -4>)
+  %c1005 = icmp eq <4 x i16> %r1005, <i16 1, i16 2, i16 3, i16 4>
+  %m1005 = bitcast <4 x i1> %c1005 to i4
+  %ok1005 = icmp eq i4 %m1005, -1
+  br i1 %ok1005, label %next1005, label %fail99
+next1005:
+  %r1006 = call <4 x i16> @mixed_c32_si16_ne_4(<4 x i32> <i32 2147483647, i32 2147483647, i32 2147483647, i32 -2147483648>, <4 x i32> <i32 2147483647, i32 -2147483648, i32 -1, i32 0>, <4 x i16> <i16 1, i16 2, i16 3, i16 4>, <4 x i16> <i16 -1, i16 -2, i16 -3, i16 -4>)
+  %c1006 = icmp eq <4 x i16> %r1006, <i16 -1, i16 2, i16 3, i16 4>
+  %m1006 = bitcast <4 x i1> %c1006 to i4
+  %ok1006 = icmp eq i4 %m1006, -1
+  br i1 %ok1006, label %next1006, label %fail99
+next1006:
+  %r1007 = call <4 x i16> @mixed_c32_si16_ne_4(<4 x i32> <i32 -2147483648, i32 -2147483648, i32 -2147483648, i32 -2147483648>, <4 x i32> <i32 1, i32 2147483647, i32 -2147483648, i32 -1>, <4 x i16> <i16 1, i16 2, i16 3, i16 4>, <4 x i16> <i16 -1, i16 -2, i16 -3, i16 -4>)
+  %c1007 = icmp eq <4 x i16> %r1007, <i16 1, i16 2, i16 -3, i16 4>
+  %m1007 = bitcast <4 x i1> %c1007 to i4
+  %ok1007 = icmp eq i4 %m1007, -1
+  br i1 %ok1007, label %next1007, label %fail99
+next1007:
+  %r1008 = call <4 x i16> @mixed_c32_si16_ne_4(<4 x i32> <i32 -1, i32 -1, i32 -1, i32 -1>, <4 x i32> <i32 0, i32 1, i32 2147483647, i32 -2147483648>, <4 x i16> <i16 1, i16 2, i16 3, i16 4>, <4 x i16> <i16 -1, i16 -2, i16 -3, i16 -4>)
+  %c1008 = icmp eq <4 x i16> %r1008, <i16 1, i16 2, i16 3, i16 4>
+  %m1008 = bitcast <4 x i1> %c1008 to i4
+  %ok1008 = icmp eq i4 %m1008, -1
+  br i1 %ok1008, label %next1008, label %fail99
+next1008:
+  %r1009 = call <4 x i16> @mixed_c32_si16_ne_4(<4 x i32> <i32 -1, i32 -1, i32 -1, i32 -1>, <4 x i32> <i32 -1, i32 -1, i32 -1, i32 -1>, <4 x i16> <i16 1, i16 2, i16 3, i16 4>, <4 x i16> <i16 -1, i16 -2, i16 -3, i16 -4>)
+  %c1009 = icmp eq <4 x i16> %r1009, <i16 -1, i16 -2, i16 -3, i16 -4>
+  %m1009 = bitcast <4 x i1> %c1009 to i4
+  %ok1009 = icmp eq i4 %m1009, -1
+  br i1 %ok1009, label %next1009, label %fail99
+next1009:
+  ; 100: sle on <4 x i32> selecting <4 x i16>
+  %r1010 = call <4 x i16> @mixed_c32_si16_sle_4(<4 x i32> <i32 0, i32 0, i32 0, i32 0>, <4 x i32> <i32 0, i32 1, i32 2147483647, i32 -2147483648>, <4 x i16> <i16 1, i16 2, i16 3, i16 4>, <4 x i16> <i16 -1, i16 -2, i16 -3, i16 -4>)
+  %c1010 = icmp eq <4 x i16> %r1010, <i16 1, i16 2, i16 3, i16 -4>
+  %m1010 = bitcast <4 x i1> %c1010 to i4
+  %ok1010 = icmp eq i4 %m1010, -1
+  br i1 %ok1010, label %next1010, label %fail100
+next1010:
+  %r1011 = call <4 x i16> @mixed_c32_si16_sle_4(<4 x i32> <i32 0, i32 1, i32 1, i32 1>, <4 x i32> <i32 -1, i32 0, i32 1, i32 2147483647>, <4 x i16> <i16 1, i16 2, i16 3, i16 4>, <4 x i16> <i16 -1, i16 -2, i16 -3, i16 -4>)
+  %c1011 = icmp eq <4 x i16> %r1011, <i16 -1, i16 -2, i16 3, i16 4>
+  %m1011 = bitcast <4 x i1> %c1011 to i4
+  %ok1011 = icmp eq i4 %m1011, -1
+  br i1 %ok1011, label %next1011, label %fail100
+next1011:
+  %r1012 = call <4 x i16> @mixed_c32_si16_sle_4(<4 x i32> <i32 1, i32 1, i32 2147483647, i32 2147483647>, <4 x i32> <i32 -2147483648, i32 -1, i32 0, i32 1>, <4 x i16> <i16 1, i16 2, i16 3, i16 4>, <4 x i16> <i16 -1, i16 -2, i16 -3, i16 -4>)
+  %c1012 = icmp eq <4 x i16> %r1012, <i16 -1, i16 -2, i16 -3, i16 -4>
+  %m1012 = bitcast <4 x i1> %c1012 to i4
+  %ok1012 = icmp eq i4 %m1012, -1
+  br i1 %ok1012, label %next1012, label %fail100
+next1012:
+  %r1013 = call <4 x i16> @mixed_c32_si16_sle_4(<4 x i32> <i32 2147483647, i32 2147483647, i32 2147483647, i32 -2147483648>, <4 x i32> <i32 2147483647, i32 -2147483648, i32 -1, i32 0>, <4 x i16> <i16 1, i16 2, i16 3, i16 4>, <4 x i16> <i16 -1, i16 -2, i16 -3, i16 -4>)
+  %c1013 = icmp eq <4 x i16> %r1013, <i16 1, i16 -2, i16 -3, i16 4>
+  %m1013 = bitcast <4 x i1> %c1013 to i4
+  %ok1013 = icmp eq i4 %m1013, -1
+  br i1 %ok1013, label %next1013, label %fail100
+next1013:
+  %r1014 = call <4 x i16> @mixed_c32_si16_sle_4(<4 x i32> <i32 -2147483648, i32 -2147483648, i32 -2147483648, i32 -2147483648>, <4 x i32> <i32 1, i32 2147483647, i32 -2147483648, i32 -1>, <4 x i16> <i16 1, i16 2, i16 3, i16 4>, <4 x i16> <i16 -1, i16 -2, i16 -3, i16 -4>)
+  %c1014 = icmp eq <4 x i16> %r1014, <i16 1, i16 2, i16 3, i16 4>
+  %m1014 = bitcast <4 x i1> %c1014 to i4
+  %ok1014 = icmp eq i4 %m1014, -1
+  br i1 %ok1014, label %next1014, label %fail100
+next1014:
+  %r1015 = call <4 x i16> @mixed_c32_si16_sle_4(<4 x i32> <i32 -1, i32 -1, i32 -1, i32 -1>, <4 x i32> <i32 0, i32 1, i32 2147483647, i32 -2147483648>, <4 x i16> <i16 1, i16 2, i16 3, i16 4>, <4 x i16> <i16 -1, i16 -2, i16 -3, i16 -4>)
+  %c1015 = icmp eq <4 x i16> %r1015, <i16 1, i16 2, i16 3, i16 -4>
+  %m1015 = bitcast <4 x i1> %c1015 to i4
+  %ok1015 = icmp eq i4 %m1015, -1
+  br i1 %ok1015, label %next1015, label %fail100
+next1015:
+  %r1016 = call <4 x i16> @mixed_c32_si16_sle_4(<4 x i32> <i32 -1, i32 -1, i32 -1, i32 -1>, <4 x i32> <i32 -1, i32 -1, i32 -1, i32 -1>, <4 x i16> <i16 1, i16 2, i16 3, i16 4>, <4 x i16> <i16 -1, i16 -2, i16 -3, i16 -4>)
+  %c1016 = icmp eq <4 x i16> %r1016, <i16 1, i16 2, i16 3, i16 4>
+  %m1016 = bitcast <4 x i1> %c1016 to i4
+  %ok1016 = icmp eq i4 %m1016, -1
+  br i1 %ok1016, label %next1016, label %fail100
+next1016:
+  ; 101: ult on <4 x i32> selecting <4 x i64>
+  %r1017 = call <4 x i64> @mixed_c32_si64_ult_4(<4 x i32> <i32 0, i32 0, i32 0, i32 0>, <4 x i32> <i32 0, i32 1, i32 2147483647, i32 -2147483648>, <4 x i64> <i64 1, i64 2, i64 3, i64 4>, <4 x i64> <i64 -1, i64 -2, i64 -3, i64 -4>)
+  %c1017 = icmp eq <4 x i64> %r1017, <i64 -1, i64 2, i64 3, i64 4>
+  %m1017 = bitcast <4 x i1> %c1017 to i4
+  %ok1017 = icmp eq i4 %m1017, -1
+  br i1 %ok1017, label %next1017, label %fail101
+next1017:
+  %r1018 = call <4 x i64> @mixed_c32_si64_ult_4(<4 x i32> <i32 0, i32 1, i32 1, i32 1>, <4 x i32> <i32 -1, i32 0, i32 1, i32 2147483647>, <4 x i64> <i64 1, i64 2, i64 3, i64 4>, <4 x i64> <i64 -1, i64 -2, i64 -3, i64 -4>)
+  %c1018 = icmp eq <4 x i64> %r1018, <i64 1, i64 -2, i64 -3, i64 4>
+  %m1018 = bitcast <4 x i1> %c1018 to i4
+  %ok1018 = icmp eq i4 %m1018, -1
+  br i1 %ok1018, label %next1018, label %fail101
+next1018:
+  %r1019 = call <4 x i64> @mixed_c32_si64_ult_4(<4 x i32> <i32 1, i32 1, i32 2147483647, i32 2147483647>, <4 x i32> <i32 -2147483648, i32 -1, i32 0, i32 1>, <4 x i64> <i64 1, i64 2, i64 3, i64 4>, <4 x i64> <i64 -1, i64 -2, i64 -3, i64 -4>)
+  %c1019 = icmp eq <4 x i64> %r1019, <i64 1, i64 2, i64 -3, i64 -4>
+  %m1019 = bitcast <4 x i1> %c1019 to i4
+  %ok1019 = icmp eq i4 %m1019, -1
+  br i1 %ok1019, label %next1019, label %fail101
+next1019:
+  %r1020 = call <4 x i64> @mixed_c32_si64_ult_4(<4 x i32> <i32 2147483647, i32 2147483647, i32 2147483647, i32 -2147483648>, <4 x i32> <i32 2147483647, i32 -2147483648, i32 -1, i32 0>, <4 x i64> <i64 1, i64 2, i64 3, i64 4>, <4 x i64> <i64 -1, i64 -2, i64 -3, i64 -4>)
+  %c1020 = icmp eq <4 x i64> %r1020, <i64 -1, i64 2, i64 3, i64 -4>
+  %m1020 = bitcast <4 x i1> %c1020 to i4
+  %ok1020 = icmp eq i4 %m1020, -1
+  br i1 %ok1020, label %next1020, label %fail101
+next1020:
+  %r1021 = call <4 x i64> @mixed_c32_si64_ult_4(<4 x i32> <i32 -2147483648, i32 -2147483648, i32 -2147483648, i32 -2147483648>, <4 x i32> <i32 1, i32 2147483647, i32 -2147483648, i32 -1>, <4 x i64> <i64 1, i64 2, i64 3, i64 4>, <4 x i64> <i64 -1, i64 -2, i64 -3, i64 -4>)
+  %c1021 = icmp eq <4 x i64> %r1021, <i64 -1, i64 -2, i64 -3, i64 4>
+  %m1021 = bitcast <4 x i1> %c1021 to i4
+  %ok1021 = icmp eq i4 %m1021, -1
+  br i1 %ok1021, label %next1021, label %fail101
+next1021:
+  %r1022 = call <4 x i64> @mixed_c32_si64_ult_4(<4 x i32> <i32 -1, i32 -1, i32 -1, i32 -1>, <4 x i32> <i32 0, i32 1, i32 2147483647, i32 -2147483648>, <4 x i64> <i64 1, i64 2, i64 3, i64 4>, <4 x i64> <i64 -1, i64 -2, i64 -3, i64 -4>)
+  %c1022 = icmp eq <4 x i64> %r1022, <i64 -1, i64 -2, i64 -3, i64 -4>
+  %m1022 = bitcast <4 x i1> %c1022 to i4
+  %ok1022 = icmp eq i4 %m1022, -1
+  br i1 %ok1022, label %next1022, label %fail101
+next1022:
+  %r1023 = call <4 x i64> @mixed_c32_si64_ult_4(<4 x i32> <i32 -1, i32 -1, i32 -1, i32 -1>, <4 x i32> <i32 -1, i32 -1, i32 -1, i32 -1>, <4 x i64> <i64 1, i64 2, i64 3, i64 4>, <4 x i64> <i64 -1, i64 -2, i64 -3, i64 -4>)
+  %c1023 = icmp eq <4 x i64> %r1023, <i64 -1, i64 -2, i64 -3, i64 -4>
+  %m1023 = bitcast <4 x i1> %c1023 to i4
+  %ok1023 = icmp eq i4 %m1023, -1
+  br i1 %ok1023, label %next1023, label %fail101
+next1023:
+  ; 102: sgt on <4 x i32> selecting <4 x i64>
+  %r1024 = call <4 x i64> @mixed_c32_si64_sgt_4(<4 x i32> <i32 0, i32 0, i32 0, i32 0>, <4 x i32> <i32 0, i32 1, i32 2147483647, i32 -2147483648>, <4 x i64> <i64 1, i64 2, i64 3, i64 4>, <4 x i64> <i64 -1, i64 -2, i64 -3, i64 -4>)
+  %c1024 = icmp eq <4 x i64> %r1024, <i64 -1, i64 -2, i64 -3, i64 4>
+  %m1024 = bitcast <4 x i1> %c1024 to i4
+  %ok1024 = icmp eq i4 %m1024, -1
+  br i1 %ok1024, label %next1024, label %fail102
+next1024:
+  %r1025 = call <4 x i64> @mixed_c32_si64_sgt_4(<4 x i32> <i32 0, i32 1, i32 1, i32 1>, <4 x i32> <i32 -1, i32 0, i32 1, i32 2147483647>, <4 x i64> <i64 1, i64 2, i64 3, i64 4>, <4 x i64> <i64 -1, i64 -2, i64 -3, i64 -4>)
+  %c1025 = icmp eq <4 x i64> %r1025, <i64 1, i64 2, i64 -3, i64 -4>
+  %m1025 = bitcast <4 x i1> %c1025 to i4
+  %ok1025 = icmp eq i4 %m1025, -1
+  br i1 %ok1025, label %next1025, label %fail102
+next1025:
+  %r1026 = call <4 x i64> @mixed_c32_si64_sgt_4(<4 x i32> <i32 1, i32 1, i32 2147483647, i32 2147483647>, <4 x i32> <i32 -2147483648, i32 -1, i32 0, i32 1>, <4 x i64> <i64 1, i64 2, i64 3, i64 4>, <4 x i64> <i64 -1, i64 -2, i64 -3, i64 -4>)
+  %c1026 = icmp eq <4 x i64> %r1026, <i64 1, i64 2, i64 3, i64 4>
+  %m1026 = bitcast <4 x i1> %c1026 to i4
+  %ok1026 = icmp eq i4 %m1026, -1
+  br i1 %ok1026, label %next1026, label %fail102
+next1026:
+  %r1027 = call <4 x i64> @mixed_c32_si64_sgt_4(<4 x i32> <i32 2147483647, i32 2147483647, i32 2147483647, i32 -2147483648>, <4 x i32> <i32 2147483647, i32 -2147483648, i32 -1, i32 0>, <4 x i64> <i64 1, i64 2, i64 3, i64 4>, <4 x i64> <i64 -1, i64 -2, i64 -3, i64 -4>)
+  %c1027 = icmp eq <4 x i64> %r1027, <i64 -1, i64 2, i64 3, i64 -4>
+  %m1027 = bitcast <4 x i1> %c1027 to i4
+  %ok1027 = icmp eq i4 %m1027, -1
+  br i1 %ok1027, label %next1027, label %fail102
+next1027:
+  %r1028 = call <4 x i64> @mixed_c32_si64_sgt_4(<4 x i32> <i32 -2147483648, i32 -2147483648, i32 -2147483648, i32 -2147483648>, <4 x i32> <i32 1, i32 2147483647, i32 -2147483648, i32 -1>, <4 x i64> <i64 1, i64 2, i64 3, i64 4>, <4 x i64> <i64 -1, i64 -2, i64 -3, i64 -4>)
+  %c1028 = icmp eq <4 x i64> %r1028, <i64 -1, i64 -2, i64 -3, i64 -4>
+  %m1028 = bitcast <4 x i1> %c1028 to i4
+  %ok1028 = icmp eq i4 %m1028, -1
+  br i1 %ok1028, label %next1028, label %fail102
+next1028:
+  %r1029 = call <4 x i64> @mixed_c32_si64_sgt_4(<4 x i32> <i32 -1, i32 -1, i32 -1, i32 -1>, <4 x i32> <i32 0, i32 1, i32 2147483647, i32 -2147483648>, <4 x i64> <i64 1, i64 2, i64 3, i64 4>, <4 x i64> <i64 -1, i64 -2, i64 -3, i64 -4>)
+  %c1029 = icmp eq <4 x i64> %r1029, <i64 -1, i64 -2, i64 -3, i64 4>
+  %m1029 = bitcast <4 x i1> %c1029 to i4
+  %ok1029 = icmp eq i4 %m1029, -1
+  br i1 %ok1029, label %next1029, label %fail102
+next1029:
+  %r1030 = call <4 x i64> @mixed_c32_si64_sgt_4(<4 x i32> <i32 -1, i32 -1, i32 -1, i32 -1>, <4 x i32> <i32 -1, i32 -1, i32 -1, i32 -1>, <4 x i64> <i64 1, i64 2, i64 3, i64 4>, <4 x i64> <i64 -1, i64 -2, i64 -3, i64 -4>)
+  %c1030 = icmp eq <4 x i64> %r1030, <i64 -1, i64 -2, i64 -3, i64 -4>
+  %m1030 = bitcast <4 x i1> %c1030 to i4
+  %ok1030 = icmp eq i4 %m1030, -1
+  br i1 %ok1030, label %next1030, label %fail102
+next1030:
+  ; 103: ne on <4 x i32> selecting <4 x i64>
+  %r1031 = call <4 x i64> @mixed_c32_si64_ne_4(<4 x i32> <i32 0, i32 0, i32 0, i32 0>, <4 x i32> <i32 0, i32 1, i32 2147483647, i32 -2147483648>, <4 x i64> <i64 1, i64 2, i64 3, i64 4>, <4 x i64> <i64 -1, i64 -2, i64 -3, i64 -4>)
+  %c1031 = icmp eq <4 x i64> %r1031, <i64 -1, i64 2, i64 3, i64 4>
+  %m1031 = bitcast <4 x i1> %c1031 to i4
+  %ok1031 = icmp eq i4 %m1031, -1
+  br i1 %ok1031, label %next1031, label %fail103
+next1031:
+  %r1032 = call <4 x i64> @mixed_c32_si64_ne_4(<4 x i32> <i32 0, i32 1, i32 1, i32 1>, <4 x i32> <i32 -1, i32 0, i32 1, i32 2147483647>, <4 x i64> <i64 1, i64 2, i64 3, i64 4>, <4 x i64> <i64 -1, i64 -2, i64 -3, i64 -4>)
+  %c1032 = icmp eq <4 x i64> %r1032, <i64 1, i64 2, i64 -3, i64 4>
+  %m1032 = bitcast <4 x i1> %c1032 to i4
+  %ok1032 = icmp eq i4 %m1032, -1
+  br i1 %ok1032, label %next1032, label %fail103
+next1032:
+  %r1033 = call <4 x i64> @mixed_c32_si64_ne_4(<4 x i32> <i32 1, i32 1, i32 2147483647, i32 2147483647>, <4 x i32> <i32 -2147483648, i32 -1, i32 0, i32 1>, <4 x i64> <i64 1, i64 2, i64 3, i64 4>, <4 x i64> <i64 -1, i64 -2, i64 -3, i64 -4>)
+  %c1033 = icmp eq <4 x i64> %r1033, <i64 1, i64 2, i64 3, i64 4>
+  %m1033 = bitcast <4 x i1> %c1033 to i4
+  %ok1033 = icmp eq i4 %m1033, -1
+  br i1 %ok1033, label %next1033, label %fail103
+next1033:
+  %r1034 = call <4 x i64> @mixed_c32_si64_ne_4(<4 x i32> <i32 2147483647, i32 2147483647, i32 2147483647, i32 -2147483648>, <4 x i32> <i32 2147483647, i32 -2147483648, i32 -1, i32 0>, <4 x i64> <i64 1, i64 2, i64 3, i64 4>, <4 x i64> <i64 -1, i64 -2, i64 -3, i64 -4>)
+  %c1034 = icmp eq <4 x i64> %r1034, <i64 -1, i64 2, i64 3, i64 4>
+  %m1034 = bitcast <4 x i1> %c1034 to i4
+  %ok1034 = icmp eq i4 %m1034, -1
+  br i1 %ok1034, label %next1034, label %fail103
+next1034:
+  %r1035 = call <4 x i64> @mixed_c32_si64_ne_4(<4 x i32> <i32 -2147483648, i32 -2147483648, i32 -2147483648, i32 -2147483648>, <4 x i32> <i32 1, i32 2147483647, i32 -2147483648, i32 -1>, <4 x i64> <i64 1, i64 2, i64 3, i64 4>, <4 x i64> <i64 -1, i64 -2, i64 -3, i64 -4>)
+  %c1035 = icmp eq <4 x i64> %r1035, <i64 1, i64 2, i64 -3, i64 4>
+  %m1035 = bitcast <4 x i1> %c1035 to i4
+  %ok1035 = icmp eq i4 %m1035, -1
+  br i1 %ok1035, label %next1035, label %fail103
+next1035:
+  %r1036 = call <4 x i64> @mixed_c32_si64_ne_4(<4 x i32> <i32 -1, i32 -1, i32 -1, i32 -1>, <4 x i32> <i32 0, i32 1, i32 2147483647, i32 -2147483648>, <4 x i64> <i64 1, i64 2, i64 3, i64 4>, <4 x i64> <i64 -1, i64 -2, i64 -3, i64 -4>)
+  %c1036 = icmp eq <4 x i64> %r1036, <i64 1, i64 2, i64 3, i64 4>
+  %m1036 = bitcast <4 x i1> %c1036 to i4
+  %ok1036 = icmp eq i4 %m1036, -1
+  br i1 %ok1036, label %next1036, label %fail103
+next1036:
+  %r1037 = call <4 x i64> @mixed_c32_si64_ne_4(<4 x i32> <i32 -1, i32 -1, i32 -1, i32 -1>, <4 x i32> <i32 -1, i32 -1, i32 -1, i32 -1>, <4 x i64> <i64 1, i64 2, i64 3, i64 4>, <4 x i64> <i64 -1, i64 -2, i64 -3, i64 -4>)
+  %c1037 = icmp eq <4 x i64> %r1037, <i64 -1, i64 -2, i64 -3, i64 -4>
+  %m1037 = bitcast <4 x i1> %c1037 to i4
+  %ok1037 = icmp eq i4 %m1037, -1
+  br i1 %ok1037, label %next1037, label %fail103
+next1037:
+  ; 104: sle on <4 x i32> selecting <4 x i64>
+  %r1038 = call <4 x i64> @mixed_c32_si64_sle_4(<4 x i32> <i32 0, i32 0, i32 0, i32 0>, <4 x i32> <i32 0, i32 1, i32 2147483647, i32 -2147483648>, <4 x i64> <i64 1, i64 2, i64 3, i64 4>, <4 x i64> <i64 -1, i64 -2, i64 -3, i64 -4>)
+  %c1038 = icmp eq <4 x i64> %r1038, <i64 1, i64 2, i64 3, i64 -4>
+  %m1038 = bitcast <4 x i1> %c1038 to i4
+  %ok1038 = icmp eq i4 %m1038, -1
+  br i1 %ok1038, label %next1038, label %fail104
+next1038:
+  %r1039 = call <4 x i64> @mixed_c32_si64_sle_4(<4 x i32> <i32 0, i32 1, i32 1, i32 1>, <4 x i32> <i32 -1, i32 0, i32 1, i32 2147483647>, <4 x i64> <i64 1, i64 2, i64 3, i64 4>, <4 x i64> <i64 -1, i64 -2, i64 -3, i64 -4>)
+  %c1039 = icmp eq <4 x i64> %r1039, <i64 -1, i64 -2, i64 3, i64 4>
+  %m1039 = bitcast <4 x i1> %c1039 to i4
+  %ok1039 = icmp eq i4 %m1039, -1
+  br i1 %ok1039, label %next1039, label %fail104
+next1039:
+  %r1040 = call <4 x i64> @mixed_c32_si64_sle_4(<4 x i32> <i32 1, i32 1, i32 2147483647, i32 2147483647>, <4 x i32> <i32 -2147483648, i32 -1, i32 0, i32 1>, <4 x i64> <i64 1, i64 2, i64 3, i64 4>, <4 x i64> <i64 -1, i64 -2, i64 -3, i64 -4>)
+  %c1040 = icmp eq <4 x i64> %r1040, <i64 -1, i64 -2, i64 -3, i64 -4>
+  %m1040 = bitcast <4 x i1> %c1040 to i4
+  %ok1040 = icmp eq i4 %m1040, -1
+  br i1 %ok1040, label %next1040, label %fail104
+next1040:
+  %r1041 = call <4 x i64> @mixed_c32_si64_sle_4(<4 x i32> <i32 2147483647, i32 2147483647, i32 2147483647, i32 -2147483648>, <4 x i32> <i32 2147483647, i32 -2147483648, i32 -1, i32 0>, <4 x i64> <i64 1, i64 2, i64 3, i64 4>, <4 x i64> <i64 -1, i64 -2, i64 -3, i64 -4>)
+  %c1041 = icmp eq <4 x i64> %r1041, <i64 1, i64 -2, i64 -3, i64 4>
+  %m1041 = bitcast <4 x i1> %c1041 to i4
+  %ok1041 = icmp eq i4 %m1041, -1
+  br i1 %ok1041, label %next1041, label %fail104
+next1041:
+  %r1042 = call <4 x i64> @mixed_c32_si64_sle_4(<4 x i32> <i32 -2147483648, i32 -2147483648, i32 -2147483648, i32 -2147483648>, <4 x i32> <i32 1, i32 2147483647, i32 -2147483648, i32 -1>, <4 x i64> <i64 1, i64 2, i64 3, i64 4>, <4 x i64> <i64 -1, i64 -2, i64 -3, i64 -4>)
+  %c1042 = icmp eq <4 x i64> %r1042, <i64 1, i64 2, i64 3, i64 4>
+  %m1042 = bitcast <4 x i1> %c1042 to i4
+  %ok1042 = icmp eq i4 %m1042, -1
+  br i1 %ok1042, label %next1042, label %fail104
+next1042:
+  %r1043 = call <4 x i64> @mixed_c32_si64_sle_4(<4 x i32> <i32 -1, i32 -1, i32 -1, i32 -1>, <4 x i32> <i32 0, i32 1, i32 2147483647, i32 -2147483648>, <4 x i64> <i64 1, i64 2, i64 3, i64 4>, <4 x i64> <i64 -1, i64 -2, i64 -3, i64 -4>)
+  %c1043 = icmp eq <4 x i64> %r1043, <i64 1, i64 2, i64 3, i64 -4>
+  %m1043 = bitcast <4 x i1> %c1043 to i4
+  %ok1043 = icmp eq i4 %m1043, -1
+  br i1 %ok1043, label %next1043, label %fail104
+next1043:
+  %r1044 = call <4 x i64> @mixed_c32_si64_sle_4(<4 x i32> <i32 -1, i32 -1, i32 -1, i32 -1>, <4 x i32> <i32 -1, i32 -1, i32 -1, i32 -1>, <4 x i64> <i64 1, i64 2, i64 3, i64 4>, <4 x i64> <i64 -1, i64 -2, i64 -3, i64 -4>)
+  %c1044 = icmp eq <4 x i64> %r1044, <i64 1, i64 2, i64 3, i64 4>
+  %m1044 = bitcast <4 x i1> %c1044 to i4
+  %ok1044 = icmp eq i4 %m1044, -1
+  br i1 %ok1044, label %next1044, label %fail104
+next1044:
+  ; 105: ult on <4 x i64> selecting <4 x i16>
+  %r1045 = call <4 x i16> @mixed_c64_si16_ult_4(<4 x i64> <i64 0, i64 0, i64 0, i64 0>, <4 x i64> <i64 0, i64 1, i64 9223372036854775807, i64 -9223372036854775808>, <4 x i16> <i16 1, i16 2, i16 3, i16 4>, <4 x i16> <i16 -1, i16 -2, i16 -3, i16 -4>)
+  %c1045 = icmp eq <4 x i16> %r1045, <i16 -1, i16 2, i16 3, i16 4>
+  %m1045 = bitcast <4 x i1> %c1045 to i4
+  %ok1045 = icmp eq i4 %m1045, -1
+  br i1 %ok1045, label %next1045, label %fail105
+next1045:
+  %r1046 = call <4 x i16> @mixed_c64_si16_ult_4(<4 x i64> <i64 0, i64 1, i64 1, i64 1>, <4 x i64> <i64 -1, i64 0, i64 1, i64 9223372036854775807>, <4 x i16> <i16 1, i16 2, i16 3, i16 4>, <4 x i16> <i16 -1, i16 -2, i16 -3, i16 -4>)
+  %c1046 = icmp eq <4 x i16> %r1046, <i16 1, i16 -2, i16 -3, i16 4>
+  %m1046 = bitcast <4 x i1> %c1046 to i4
+  %ok1046 = icmp eq i4 %m1046, -1
+  br i1 %ok1046, label %next1046, label %fail105
+next1046:
+  %r1047 = call <4 x i16> @mixed_c64_si16_ult_4(<4 x i64> <i64 1, i64 1, i64 9223372036854775807, i64 9223372036854775807>, <4 x i64> <i64 -9223372036854775808, i64 -1, i64 0, i64 1>, <4 x i16> <i16 1, i16 2, i16 3, i16 4>, <4 x i16> <i16 -1, i16 -2, i16 -3, i16 -4>)
+  %c1047 = icmp eq <4 x i16> %r1047, <i16 1, i16 2, i16 -3, i16 -4>
+  %m1047 = bitcast <4 x i1> %c1047 to i4
+  %ok1047 = icmp eq i4 %m1047, -1
+  br i1 %ok1047, label %next1047, label %fail105
+next1047:
+  %r1048 = call <4 x i16> @mixed_c64_si16_ult_4(<4 x i64> <i64 9223372036854775807, i64 9223372036854775807, i64 9223372036854775807, i64 -9223372036854775808>, <4 x i64> <i64 9223372036854775807, i64 -9223372036854775808, i64 -1, i64 0>, <4 x i16> <i16 1, i16 2, i16 3, i16 4>, <4 x i16> <i16 -1, i16 -2, i16 -3, i16 -4>)
+  %c1048 = icmp eq <4 x i16> %r1048, <i16 -1, i16 2, i16 3, i16 -4>
+  %m1048 = bitcast <4 x i1> %c1048 to i4
+  %ok1048 = icmp eq i4 %m1048, -1
+  br i1 %ok1048, label %next1048, label %fail105
+next1048:
+  %r1049 = call <4 x i16> @mixed_c64_si16_ult_4(<4 x i64> <i64 -9223372036854775808, i64 -9223372036854775808, i64 -9223372036854775808, i64 -9223372036854775808>, <4 x i64> <i64 1, i64 9223372036854775807, i64 -9223372036854775808, i64 -1>, <4 x i16> <i16 1, i16 2, i16 3, i16 4>, <4 x i16> <i16 -1, i16 -2, i16 -3, i16 -4>)
+  %c1049 = icmp eq <4 x i16> %r1049, <i16 -1, i16 -2, i16 -3, i16 4>
+  %m1049 = bitcast <4 x i1> %c1049 to i4
+  %ok1049 = icmp eq i4 %m1049, -1
+  br i1 %ok1049, label %next1049, label %fail105
+next1049:
+  %r1050 = call <4 x i16> @mixed_c64_si16_ult_4(<4 x i64> <i64 -1, i64 -1, i64 -1, i64 -1>, <4 x i64> <i64 0, i64 1, i64 9223372036854775807, i64 -9223372036854775808>, <4 x i16> <i16 1, i16 2, i16 3, i16 4>, <4 x i16> <i16 -1, i16 -2, i16 -3, i16 -4>)
+  %c1050 = icmp eq <4 x i16> %r1050, <i16 -1, i16 -2, i16 -3, i16 -4>
+  %m1050 = bitcast <4 x i1> %c1050 to i4
+  %ok1050 = icmp eq i4 %m1050, -1
+  br i1 %ok1050, label %next1050, label %fail105
+next1050:
+  %r1051 = call <4 x i16> @mixed_c64_si16_ult_4(<4 x i64> <i64 -1, i64 -1, i64 -1, i64 -1>, <4 x i64> <i64 -1, i64 -1, i64 -1, i64 -1>, <4 x i16> <i16 1, i16 2, i16 3, i16 4>, <4 x i16> <i16 -1, i16 -2, i16 -3, i16 -4>)
+  %c1051 = icmp eq <4 x i16> %r1051, <i16 -1, i16 -2, i16 -3, i16 -4>
+  %m1051 = bitcast <4 x i1> %c1051 to i4
+  %ok1051 = icmp eq i4 %m1051, -1
+  br i1 %ok1051, label %next1051, label %fail105
+next1051:
+  ; 106: sgt on <4 x i64> selecting <4 x i16>
+  %r1052 = call <4 x i16> @mixed_c64_si16_sgt_4(<4 x i64> <i64 0, i64 0, i64 0, i64 0>, <4 x i64> <i64 0, i64 1, i64 9223372036854775807, i64 -9223372036854775808>, <4 x i16> <i16 1, i16 2, i16 3, i16 4>, <4 x i16> <i16 -1, i16 -2, i16 -3, i16 -4>)
+  %c1052 = icmp eq <4 x i16> %r1052, <i16 -1, i16 -2, i16 -3, i16 4>
+  %m1052 = bitcast <4 x i1> %c1052 to i4
+  %ok1052 = icmp eq i4 %m1052, -1
+  br i1 %ok1052, label %next1052, label %fail106
+next1052:
+  %r1053 = call <4 x i16> @mixed_c64_si16_sgt_4(<4 x i64> <i64 0, i64 1, i64 1, i64 1>, <4 x i64> <i64 -1, i64 0, i64 1, i64 9223372036854775807>, <4 x i16> <i16 1, i16 2, i16 3, i16 4>, <4 x i16> <i16 -1, i16 -2, i16 -3, i16 -4>)
+  %c1053 = icmp eq <4 x i16> %r1053, <i16 1, i16 2, i16 -3, i16 -4>
+  %m1053 = bitcast <4 x i1> %c1053 to i4
+  %ok1053 = icmp eq i4 %m1053, -1
+  br i1 %ok1053, label %next1053, label %fail106
+next1053:
+  %r1054 = call <4 x i16> @mixed_c64_si16_sgt_4(<4 x i64> <i64 1, i64 1, i64 9223372036854775807, i64 9223372036854775807>, <4 x i64> <i64 -9223372036854775808, i64 -1, i64 0, i64 1>, <4 x i16> <i16 1, i16 2, i16 3, i16 4>, <4 x i16> <i16 -1, i16 -2, i16 -3, i16 -4>)
+  %c1054 = icmp eq <4 x i16> %r1054, <i16 1, i16 2, i16 3, i16 4>
+  %m1054 = bitcast <4 x i1> %c1054 to i4
+  %ok1054 = icmp eq i4 %m1054, -1
+  br i1 %ok1054, label %next1054, label %fail106
+next1054:
+  %r1055 = call <4 x i16> @mixed_c64_si16_sgt_4(<4 x i64> <i64 9223372036854775807, i64 9223372036854775807, i64 9223372036854775807, i64 -9223372036854775808>, <4 x i64> <i64 9223372036854775807, i64 -9223372036854775808, i64 -1, i64 0>, <4 x i16> <i16 1, i16 2, i16 3, i16 4>, <4 x i16> <i16 -1, i16 -2, i16 -3, i16 -4>)
+  %c1055 = icmp eq <4 x i16> %r1055, <i16 -1, i16 2, i16 3, i16 -4>
+  %m1055 = bitcast <4 x i1> %c1055 to i4
+  %ok1055 = icmp eq i4 %m1055, -1
+  br i1 %ok1055, label %next1055, label %fail106
+next1055:
+  %r1056 = call <4 x i16> @mixed_c64_si16_sgt_4(<4 x i64> <i64 -9223372036854775808, i64 -9223372036854775808, i64 -9223372036854775808, i64 -9223372036854775808>, <4 x i64> <i64 1, i64 9223372036854775807, i64 -9223372036854775808, i64 -1>, <4 x i16> <i16 1, i16 2, i16 3, i16 4>, <4 x i16> <i16 -1, i16 -2, i16 -3, i16 -4>)
+  %c1056 = icmp eq <4 x i16> %r1056, <i16 -1, i16 -2, i16 -3, i16 -4>
+  %m1056 = bitcast <4 x i1> %c1056 to i4
+  %ok1056 = icmp eq i4 %m1056, -1
+  br i1 %ok1056, label %next1056, label %fail106
+next1056:
+  %r1057 = call <4 x i16> @mixed_c64_si16_sgt_4(<4 x i64> <i64 -1, i64 -1, i64 -1, i64 -1>, <4 x i64> <i64 0, i64 1, i64 9223372036854775807, i64 -9223372036854775808>, <4 x i16> <i16 1, i16 2, i16 3, i16 4>, <4 x i16> <i16 -1, i16 -2, i16 -3, i16 -4>)
+  %c1057 = icmp eq <4 x i16> %r1057, <i16 -1, i16 -2, i16 -3, i16 4>
+  %m1057 = bitcast <4 x i1> %c1057 to i4
+  %ok1057 = icmp eq i4 %m1057, -1
+  br i1 %ok1057, label %next1057, label %fail106
+next1057:
+  %r1058 = call <4 x i16> @mixed_c64_si16_sgt_4(<4 x i64> <i64 -1, i64 -1, i64 -1, i64 -1>, <4 x i64> <i64 -1, i64 -1, i64 -1, i64 -1>, <4 x i16> <i16 1, i16 2, i16 3, i16 4>, <4 x i16> <i16 -1, i16 -2, i16 -3, i16 -4>)
+  %c1058 = icmp eq <4 x i16> %r1058, <i16 -1, i16 -2, i16 -3, i16 -4>
+  %m1058 = bitcast <4 x i1> %c1058 to i4
+  %ok1058 = icmp eq i4 %m1058, -1
+  br i1 %ok1058, label %next1058, label %fail106
+next1058:
+  ; 107: ne on <4 x i64> selecting <4 x i16>
+  %r1059 = call <4 x i16> @mixed_c64_si16_ne_4(<4 x i64> <i64 0, i64 0, i64 0, i64 0>, <4 x i64> <i64 0, i64 1, i64 9223372036854775807, i64 -9223372036854775808>, <4 x i16> <i16 1, i16 2, i16 3, i16 4>, <4 x i16> <i16 -1, i16 -2, i16 -3, i16 -4>)
+  %c1059 = icmp eq <4 x i16> %r1059, <i16 -1, i16 2, i16 3, i16 4>
+  %m1059 = bitcast <4 x i1> %c1059 to i4
+  %ok1059 = icmp eq i4 %m1059, -1
+  br i1 %ok1059, label %next1059, label %fail107
+next1059:
+  %r1060 = call <4 x i16> @mixed_c64_si16_ne_4(<4 x i64> <i64 0, i64 1, i64 1, i64 1>, <4 x i64> <i64 -1, i64 0, i64 1, i64 9223372036854775807>, <4 x i16> <i16 1, i16 2, i16 3, i16 4>, <4 x i16> <i16 -1, i16 -2, i16 -3, i16 -4>)
+  %c1060 = icmp eq <4 x i16> %r1060, <i16 1, i16 2, i16 -3, i16 4>
+  %m1060 = bitcast <4 x i1> %c1060 to i4
+  %ok1060 = icmp eq i4 %m1060, -1
+  br i1 %ok1060, label %next1060, label %fail107
+next1060:
+  %r1061 = call <4 x i16> @mixed_c64_si16_ne_4(<4 x i64> <i64 1, i64 1, i64 9223372036854775807, i64 9223372036854775807>, <4 x i64> <i64 -9223372036854775808, i64 -1, i64 0, i64 1>, <4 x i16> <i16 1, i16 2, i16 3, i16 4>, <4 x i16> <i16 -1, i16 -2, i16 -3, i16 -4>)
+  %c1061 = icmp eq <4 x i16> %r1061, <i16 1, i16 2, i16 3, i16 4>
+  %m1061 = bitcast <4 x i1> %c1061 to i4
+  %ok1061 = icmp eq i4 %m1061, -1
+  br i1 %ok1061, label %next1061, label %fail107
+next1061:
+  %r1062 = call <4 x i16> @mixed_c64_si16_ne_4(<4 x i64> <i64 9223372036854775807, i64 9223372036854775807, i64 9223372036854775807, i64 -9223372036854775808>, <4 x i64> <i64 9223372036854775807, i64 -9223372036854775808, i64 -1, i64 0>, <4 x i16> <i16 1, i16 2, i16 3, i16 4>, <4 x i16> <i16 -1, i16 -2, i16 -3, i16 -4>)
+  %c1062 = icmp eq <4 x i16> %r1062, <i16 -1, i16 2, i16 3, i16 4>
+  %m1062 = bitcast <4 x i1> %c1062 to i4
+  %ok1062 = icmp eq i4 %m1062, -1
+  br i1 %ok1062, label %next1062, label %fail107
+next1062:
+  %r1063 = call <4 x i16> @mixed_c64_si16_ne_4(<4 x i64> <i64 -9223372036854775808, i64 -9223372036854775808, i64 -9223372036854775808, i64 -9223372036854775808>, <4 x i64> <i64 1, i64 9223372036854775807, i64 -9223372036854775808, i64 -1>, <4 x i16> <i16 1, i16 2, i16 3, i16 4>, <4 x i16> <i16 -1, i16 -2, i16 -3, i16 -4>)
+  %c1063 = icmp eq <4 x i16> %r1063, <i16 1, i16 2, i16 -3, i16 4>
+  %m1063 = bitcast <4 x i1> %c1063 to i4
+  %ok1063 = icmp eq i4 %m1063, -1
+  br i1 %ok1063, label %next1063, label %fail107
+next1063:
+  %r1064 = call <4 x i16> @mixed_c64_si16_ne_4(<4 x i64> <i64 -1, i64 -1, i64 -1, i64 -1>, <4 x i64> <i64 0, i64 1, i64 9223372036854775807, i64 -9223372036854775808>, <4 x i16> <i16 1, i16 2, i16 3, i16 4>, <4 x i16> <i16 -1, i16 -2, i16 -3, i16 -4>)
+  %c1064 = icmp eq <4 x i16> %r1064, <i16 1, i16 2, i16 3, i16 4>
+  %m1064 = bitcast <4 x i1> %c1064 to i4
+  %ok1064 = icmp eq i4 %m1064, -1
+  br i1 %ok1064, label %next1064, label %fail107
+next1064:
+  %r1065 = call <4 x i16> @mixed_c64_si16_ne_4(<4 x i64> <i64 -1, i64 -1, i64 -1, i64 -1>, <4 x i64> <i64 -1, i64 -1, i64 -1, i64 -1>, <4 x i16> <i16 1, i16 2, i16 3, i16 4>, <4 x i16> <i16 -1, i16 -2, i16 -3, i16 -4>)
+  %c1065 = icmp eq <4 x i16> %r1065, <i16 -1, i16 -2, i16 -3, i16 -4>
+  %m1065 = bitcast <4 x i1> %c1065 to i4
+  %ok1065 = icmp eq i4 %m1065, -1
+  br i1 %ok1065, label %next1065, label %fail107
+next1065:
+  ; 108: sle on <4 x i64> selecting <4 x i16>
+  %r1066 = call <4 x i16> @mixed_c64_si16_sle_4(<4 x i64> <i64 0, i64 0, i64 0, i64 0>, <4 x i64> <i64 0, i64 1, i64 9223372036854775807, i64 -9223372036854775808>, <4 x i16> <i16 1, i16 2, i16 3, i16 4>, <4 x i16> <i16 -1, i16 -2, i16 -3, i16 -4>)
+  %c1066 = icmp eq <4 x i16> %r1066, <i16 1, i16 2, i16 3, i16 -4>
+  %m1066 = bitcast <4 x i1> %c1066 to i4
+  %ok1066 = icmp eq i4 %m1066, -1
+  br i1 %ok1066, label %next1066, label %fail108
+next1066:
+  %r1067 = call <4 x i16> @mixed_c64_si16_sle_4(<4 x i64> <i64 0, i64 1, i64 1, i64 1>, <4 x i64> <i64 -1, i64 0, i64 1, i64 9223372036854775807>, <4 x i16> <i16 1, i16 2, i16 3, i16 4>, <4 x i16> <i16 -1, i16 -2, i16 -3, i16 -4>)
+  %c1067 = icmp eq <4 x i16> %r1067, <i16 -1, i16 -2, i16 3, i16 4>
+  %m1067 = bitcast <4 x i1> %c1067 to i4
+  %ok1067 = icmp eq i4 %m1067, -1
+  br i1 %ok1067, label %next1067, label %fail108
+next1067:
+  %r1068 = call <4 x i16> @mixed_c64_si16_sle_4(<4 x i64> <i64 1, i64 1, i64 9223372036854775807, i64 9223372036854775807>, <4 x i64> <i64 -9223372036854775808, i64 -1, i64 0, i64 1>, <4 x i16> <i16 1, i16 2, i16 3, i16 4>, <4 x i16> <i16 -1, i16 -2, i16 -3, i16 -4>)
+  %c1068 = icmp eq <4 x i16> %r1068, <i16 -1, i16 -2, i16 -3, i16 -4>
+  %m1068 = bitcast <4 x i1> %c1068 to i4
+  %ok1068 = icmp eq i4 %m1068, -1
+  br i1 %ok1068, label %next1068, label %fail108
+next1068:
+  %r1069 = call <4 x i16> @mixed_c64_si16_sle_4(<4 x i64> <i64 9223372036854775807, i64 9223372036854775807, i64 9223372036854775807, i64 -9223372036854775808>, <4 x i64> <i64 9223372036854775807, i64 -9223372036854775808, i64 -1, i64 0>, <4 x i16> <i16 1, i16 2, i16 3, i16 4>, <4 x i16> <i16 -1, i16 -2, i16 -3, i16 -4>)
+  %c1069 = icmp eq <4 x i16> %r1069, <i16 1, i16 -2, i16 -3, i16 4>
+  %m1069 = bitcast <4 x i1> %c1069 to i4
+  %ok1069 = icmp eq i4 %m1069, -1
+  br i1 %ok1069, label %next1069, label %fail108
+next1069:
+  %r1070 = call <4 x i16> @mixed_c64_si16_sle_4(<4 x i64> <i64 -9223372036854775808, i64 -9223372036854775808, i64 -9223372036854775808, i64 -9223372036854775808>, <4 x i64> <i64 1, i64 9223372036854775807, i64 -9223372036854775808, i64 -1>, <4 x i16> <i16 1, i16 2, i16 3, i16 4>, <4 x i16> <i16 -1, i16 -2, i16 -3, i16 -4>)
+  %c1070 = icmp eq <4 x i16> %r1070, <i16 1, i16 2, i16 3, i16 4>
+  %m1070 = bitcast <4 x i1> %c1070 to i4
+  %ok1070 = icmp eq i4 %m1070, -1
+  br i1 %ok1070, label %next1070, label %fail108
+next1070:
+  %r1071 = call <4 x i16> @mixed_c64_si16_sle_4(<4 x i64> <i64 -1, i64 -1, i64 -1, i64 -1>, <4 x i64> <i64 0, i64 1, i64 9223372036854775807, i64 -9223372036854775808>, <4 x i16> <i16 1, i16 2, i16 3, i16 4>, <4 x i16> <i16 -1, i16 -2, i16 -3, i16 -4>)
+  %c1071 = icmp eq <4 x i16> %r1071, <i16 1, i16 2, i16 3, i16 -4>
+  %m1071 = bitcast <4 x i1> %c1071 to i4
+  %ok1071 = icmp eq i4 %m1071, -1
+  br i1 %ok1071, label %next1071, label %fail108
+next1071:
+  %r1072 = call <4 x i16> @mixed_c64_si16_sle_4(<4 x i64> <i64 -1, i64 -1, i64 -1, i64 -1>, <4 x i64> <i64 -1, i64 -1, i64 -1, i64 -1>, <4 x i16> <i16 1, i16 2, i16 3, i16 4>, <4 x i16> <i16 -1, i16 -2, i16 -3, i16 -4>)
+  %c1072 = icmp eq <4 x i16> %r1072, <i16 1, i16 2, i16 3, i16 4>
+  %m1072 = bitcast <4 x i1> %c1072 to i4
+  %ok1072 = icmp eq i4 %m1072, -1
+  br i1 %ok1072, label %next1072, label %fail108
+next1072:
+  ; 109: ult on <4 x i64> selecting <4 x i32>
+  %r1073 = call <4 x i32> @mixed_c64_si32_ult_4(<4 x i64> <i64 0, i64 0, i64 0, i64 0>, <4 x i64> <i64 0, i64 1, i64 9223372036854775807, i64 -9223372036854775808>, <4 x i32> <i32 1, i32 2, i32 3, i32 4>, <4 x i32> <i32 -1, i32 -2, i32 -3, i32 -4>)
+  %c1073 = icmp eq <4 x i32> %r1073, <i32 -1, i32 2, i32 3, i32 4>
+  %m1073 = bitcast <4 x i1> %c1073 to i4
+  %ok1073 = icmp eq i4 %m1073, -1
+  br i1 %ok1073, label %next1073, label %fail109
+next1073:
+  %r1074 = call <4 x i32> @mixed_c64_si32_ult_4(<4 x i64> <i64 0, i64 1, i64 1, i64 1>, <4 x i64> <i64 -1, i64 0, i64 1, i64 9223372036854775807>, <4 x i32> <i32 1, i32 2, i32 3, i32 4>, <4 x i32> <i32 -1, i32 -2, i32 -3, i32 -4>)
+  %c1074 = icmp eq <4 x i32> %r1074, <i32 1, i32 -2, i32 -3, i32 4>
+  %m1074 = bitcast <4 x i1> %c1074 to i4
+  %ok1074 = icmp eq i4 %m1074, -1
+  br i1 %ok1074, label %next1074, label %fail109
+next1074:
+  %r1075 = call <4 x i32> @mixed_c64_si32_ult_4(<4 x i64> <i64 1, i64 1, i64 9223372036854775807, i64 9223372036854775807>, <4 x i64> <i64 -9223372036854775808, i64 -1, i64 0, i64 1>, <4 x i32> <i32 1, i32 2, i32 3, i32 4>, <4 x i32> <i32 -1, i32 -2, i32 -3, i32 -4>)
+  %c1075 = icmp eq <4 x i32> %r1075, <i32 1, i32 2, i32 -3, i32 -4>
+  %m1075 = bitcast <4 x i1> %c1075 to i4
+  %ok1075 = icmp eq i4 %m1075, -1
+  br i1 %ok1075, label %next1075, label %fail109
+next1075:
+  %r1076 = call <4 x i32> @mixed_c64_si32_ult_4(<4 x i64> <i64 9223372036854775807, i64 9223372036854775807, i64 9223372036854775807, i64 -9223372036854775808>, <4 x i64> <i64 9223372036854775807, i64 -9223372036854775808, i64 -1, i64 0>, <4 x i32> <i32 1, i32 2, i32 3, i32 4>, <4 x i32> <i32 -1, i32 -2, i32 -3, i32 -4>)
+  %c1076 = icmp eq <4 x i32> %r1076, <i32 -1, i32 2, i32 3, i32 -4>
+  %m1076 = bitcast <4 x i1> %c1076 to i4
+  %ok1076 = icmp eq i4 %m1076, -1
+  br i1 %ok1076, label %next1076, label %fail109
+next1076:
+  %r1077 = call <4 x i32> @mixed_c64_si32_ult_4(<4 x i64> <i64 -9223372036854775808, i64 -9223372036854775808, i64 -9223372036854775808, i64 -9223372036854775808>, <4 x i64> <i64 1, i64 9223372036854775807, i64 -9223372036854775808, i64 -1>, <4 x i32> <i32 1, i32 2, i32 3, i32 4>, <4 x i32> <i32 -1, i32 -2, i32 -3, i32 -4>)
+  %c1077 = icmp eq <4 x i32> %r1077, <i32 -1, i32 -2, i32 -3, i32 4>
+  %m1077 = bitcast <4 x i1> %c1077 to i4
+  %ok1077 = icmp eq i4 %m1077, -1
+  br i1 %ok1077, label %next1077, label %fail109
+next1077:
+  %r1078 = call <4 x i32> @mixed_c64_si32_ult_4(<4 x i64> <i64 -1, i64 -1, i64 -1, i64 -1>, <4 x i64> <i64 0, i64 1, i64 9223372036854775807, i64 -9223372036854775808>, <4 x i32> <i32 1, i32 2, i32 3, i32 4>, <4 x i32> <i32 -1, i32 -2, i32 -3, i32 -4>)
+  %c1078 = icmp eq <4 x i32> %r1078, <i32 -1, i32 -2, i32 -3, i32 -4>
+  %m1078 = bitcast <4 x i1> %c1078 to i4
+  %ok1078 = icmp eq i4 %m1078, -1
+  br i1 %ok1078, label %next1078, label %fail109
+next1078:
+  %r1079 = call <4 x i32> @mixed_c64_si32_ult_4(<4 x i64> <i64 -1, i64 -1, i64 -1, i64 -1>, <4 x i64> <i64 -1, i64 -1, i64 -1, i64 -1>, <4 x i32> <i32 1, i32 2, i32 3, i32 4>, <4 x i32> <i32 -1, i32 -2, i32 -3, i32 -4>)
+  %c1079 = icmp eq <4 x i32> %r1079, <i32 -1, i32 -2, i32 -3, i32 -4>
+  %m1079 = bitcast <4 x i1> %c1079 to i4
+  %ok1079 = icmp eq i4 %m1079, -1
+  br i1 %ok1079, label %next1079, label %fail109
+next1079:
+  ; 110: sgt on <4 x i64> selecting <4 x i32>
+  %r1080 = call <4 x i32> @mixed_c64_si32_sgt_4(<4 x i64> <i64 0, i64 0, i64 0, i64 0>, <4 x i64> <i64 0, i64 1, i64 9223372036854775807, i64 -9223372036854775808>, <4 x i32> <i32 1, i32 2, i32 3, i32 4>, <4 x i32> <i32 -1, i32 -2, i32 -3, i32 -4>)
+  %c1080 = icmp eq <4 x i32> %r1080, <i32 -1, i32 -2, i32 -3, i32 4>
+  %m1080 = bitcast <4 x i1> %c1080 to i4
+  %ok1080 = icmp eq i4 %m1080, -1
+  br i1 %ok1080, label %next1080, label %fail110
+next1080:
+  %r1081 = call <4 x i32> @mixed_c64_si32_sgt_4(<4 x i64> <i64 0, i64 1, i64 1, i64 1>, <4 x i64> <i64 -1, i64 0, i64 1, i64 9223372036854775807>, <4 x i32> <i32 1, i32 2, i32 3, i32 4>, <4 x i32> <i32 -1, i32 -2, i32 -3, i32 -4>)
+  %c1081 = icmp eq <4 x i32> %r1081, <i32 1, i32 2, i32 -3, i32 -4>
+  %m1081 = bitcast <4 x i1> %c1081 to i4
+  %ok1081 = icmp eq i4 %m1081, -1
+  br i1 %ok1081, label %next1081, label %fail110
+next1081:
+  %r1082 = call <4 x i32> @mixed_c64_si32_sgt_4(<4 x i64> <i64 1, i64 1, i64 9223372036854775807, i64 9223372036854775807>, <4 x i64> <i64 -9223372036854775808, i64 -1, i64 0, i64 1>, <4 x i32> <i32 1, i32 2, i32 3, i32 4>, <4 x i32> <i32 -1, i32 -2, i32 -3, i32 -4>)
+  %c1082 = icmp eq <4 x i32> %r1082, <i32 1, i32 2, i32 3, i32 4>
+  %m1082 = bitcast <4 x i1> %c1082 to i4
+  %ok1082 = icmp eq i4 %m1082, -1
+  br i1 %ok1082, label %next1082, label %fail110
+next1082:
+  %r1083 = call <4 x i32> @mixed_c64_si32_sgt_4(<4 x i64> <i64 9223372036854775807, i64 9223372036854775807, i64 9223372036854775807, i64 -9223372036854775808>, <4 x i64> <i64 9223372036854775807, i64 -9223372036854775808, i64 -1, i64 0>, <4 x i32> <i32 1, i32 2, i32 3, i32 4>, <4 x i32> <i32 -1, i32 -2, i32 -3, i32 -4>)
+  %c1083 = icmp eq <4 x i32> %r1083, <i32 -1, i32 2, i32 3, i32 -4>
+  %m1083 = bitcast <4 x i1> %c1083 to i4
+  %ok1083 = icmp eq i4 %m1083, -1
+  br i1 %ok1083, label %next1083, label %fail110
+next1083:
+  %r1084 = call <4 x i32> @mixed_c64_si32_sgt_4(<4 x i64> <i64 -9223372036854775808, i64 -9223372036854775808, i64 -9223372036854775808, i64 -9223372036854775808>, <4 x i64> <i64 1, i64 9223372036854775807, i64 -9223372036854775808, i64 -1>, <4 x i32> <i32 1, i32 2, i32 3, i32 4>, <4 x i32> <i32 -1, i32 -2, i32 -3, i32 -4>)
+  %c1084 = icmp eq <4 x i32> %r1084, <i32 -1, i32 -2, i32 -3, i32 -4>
+  %m1084 = bitcast <4 x i1> %c1084 to i4
+  %ok1084 = icmp eq i4 %m1084, -1
+  br i1 %ok1084, label %next1084, label %fail110
+next1084:
+  %r1085 = call <4 x i32> @mixed_c64_si32_sgt_4(<4 x i64> <i64 -1, i64 -1, i64 -1, i64 -1>, <4 x i64> <i64 0, i64 1, i64 9223372036854775807, i64 -9223372036854775808>, <4 x i32> <i32 1, i32 2, i32 3, i32 4>, <4 x i32> <i32 -1, i32 -2, i32 -3, i32 -4>)
+  %c1085 = icmp eq <4 x i32> %r1085, <i32 -1, i32 -2, i32 -3, i32 4>
+  %m1085 = bitcast <4 x i1> %c1085 to i4
+  %ok1085 = icmp eq i4 %m1085, -1
+  br i1 %ok1085, label %next1085, label %fail110
+next1085:
+  %r1086 = call <4 x i32> @mixed_c64_si32_sgt_4(<4 x i64> <i64 -1, i64 -1, i64 -1, i64 -1>, <4 x i64> <i64 -1, i64 -1, i64 -1, i64 -1>, <4 x i32> <i32 1, i32 2, i32 3, i32 4>, <4 x i32> <i32 -1, i32 -2, i32 -3, i32 -4>)
+  %c1086 = icmp eq <4 x i32> %r1086, <i32 -1, i32 -2, i32 -3, i32 -4>
+  %m1086 = bitcast <4 x i1> %c1086 to i4
+  %ok1086 = icmp eq i4 %m1086, -1
+  br i1 %ok1086, label %next1086, label %fail110
+next1086:
+  ; 111: ne on <4 x i64> selecting <4 x i32>
+  %r1087 = call <4 x i32> @mixed_c64_si32_ne_4(<4 x i64> <i64 0, i64 0, i64 0, i64 0>, <4 x i64> <i64 0, i64 1, i64 9223372036854775807, i64 -9223372036854775808>, <4 x i32> <i32 1, i32 2, i32 3, i32 4>, <4 x i32> <i32 -1, i32 -2, i32 -3, i32 -4>)
+  %c1087 = icmp eq <4 x i32> %r1087, <i32 -1, i32 2, i32 3, i32 4>
+  %m1087 = bitcast <4 x i1> %c1087 to i4
+  %ok1087 = icmp eq i4 %m1087, -1
+  br i1 %ok1087, label %next1087, label %fail111
+next1087:
+  %r1088 = call <4 x i32> @mixed_c64_si32_ne_4(<4 x i64> <i64 0, i64 1, i64 1, i64 1>, <4 x i64> <i64 -1, i64 0, i64 1, i64 9223372036854775807>, <4 x i32> <i32 1, i32 2, i32 3, i32 4>, <4 x i32> <i32 -1, i32 -2, i32 -3, i32 -4>)
+  %c1088 = icmp eq <4 x i32> %r1088, <i32 1, i32 2, i32 -3, i32 4>
+  %m1088 = bitcast <4 x i1> %c1088 to i4
+  %ok1088 = icmp eq i4 %m1088, -1
+  br i1 %ok1088, label %next1088, label %fail111
+next1088:
+  %r1089 = call <4 x i32> @mixed_c64_si32_ne_4(<4 x i64> <i64 1, i64 1, i64 9223372036854775807, i64 9223372036854775807>, <4 x i64> <i64 -9223372036854775808, i64 -1, i64 0, i64 1>, <4 x i32> <i32 1, i32 2, i32 3, i32 4>, <4 x i32> <i32 -1, i32 -2, i32 -3, i32 -4>)
+  %c1089 = icmp eq <4 x i32> %r1089, <i32 1, i32 2, i32 3, i32 4>
+  %m1089 = bitcast <4 x i1> %c1089 to i4
+  %ok1089 = icmp eq i4 %m1089, -1
+  br i1 %ok1089, label %next1089, label %fail111
+next1089:
+  %r1090 = call <4 x i32> @mixed_c64_si32_ne_4(<4 x i64> <i64 9223372036854775807, i64 9223372036854775807, i64 9223372036854775807, i64 -9223372036854775808>, <4 x i64> <i64 9223372036854775807, i64 -9223372036854775808, i64 -1, i64 0>, <4 x i32> <i32 1, i32 2, i32 3, i32 4>, <4 x i32> <i32 -1, i32 -2, i32 -3, i32 -4>)
+  %c1090 = icmp eq <4 x i32> %r1090, <i32 -1, i32 2, i32 3, i32 4>
+  %m1090 = bitcast <4 x i1> %c1090 to i4
+  %ok1090 = icmp eq i4 %m1090, -1
+  br i1 %ok1090, label %next1090, label %fail111
+next1090:
+  %r1091 = call <4 x i32> @mixed_c64_si32_ne_4(<4 x i64> <i64 -9223372036854775808, i64 -9223372036854775808, i64 -9223372036854775808, i64 -9223372036854775808>, <4 x i64> <i64 1, i64 9223372036854775807, i64 -9223372036854775808, i64 -1>, <4 x i32> <i32 1, i32 2, i32 3, i32 4>, <4 x i32> <i32 -1, i32 -2, i32 -3, i32 -4>)
+  %c1091 = icmp eq <4 x i32> %r1091, <i32 1, i32 2, i32 -3, i32 4>
+  %m1091 = bitcast <4 x i1> %c1091 to i4
+  %ok1091 = icmp eq i4 %m1091, -1
+  br i1 %ok1091, label %next1091, label %fail111
+next1091:
+  %r1092 = call <4 x i32> @mixed_c64_si32_ne_4(<4 x i64> <i64 -1, i64 -1, i64 -1, i64 -1>, <4 x i64> <i64 0, i64 1, i64 9223372036854775807, i64 -9223372036854775808>, <4 x i32> <i32 1, i32 2, i32 3, i32 4>, <4 x i32> <i32 -1, i32 -2, i32 -3, i32 -4>)
+  %c1092 = icmp eq <4 x i32> %r1092, <i32 1, i32 2, i32 3, i32 4>
+  %m1092 = bitcast <4 x i1> %c1092 to i4
+  %ok1092 = icmp eq i4 %m1092, -1
+  br i1 %ok1092, label %next1092, label %fail111
+next1092:
+  %r1093 = call <4 x i32> @mixed_c64_si32_ne_4(<4 x i64> <i64 -1, i64 -1, i64 -1, i64 -1>, <4 x i64> <i64 -1, i64 -1, i64 -1, i64 -1>, <4 x i32> <i32 1, i32 2, i32 3, i32 4>, <4 x i32> <i32 -1, i32 -2, i32 -3, i32 -4>)
+  %c1093 = icmp eq <4 x i32> %r1093, <i32 -1, i32 -2, i32 -3, i32 -4>
+  %m1093 = bitcast <4 x i1> %c1093 to i4
+  %ok1093 = icmp eq i4 %m1093, -1
+  br i1 %ok1093, label %next1093, label %fail111
+next1093:
+  ; 112: sle on <4 x i64> selecting <4 x i32>
+  %r1094 = call <4 x i32> @mixed_c64_si32_sle_4(<4 x i64> <i64 0, i64 0, i64 0, i64 0>, <4 x i64> <i64 0, i64 1, i64 9223372036854775807, i64 -9223372036854775808>, <4 x i32> <i32 1, i32 2, i32 3, i32 4>, <4 x i32> <i32 -1, i32 -2, i32 -3, i32 -4>)
+  %c1094 = icmp eq <4 x i32> %r1094, <i32 1, i32 2, i32 3, i32 -4>
+  %m1094 = bitcast <4 x i1> %c1094 to i4
+  %ok1094 = icmp eq i4 %m1094, -1
+  br i1 %ok1094, label %next1094, label %fail112
+next1094:
+  %r1095 = call <4 x i32> @mixed_c64_si32_sle_4(<4 x i64> <i64 0, i64 1, i64 1, i64 1>, <4 x i64> <i64 -1, i64 0, i64 1, i64 9223372036854775807>, <4 x i32> <i32 1, i32 2, i32 3, i32 4>, <4 x i32> <i32 -1, i32 -2, i32 -3, i32 -4>)
+  %c1095 = icmp eq <4 x i32> %r1095, <i32 -1, i32 -2, i32 3, i32 4>
+  %m1095 = bitcast <4 x i1> %c1095 to i4
+  %ok1095 = icmp eq i4 %m1095, -1
+  br i1 %ok1095, label %next1095, label %fail112
+next1095:
+  %r1096 = call <4 x i32> @mixed_c64_si32_sle_4(<4 x i64> <i64 1, i64 1, i64 9223372036854775807, i64 9223372036854775807>, <4 x i64> <i64 -9223372036854775808, i64 -1, i64 0, i64 1>, <4 x i32> <i32 1, i32 2, i32 3, i32 4>, <4 x i32> <i32 -1, i32 -2, i32 -3, i32 -4>)
+  %c1096 = icmp eq <4 x i32> %r1096, <i32 -1, i32 -2, i32 -3, i32 -4>
+  %m1096 = bitcast <4 x i1> %c1096 to i4
+  %ok1096 = icmp eq i4 %m1096, -1
+  br i1 %ok1096, label %next1096, label %fail112
+next1096:
+  %r1097 = call <4 x i32> @mixed_c64_si32_sle_4(<4 x i64> <i64 9223372036854775807, i64 9223372036854775807, i64 9223372036854775807, i64 -9223372036854775808>, <4 x i64> <i64 9223372036854775807, i64 -9223372036854775808, i64 -1, i64 0>, <4 x i32> <i32 1, i32 2, i32 3, i32 4>, <4 x i32> <i32 -1, i32 -2, i32 -3, i32 -4>)
+  %c1097 = icmp eq <4 x i32> %r1097, <i32 1, i32 -2, i32 -3, i32 4>
+  %m1097 = bitcast <4 x i1> %c1097 to i4
+  %ok1097 = icmp eq i4 %m1097, -1
+  br i1 %ok1097, label %next1097, label %fail112
+next1097:
+  %r1098 = call <4 x i32> @mixed_c64_si32_sle_4(<4 x i64> <i64 -9223372036854775808, i64 -9223372036854775808, i64 -9223372036854775808, i64 -9223372036854775808>, <4 x i64> <i64 1, i64 9223372036854775807, i64 -9223372036854775808, i64 -1>, <4 x i32> <i32 1, i32 2, i32 3, i32 4>, <4 x i32> <i32 -1, i32 -2, i32 -3, i32 -4>)
+  %c1098 = icmp eq <4 x i32> %r1098, <i32 1, i32 2, i32 3, i32 4>
+  %m1098 = bitcast <4 x i1> %c1098 to i4
+  %ok1098 = icmp eq i4 %m1098, -1
+  br i1 %ok1098, label %next1098, label %fail112
+next1098:
+  %r1099 = call <4 x i32> @mixed_c64_si32_sle_4(<4 x i64> <i64 -1, i64 -1, i64 -1, i64 -1>, <4 x i64> <i64 0, i64 1, i64 9223372036854775807, i64 -9223372036854775808>, <4 x i32> <i32 1, i32 2, i32 3, i32 4>, <4 x i32> <i32 -1, i32 -2, i32 -3, i32 -4>)
+  %c1099 = icmp eq <4 x i32> %r1099, <i32 1, i32 2, i32 3, i32 -4>
+  %m1099 = bitcast <4 x i1> %c1099 to i4
+  %ok1099 = icmp eq i4 %m1099, -1
+  br i1 %ok1099, label %next1099, label %fail112
+next1099:
+  %r1100 = call <4 x i32> @mixed_c64_si32_sle_4(<4 x i64> <i64 -1, i64 -1, i64 -1, i64 -1>, <4 x i64> <i64 -1, i64 -1, i64 -1, i64 -1>, <4 x i32> <i32 1, i32 2, i32 3, i32 4>, <4 x i32> <i32 -1, i32 -2, i32 -3, i32 -4>)
+  %c1100 = icmp eq <4 x i32> %r1100, <i32 1, i32 2, i32 3, i32 4>
+  %m1100 = bitcast <4 x i1> %c1100 to i4
+  %ok1100 = icmp eq i4 %m1100, -1
+  br i1 %ok1100, label %next1100, label %fail112
+next1100:
+  ; 113: ult on <4 x i64> selecting <4 x float>
+  %r1101 = call <4 x float> @mixed_c64_sfloat_ult_4(<4 x i64> <i64 0, i64 0, i64 0, i64 0>, <4 x i64> <i64 0, i64 1, i64 9223372036854775807, i64 -9223372036854775808>, <4 x float> <float 1.0, float 2.0, float 3.0, float 4.0>, <4 x float> <float -1.0, float -2.0, float -3.0, float -4.0>)
+  %c1101 = fcmp oeq <4 x float> %r1101, <float -1.0, float 2.0, float 3.0, float 4.0>
+  %m1101 = bitcast <4 x i1> %c1101 to i4
+  %ok1101 = icmp eq i4 %m1101, -1
+  br i1 %ok1101, label %next1101, label %fail113
+next1101:
+  %r1102 = call <4 x float> @mixed_c64_sfloat_ult_4(<4 x i64> <i64 0, i64 1, i64 1, i64 1>, <4 x i64> <i64 -1, i64 0, i64 1, i64 9223372036854775807>, <4 x float> <float 1.0, float 2.0, float 3.0, float 4.0>, <4 x float> <float -1.0, float -2.0, float -3.0, float -4.0>)
+  %c1102 = fcmp oeq <4 x float> %r1102, <float 1.0, float -2.0, float -3.0, float 4.0>
+  %m1102 = bitcast <4 x i1> %c1102 to i4
+  %ok1102 = icmp eq i4 %m1102, -1
+  br i1 %ok1102, label %next1102, label %fail113
+next1102:
+  %r1103 = call <4 x float> @mixed_c64_sfloat_ult_4(<4 x i64> <i64 1, i64 1, i64 9223372036854775807, i64 9223372036854775807>, <4 x i64> <i64 -9223372036854775808, i64 -1, i64 0, i64 1>, <4 x float> <float 1.0, float 2.0, float 3.0, float 4.0>, <4 x float> <float -1.0, float -2.0, float -3.0, float -4.0>)
+  %c1103 = fcmp oeq <4 x float> %r1103, <float 1.0, float 2.0, float -3.0, float -4.0>
+  %m1103 = bitcast <4 x i1> %c1103 to i4
+  %ok1103 = icmp eq i4 %m1103, -1
+  br i1 %ok1103, label %next1103, label %fail113
+next1103:
+  %r1104 = call <4 x float> @mixed_c64_sfloat_ult_4(<4 x i64> <i64 9223372036854775807, i64 9223372036854775807, i64 9223372036854775807, i64 -9223372036854775808>, <4 x i64> <i64 9223372036854775807, i64 -9223372036854775808, i64 -1, i64 0>, <4 x float> <float 1.0, float 2.0, float 3.0, float 4.0>, <4 x float> <float -1.0, float -2.0, float -3.0, float -4.0>)
+  %c1104 = fcmp oeq <4 x float> %r1104, <float -1.0, float 2.0, float 3.0, float -4.0>
+  %m1104 = bitcast <4 x i1> %c1104 to i4
+  %ok1104 = icmp eq i4 %m1104, -1
+  br i1 %ok1104, label %next1104, label %fail113
+next1104:
+  %r1105 = call <4 x float> @mixed_c64_sfloat_ult_4(<4 x i64> <i64 -9223372036854775808, i64 -9223372036854775808, i64 -9223372036854775808, i64 -9223372036854775808>, <4 x i64> <i64 1, i64 9223372036854775807, i64 -9223372036854775808, i64 -1>, <4 x float> <float 1.0, float 2.0, float 3.0, float 4.0>, <4 x float> <float -1.0, float -2.0, float -3.0, float -4.0>)
+  %c1105 = fcmp oeq <4 x float> %r1105, <float -1.0, float -2.0, float -3.0, float 4.0>
+  %m1105 = bitcast <4 x i1> %c1105 to i4
+  %ok1105 = icmp eq i4 %m1105, -1
+  br i1 %ok1105, label %next1105, label %fail113
+next1105:
+  %r1106 = call <4 x float> @mixed_c64_sfloat_ult_4(<4 x i64> <i64 -1, i64 -1, i64 -1, i64 -1>, <4 x i64> <i64 0, i64 1, i64 9223372036854775807, i64 -9223372036854775808>, <4 x float> <float 1.0, float 2.0, float 3.0, float 4.0>, <4 x float> <float -1.0, float -2.0, float -3.0, float -4.0>)
+  %c1106 = fcmp oeq <4 x float> %r1106, <float -1.0, float -2.0, float -3.0, float -4.0>
+  %m1106 = bitcast <4 x i1> %c1106 to i4
+  %ok1106 = icmp eq i4 %m1106, -1
+  br i1 %ok1106, label %next1106, label %fail113
+next1106:
+  %r1107 = call <4 x float> @mixed_c64_sfloat_ult_4(<4 x i64> <i64 -1, i64 -1, i64 -1, i64 -1>, <4 x i64> <i64 -1, i64 -1, i64 -1, i64 -1>, <4 x float> <float 1.0, float 2.0, float 3.0, float 4.0>, <4 x float> <float -1.0, float -2.0, float -3.0, float -4.0>)
+  %c1107 = fcmp oeq <4 x float> %r1107, <float -1.0, float -2.0, float -3.0, float -4.0>
+  %m1107 = bitcast <4 x i1> %c1107 to i4
+  %ok1107 = icmp eq i4 %m1107, -1
+  br i1 %ok1107, label %next1107, label %fail113
+next1107:
+  ; 114: slt on <4 x i64> selecting <4 x float>
+  %r1108 = call <4 x float> @mixed_c64_sfloat_slt_4(<4 x i64> <i64 0, i64 0, i64 0, i64 0>, <4 x i64> <i64 0, i64 1, i64 9223372036854775807, i64 -9223372036854775808>, <4 x float> <float 1.0, float 2.0, float 3.0, float 4.0>, <4 x float> <float -1.0, float -2.0, float -3.0, float -4.0>)
+  %c1108 = fcmp oeq <4 x float> %r1108, <float -1.0, float 2.0, float 3.0, float -4.0>
+  %m1108 = bitcast <4 x i1> %c1108 to i4
+  %ok1108 = icmp eq i4 %m1108, -1
+  br i1 %ok1108, label %next1108, label %fail114
+next1108:
+  %r1109 = call <4 x float> @mixed_c64_sfloat_slt_4(<4 x i64> <i64 0, i64 1, i64 1, i64 1>, <4 x i64> <i64 -1, i64 0, i64 1, i64 9223372036854775807>, <4 x float> <float 1.0, float 2.0, float 3.0, float 4.0>, <4 x float> <float -1.0, float -2.0, float -3.0, float -4.0>)
+  %c1109 = fcmp oeq <4 x float> %r1109, <float -1.0, float -2.0, float -3.0, float 4.0>
+  %m1109 = bitcast <4 x i1> %c1109 to i4
+  %ok1109 = icmp eq i4 %m1109, -1
+  br i1 %ok1109, label %next1109, label %fail114
+next1109:
+  %r1110 = call <4 x float> @mixed_c64_sfloat_slt_4(<4 x i64> <i64 1, i64 1, i64 9223372036854775807, i64 9223372036854775807>, <4 x i64> <i64 -9223372036854775808, i64 -1, i64 0, i64 1>, <4 x float> <float 1.0, float 2.0, float 3.0, float 4.0>, <4 x float> <float -1.0, float -2.0, float -3.0, float -4.0>)
+  %c1110 = fcmp oeq <4 x float> %r1110, <float -1.0, float -2.0, float -3.0, float -4.0>
+  %m1110 = bitcast <4 x i1> %c1110 to i4
+  %ok1110 = icmp eq i4 %m1110, -1
+  br i1 %ok1110, label %next1110, label %fail114
+next1110:
+  %r1111 = call <4 x float> @mixed_c64_sfloat_slt_4(<4 x i64> <i64 9223372036854775807, i64 9223372036854775807, i64 9223372036854775807, i64 -9223372036854775808>, <4 x i64> <i64 9223372036854775807, i64 -9223372036854775808, i64 -1, i64 0>, <4 x float> <float 1.0, float 2.0, float 3.0, float 4.0>, <4 x float> <float -1.0, float -2.0, float -3.0, float -4.0>)
+  %c1111 = fcmp oeq <4 x float> %r1111, <float -1.0, float -2.0, float -3.0, float 4.0>
+  %m1111 = bitcast <4 x i1> %c1111 to i4
+  %ok1111 = icmp eq i4 %m1111, -1
+  br i1 %ok1111, label %next1111, label %fail114
+next1111:
+  %r1112 = call <4 x float> @mixed_c64_sfloat_slt_4(<4 x i64> <i64 -9223372036854775808, i64 -9223372036854775808, i64 -9223372036854775808, i64 -9223372036854775808>, <4 x i64> <i64 1, i64 9223372036854775807, i64 -9223372036854775808, i64 -1>, <4 x float> <float 1.0, float 2.0, float 3.0, float 4.0>, <4 x float> <float -1.0, float -2.0, float -3.0, float -4.0>)
+  %c1112 = fcmp oeq <4 x float> %r1112, <float 1.0, float 2.0, float -3.0, float 4.0>
+  %m1112 = bitcast <4 x i1> %c1112 to i4
+  %ok1112 = icmp eq i4 %m1112, -1
+  br i1 %ok1112, label %next1112, label %fail114
+next1112:
+  %r1113 = call <4 x float> @mixed_c64_sfloat_slt_4(<4 x i64> <i64 -1, i64 -1, i64 -1, i64 -1>, <4 x i64> <i64 0, i64 1, i64 9223372036854775807, i64 -9223372036854775808>, <4 x float> <float 1.0, float 2.0, float 3.0, float 4.0>, <4 x float> <float -1.0, float -2.0, float -3.0, float -4.0>)
+  %c1113 = fcmp oeq <4 x float> %r1113, <float 1.0, float 2.0, float 3.0, float -4.0>
+  %m1113 = bitcast <4 x i1> %c1113 to i4
+  %ok1113 = icmp eq i4 %m1113, -1
+  br i1 %ok1113, label %next1113, label %fail114
+next1113:
+  %r1114 = call <4 x float> @mixed_c64_sfloat_slt_4(<4 x i64> <i64 -1, i64 -1, i64 -1, i64 -1>, <4 x i64> <i64 -1, i64 -1, i64 -1, i64 -1>, <4 x float> <float 1.0, float 2.0, float 3.0, float 4.0>, <4 x float> <float -1.0, float -2.0, float -3.0, float -4.0>)
+  %c1114 = fcmp oeq <4 x float> %r1114, <float -1.0, float -2.0, float -3.0, float -4.0>
+  %m1114 = bitcast <4 x i1> %c1114 to i4
+  %ok1114 = icmp eq i4 %m1114, -1
+  br i1 %ok1114, label %next1114, label %fail114
+next1114:
+  ; 115: ne on <4 x i64> selecting <4 x float>
+  %r1115 = call <4 x float> @mixed_c64_sfloat_ne_4(<4 x i64> <i64 0, i64 0, i64 0, i64 0>, <4 x i64> <i64 0, i64 1, i64 9223372036854775807, i64 -9223372036854775808>, <4 x float> <float 1.0, float 2.0, float 3.0, float 4.0>, <4 x float> <float -1.0, float -2.0, float -3.0, float -4.0>)
+  %c1115 = fcmp oeq <4 x float> %r1115, <float -1.0, float 2.0, float 3.0, float 4.0>
+  %m1115 = bitcast <4 x i1> %c1115 to i4
+  %ok1115 = icmp eq i4 %m1115, -1
+  br i1 %ok1115, label %next1115, label %fail115
+next1115:
+  %r1116 = call <4 x float> @mixed_c64_sfloat_ne_4(<4 x i64> <i64 0, i64 1, i64 1, i64 1>, <4 x i64> <i64 -1, i64 0, i64 1, i64 9223372036854775807>, <4 x float> <float 1.0, float 2.0, float 3.0, float 4.0>, <4 x float> <float -1.0, float -2.0, float -3.0, float -4.0>)
+  %c1116 = fcmp oeq <4 x float> %r1116, <float 1.0, float 2.0, float -3.0, float 4.0>
+  %m1116 = bitcast <4 x i1> %c1116 to i4
+  %ok1116 = icmp eq i4 %m1116, -1
+  br i1 %ok1116, label %next1116, label %fail115
+next1116:
+  %r1117 = call <4 x float> @mixed_c64_sfloat_ne_4(<4 x i64> <i64 1, i64 1, i64 9223372036854775807, i64 9223372036854775807>, <4 x i64> <i64 -9223372036854775808, i64 -1, i64 0, i64 1>, <4 x float> <float 1.0, float 2.0, float 3.0, float 4.0>, <4 x float> <float -1.0, float -2.0, float -3.0, float -4.0>)
+  %c1117 = fcmp oeq <4 x float> %r1117, <float 1.0, float 2.0, float 3.0, float 4.0>
+  %m1117 = bitcast <4 x i1> %c1117 to i4
+  %ok1117 = icmp eq i4 %m1117, -1
+  br i1 %ok1117, label %next1117, label %fail115
+next1117:
+  %r1118 = call <4 x float> @mixed_c64_sfloat_ne_4(<4 x i64> <i64 9223372036854775807, i64 9223372036854775807, i64 9223372036854775807, i64 -9223372036854775808>, <4 x i64> <i64 9223372036854775807, i64 -9223372036854775808, i64 -1, i64 0>, <4 x float> <float 1.0, float 2.0, float 3.0, float 4.0>, <4 x float> <float -1.0, float -2.0, float -3.0, float -4.0>)
+  %c1118 = fcmp oeq <4 x float> %r1118, <float -1.0, float 2.0, float 3.0, float 4.0>
+  %m1118 = bitcast <4 x i1> %c1118 to i4
+  %ok1118 = icmp eq i4 %m1118, -1
+  br i1 %ok1118, label %next1118, label %fail115
+next1118:
+  %r1119 = call <4 x float> @mixed_c64_sfloat_ne_4(<4 x i64> <i64 -9223372036854775808, i64 -9223372036854775808, i64 -9223372036854775808, i64 -9223372036854775808>, <4 x i64> <i64 1, i64 9223372036854775807, i64 -9223372036854775808, i64 -1>, <4 x float> <float 1.0, float 2.0, float 3.0, float 4.0>, <4 x float> <float -1.0, float -2.0, float -3.0, float -4.0>)
+  %c1119 = fcmp oeq <4 x float> %r1119, <float 1.0, float 2.0, float -3.0, float 4.0>
+  %m1119 = bitcast <4 x i1> %c1119 to i4
+  %ok1119 = icmp eq i4 %m1119, -1
+  br i1 %ok1119, label %next1119, label %fail115
+next1119:
+  %r1120 = call <4 x float> @mixed_c64_sfloat_ne_4(<4 x i64> <i64 -1, i64 -1, i64 -1, i64 -1>, <4 x i64> <i64 0, i64 1, i64 9223372036854775807, i64 -9223372036854775808>, <4 x float> <float 1.0, float 2.0, float 3.0, float 4.0>, <4 x float> <float -1.0, float -2.0, float -3.0, float -4.0>)
+  %c1120 = fcmp oeq <4 x float> %r1120, <float 1.0, float 2.0, float 3.0, float 4.0>
+  %m1120 = bitcast <4 x i1> %c1120 to i4
+  %ok1120 = icmp eq i4 %m1120, -1
+  br i1 %ok1120, label %next1120, label %fail115
+next1120:
+  %r1121 = call <4 x float> @mixed_c64_sfloat_ne_4(<4 x i64> <i64 -1, i64 -1, i64 -1, i64 -1>, <4 x i64> <i64 -1, i64 -1, i64 -1, i64 -1>, <4 x float> <float 1.0, float 2.0, float 3.0, float 4.0>, <4 x float> <float -1.0, float -2.0, float -3.0, float -4.0>)
+  %c1121 = fcmp oeq <4 x float> %r1121, <float -1.0, float -2.0, float -3.0, float -4.0>
+  %m1121 = bitcast <4 x i1> %c1121 to i4
+  %ok1121 = icmp eq i4 %m1121, -1
+  br i1 %ok1121, label %next1121, label %fail115
+next1121:
+  ; 116: ult on <4 x i32> selecting <4 x float>
+  %r1122 = call <4 x float> @mixed_c32_sfloat_ult_4(<4 x i32> <i32 0, i32 0, i32 0, i32 0>, <4 x i32> <i32 0, i32 1, i32 2147483647, i32 -2147483648>, <4 x float> <float 1.0, float 2.0, float 3.0, float 4.0>, <4 x float> <float -1.0, float -2.0, float -3.0, float -4.0>)
+  %c1122 = fcmp oeq <4 x float> %r1122, <float -1.0, float 2.0, float 3.0, float 4.0>
+  %m1122 = bitcast <4 x i1> %c1122 to i4
+  %ok1122 = icmp eq i4 %m1122, -1
+  br i1 %ok1122, label %next1122, label %fail116
+next1122:
+  %r1123 = call <4 x float> @mixed_c32_sfloat_ult_4(<4 x i32> <i32 0, i32 1, i32 1, i32 1>, <4 x i32> <i32 -1, i32 0, i32 1, i32 2147483647>, <4 x float> <float 1.0, float 2.0, float 3.0, float 4.0>, <4 x float> <float -1.0, float -2.0, float -3.0, float -4.0>)
+  %c1123 = fcmp oeq <4 x float> %r1123, <float 1.0, float -2.0, float -3.0, float 4.0>
+  %m1123 = bitcast <4 x i1> %c1123 to i4
+  %ok1123 = icmp eq i4 %m1123, -1
+  br i1 %ok1123, label %next1123, label %fail116
+next1123:
+  %r1124 = call <4 x float> @mixed_c32_sfloat_ult_4(<4 x i32> <i32 1, i32 1, i32 2147483647, i32 2147483647>, <4 x i32> <i32 -2147483648, i32 -1, i32 0, i32 1>, <4 x float> <float 1.0, float 2.0, float 3.0, float 4.0>, <4 x float> <float -1.0, float -2.0, float -3.0, float -4.0>)
+  %c1124 = fcmp oeq <4 x float> %r1124, <float 1.0, float 2.0, float -3.0, float -4.0>
+  %m1124 = bitcast <4 x i1> %c1124 to i4
+  %ok1124 = icmp eq i4 %m1124, -1
+  br i1 %ok1124, label %next1124, label %fail116
+next1124:
+  %r1125 = call <4 x float> @mixed_c32_sfloat_ult_4(<4 x i32> <i32 2147483647, i32 2147483647, i32 2147483647, i32 -2147483648>, <4 x i32> <i32 2147483647, i32 -2147483648, i32 -1, i32 0>, <4 x float> <float 1.0, float 2.0, float 3.0, float 4.0>, <4 x float> <float -1.0, float -2.0, float -3.0, float -4.0>)
+  %c1125 = fcmp oeq <4 x float> %r1125, <float -1.0, float 2.0, float 3.0, float -4.0>
+  %m1125 = bitcast <4 x i1> %c1125 to i4
+  %ok1125 = icmp eq i4 %m1125, -1
+  br i1 %ok1125, label %next1125, label %fail116
+next1125:
+  %r1126 = call <4 x float> @mixed_c32_sfloat_ult_4(<4 x i32> <i32 -2147483648, i32 -2147483648, i32 -2147483648, i32 -2147483648>, <4 x i32> <i32 1, i32 2147483647, i32 -2147483648, i32 -1>, <4 x float> <float 1.0, float 2.0, float 3.0, float 4.0>, <4 x float> <float -1.0, float -2.0, float -3.0, float -4.0>)
+  %c1126 = fcmp oeq <4 x float> %r1126, <float -1.0, float -2.0, float -3.0, float 4.0>
+  %m1126 = bitcast <4 x i1> %c1126 to i4
+  %ok1126 = icmp eq i4 %m1126, -1
+  br i1 %ok1126, label %next1126, label %fail116
+next1126:
+  %r1127 = call <4 x float> @mixed_c32_sfloat_ult_4(<4 x i32> <i32 -1, i32 -1, i32 -1, i32 -1>, <4 x i32> <i32 0, i32 1, i32 2147483647, i32 -2147483648>, <4 x float> <float 1.0, float 2.0, float 3.0, float 4.0>, <4 x float> <float -1.0, float -2.0, float -3.0, float -4.0>)
+  %c1127 = fcmp oeq <4 x float> %r1127, <float -1.0, float -2.0, float -3.0, float -4.0>
+  %m1127 = bitcast <4 x i1> %c1127 to i4
+  %ok1127 = icmp eq i4 %m1127, -1
+  br i1 %ok1127, label %next1127, label %fail116
+next1127:
+  %r1128 = call <4 x float> @mixed_c32_sfloat_ult_4(<4 x i32> <i32 -1, i32 -1, i32 -1, i32 -1>, <4 x i32> <i32 -1, i32 -1, i32 -1, i32 -1>, <4 x float> <float 1.0, float 2.0, float 3.0, float 4.0>, <4 x float> <float -1.0, float -2.0, float -3.0, float -4.0>)
+  %c1128 = fcmp oeq <4 x float> %r1128, <float -1.0, float -2.0, float -3.0, float -4.0>
+  %m1128 = bitcast <4 x i1> %c1128 to i4
+  %ok1128 = icmp eq i4 %m1128, -1
+  br i1 %ok1128, label %next1128, label %fail116
+next1128:
+  ; 117: slt on <4 x i32> selecting <4 x float>
+  %r1129 = call <4 x float> @mixed_c32_sfloat_slt_4(<4 x i32> <i32 0, i32 0, i32 0, i32 0>, <4 x i32> <i32 0, i32 1, i32 2147483647, i32 -2147483648>, <4 x float> <float 1.0, float 2.0, float 3.0, float 4.0>, <4 x float> <float -1.0, float -2.0, float -3.0, float -4.0>)
+  %c1129 = fcmp oeq <4 x float> %r1129, <float -1.0, float 2.0, float 3.0, float -4.0>
+  %m1129 = bitcast <4 x i1> %c1129 to i4
+  %ok1129 = icmp eq i4 %m1129, -1
+  br i1 %ok1129, label %next1129, label %fail117
+next1129:
+  %r1130 = call <4 x float> @mixed_c32_sfloat_slt_4(<4 x i32> <i32 0, i32 1, i32 1, i32 1>, <4 x i32> <i32 -1, i32 0, i32 1, i32 2147483647>, <4 x float> <float 1.0, float 2.0, float 3.0, float 4.0>, <4 x float> <float -1.0, float -2.0, float -3.0, float -4.0>)
+  %c1130 = fcmp oeq <4 x float> %r1130, <float -1.0, float -2.0, float -3.0, float 4.0>
+  %m1130 = bitcast <4 x i1> %c1130 to i4
+  %ok1130 = icmp eq i4 %m1130, -1
+  br i1 %ok1130, label %next1130, label %fail117
+next1130:
+  %r1131 = call <4 x float> @mixed_c32_sfloat_slt_4(<4 x i32> <i32 1, i32 1, i32 2147483647, i32 2147483647>, <4 x i32> <i32 -2147483648, i32 -1, i32 0, i32 1>, <4 x float> <float 1.0, float 2.0, float 3.0, float 4.0>, <4 x float> <float -1.0, float -2.0, float -3.0, float -4.0>)
+  %c1131 = fcmp oeq <4 x float> %r1131, <float -1.0, float -2.0, float -3.0, float -4.0>
+  %m1131 = bitcast <4 x i1> %c1131 to i4
+  %ok1131 = icmp eq i4 %m1131, -1
+  br i1 %ok1131, label %next1131, label %fail117
+next1131:
+  %r1132 = call <4 x float> @mixed_c32_sfloat_slt_4(<4 x i32> <i32 2147483647, i32 2147483647, i32 2147483647, i32 -2147483648>, <4 x i32> <i32 2147483647, i32 -2147483648, i32 -1, i32 0>, <4 x float> <float 1.0, float 2.0, float 3.0, float 4.0>, <4 x float> <float -1.0, float -2.0, float -3.0, float -4.0>)
+  %c1132 = fcmp oeq <4 x float> %r1132, <float -1.0, float -2.0, float -3.0, float 4.0>
+  %m1132 = bitcast <4 x i1> %c1132 to i4
+  %ok1132 = icmp eq i4 %m1132, -1
+  br i1 %ok1132, label %next1132, label %fail117
+next1132:
+  %r1133 = call <4 x float> @mixed_c32_sfloat_slt_4(<4 x i32> <i32 -2147483648, i32 -2147483648, i32 -2147483648, i32 -2147483648>, <4 x i32> <i32 1, i32 2147483647, i32 -2147483648, i32 -1>, <4 x float> <float 1.0, float 2.0, float 3.0, float 4.0>, <4 x float> <float -1.0, float -2.0, float -3.0, float -4.0>)
+  %c1133 = fcmp oeq <4 x float> %r1133, <float 1.0, float 2.0, float -3.0, float 4.0>
+  %m1133 = bitcast <4 x i1> %c1133 to i4
+  %ok1133 = icmp eq i4 %m1133, -1
+  br i1 %ok1133, label %next1133, label %fail117
+next1133:
+  %r1134 = call <4 x float> @mixed_c32_sfloat_slt_4(<4 x i32> <i32 -1, i32 -1, i32 -1, i32 -1>, <4 x i32> <i32 0, i32 1, i32 2147483647, i32 -2147483648>, <4 x float> <float 1.0, float 2.0, float 3.0, float 4.0>, <4 x float> <float -1.0, float -2.0, float -3.0, float -4.0>)
+  %c1134 = fcmp oeq <4 x float> %r1134, <float 1.0, float 2.0, float 3.0, float -4.0>
+  %m1134 = bitcast <4 x i1> %c1134 to i4
+  %ok1134 = icmp eq i4 %m1134, -1
+  br i1 %ok1134, label %next1134, label %fail117
+next1134:
+  %r1135 = call <4 x float> @mixed_c32_sfloat_slt_4(<4 x i32> <i32 -1, i32 -1, i32 -1, i32 -1>, <4 x i32> <i32 -1, i32 -1, i32 -1, i32 -1>, <4 x float> <float 1.0, float 2.0, float 3.0, float 4.0>, <4 x float> <float -1.0, float -2.0, float -3.0, float -4.0>)
+  %c1135 = fcmp oeq <4 x float> %r1135, <float -1.0, float -2.0, float -3.0, float -4.0>
+  %m1135 = bitcast <4 x i1> %c1135 to i4
+  %ok1135 = icmp eq i4 %m1135, -1
+  br i1 %ok1135, label %next1135, label %fail117
+next1135:
+  ; 118: ne on <4 x i32> selecting <4 x float>
+  %r1136 = call <4 x float> @mixed_c32_sfloat_ne_4(<4 x i32> <i32 0, i32 0, i32 0, i32 0>, <4 x i32> <i32 0, i32 1, i32 2147483647, i32 -2147483648>, <4 x float> <float 1.0, float 2.0, float 3.0, float 4.0>, <4 x float> <float -1.0, float -2.0, float -3.0, float -4.0>)
+  %c1136 = fcmp oeq <4 x float> %r1136, <float -1.0, float 2.0, float 3.0, float 4.0>
+  %m1136 = bitcast <4 x i1> %c1136 to i4
+  %ok1136 = icmp eq i4 %m1136, -1
+  br i1 %ok1136, label %next1136, label %fail118
+next1136:
+  %r1137 = call <4 x float> @mixed_c32_sfloat_ne_4(<4 x i32> <i32 0, i32 1, i32 1, i32 1>, <4 x i32> <i32 -1, i32 0, i32 1, i32 2147483647>, <4 x float> <float 1.0, float 2.0, float 3.0, float 4.0>, <4 x float> <float -1.0, float -2.0, float -3.0, float -4.0>)
+  %c1137 = fcmp oeq <4 x float> %r1137, <float 1.0, float 2.0, float -3.0, float 4.0>
+  %m1137 = bitcast <4 x i1> %c1137 to i4
+  %ok1137 = icmp eq i4 %m1137, -1
+  br i1 %ok1137, label %next1137, label %fail118
+next1137:
+  %r1138 = call <4 x float> @mixed_c32_sfloat_ne_4(<4 x i32> <i32 1, i32 1, i32 2147483647, i32 2147483647>, <4 x i32> <i32 -2147483648, i32 -1, i32 0, i32 1>, <4 x float> <float 1.0, float 2.0, float 3.0, float 4.0>, <4 x float> <float -1.0, float -2.0, float -3.0, float -4.0>)
+  %c1138 = fcmp oeq <4 x float> %r1138, <float 1.0, float 2.0, float 3.0, float 4.0>
+  %m1138 = bitcast <4 x i1> %c1138 to i4
+  %ok1138 = icmp eq i4 %m1138, -1
+  br i1 %ok1138, label %next1138, label %fail118
+next1138:
+  %r1139 = call <4 x float> @mixed_c32_sfloat_ne_4(<4 x i32> <i32 2147483647, i32 2147483647, i32 2147483647, i32 -2147483648>, <4 x i32> <i32 2147483647, i32 -2147483648, i32 -1, i32 0>, <4 x float> <float 1.0, float 2.0, float 3.0, float 4.0>, <4 x float> <float -1.0, float -2.0, float -3.0, float -4.0>)
+  %c1139 = fcmp oeq <4 x float> %r1139, <float -1.0, float 2.0, float 3.0, float 4.0>
+  %m1139 = bitcast <4 x i1> %c1139 to i4
+  %ok1139 = icmp eq i4 %m1139, -1
+  br i1 %ok1139, label %next1139, label %fail118
+next1139:
+  %r1140 = call <4 x float> @mixed_c32_sfloat_ne_4(<4 x i32> <i32 -2147483648, i32 -2147483648, i32 -2147483648, i32 -2147483648>, <4 x i32> <i32 1, i32 2147483647, i32 -2147483648, i32 -1>, <4 x float> <float 1.0, float 2.0, float 3.0, float 4.0>, <4 x float> <float -1.0, float -2.0, float -3.0, float -4.0>)
+  %c1140 = fcmp oeq <4 x float> %r1140, <float 1.0, float 2.0, float -3.0, float 4.0>
+  %m1140 = bitcast <4 x i1> %c1140 to i4
+  %ok1140 = icmp eq i4 %m1140, -1
+  br i1 %ok1140, label %next1140, label %fail118
+next1140:
+  %r1141 = call <4 x float> @mixed_c32_sfloat_ne_4(<4 x i32> <i32 -1, i32 -1, i32 -1, i32 -1>, <4 x i32> <i32 0, i32 1, i32 2147483647, i32 -2147483648>, <4 x float> <float 1.0, float 2.0, float 3.0, float 4.0>, <4 x float> <float -1.0, float -2.0, float -3.0, float -4.0>)
+  %c1141 = fcmp oeq <4 x float> %r1141, <float 1.0, float 2.0, float 3.0, float 4.0>
+  %m1141 = bitcast <4 x i1> %c1141 to i4
+  %ok1141 = icmp eq i4 %m1141, -1
+  br i1 %ok1141, label %next1141, label %fail118
+next1141:
+  %r1142 = call <4 x float> @mixed_c32_sfloat_ne_4(<4 x i32> <i32 -1, i32 -1, i32 -1, i32 -1>, <4 x i32> <i32 -1, i32 -1, i32 -1, i32 -1>, <4 x float> <float 1.0, float 2.0, float 3.0, float 4.0>, <4 x float> <float -1.0, float -2.0, float -3.0, float -4.0>)
+  %c1142 = fcmp oeq <4 x float> %r1142, <float -1.0, float -2.0, float -3.0, float -4.0>
+  %m1142 = bitcast <4 x i1> %c1142 to i4
+  %ok1142 = icmp eq i4 %m1142, -1
+  br i1 %ok1142, label %next1142, label %fail118
+next1142:
+  ; 119: ult on <4 x i16> selecting <4 x float>
+  %r1143 = call <4 x float> @mixed_c16_sfloat_ult_4(<4 x i16> <i16 0, i16 0, i16 0, i16 0>, <4 x i16> <i16 0, i16 1, i16 32767, i16 -32768>, <4 x float> <float 1.0, float 2.0, float 3.0, float 4.0>, <4 x float> <float -1.0, float -2.0, float -3.0, float -4.0>)
+  %c1143 = fcmp oeq <4 x float> %r1143, <float -1.0, float 2.0, float 3.0, float 4.0>
+  %m1143 = bitcast <4 x i1> %c1143 to i4
+  %ok1143 = icmp eq i4 %m1143, -1
+  br i1 %ok1143, label %next1143, label %fail119
+next1143:
+  %r1144 = call <4 x float> @mixed_c16_sfloat_ult_4(<4 x i16> <i16 0, i16 1, i16 1, i16 1>, <4 x i16> <i16 -1, i16 0, i16 1, i16 32767>, <4 x float> <float 1.0, float 2.0, float 3.0, float 4.0>, <4 x float> <float -1.0, float -2.0, float -3.0, float -4.0>)
+  %c1144 = fcmp oeq <4 x float> %r1144, <float 1.0, float -2.0, float -3.0, float 4.0>
+  %m1144 = bitcast <4 x i1> %c1144 to i4
+  %ok1144 = icmp eq i4 %m1144, -1
+  br i1 %ok1144, label %next1144, label %fail119
+next1144:
+  %r1145 = call <4 x float> @mixed_c16_sfloat_ult_4(<4 x i16> <i16 1, i16 1, i16 32767, i16 32767>, <4 x i16> <i16 -32768, i16 -1, i16 0, i16 1>, <4 x float> <float 1.0, float 2.0, float 3.0, float 4.0>, <4 x float> <float -1.0, float -2.0, float -3.0, float -4.0>)
+  %c1145 = fcmp oeq <4 x float> %r1145, <float 1.0, float 2.0, float -3.0, float -4.0>
+  %m1145 = bitcast <4 x i1> %c1145 to i4
+  %ok1145 = icmp eq i4 %m1145, -1
+  br i1 %ok1145, label %next1145, label %fail119
+next1145:
+  %r1146 = call <4 x float> @mixed_c16_sfloat_ult_4(<4 x i16> <i16 32767, i16 32767, i16 32767, i16 -32768>, <4 x i16> <i16 32767, i16 -32768, i16 -1, i16 0>, <4 x float> <float 1.0, float 2.0, float 3.0, float 4.0>, <4 x float> <float -1.0, float -2.0, float -3.0, float -4.0>)
+  %c1146 = fcmp oeq <4 x float> %r1146, <float -1.0, float 2.0, float 3.0, float -4.0>
+  %m1146 = bitcast <4 x i1> %c1146 to i4
+  %ok1146 = icmp eq i4 %m1146, -1
+  br i1 %ok1146, label %next1146, label %fail119
+next1146:
+  %r1147 = call <4 x float> @mixed_c16_sfloat_ult_4(<4 x i16> <i16 -32768, i16 -32768, i16 -32768, i16 -32768>, <4 x i16> <i16 1, i16 32767, i16 -32768, i16 -1>, <4 x float> <float 1.0, float 2.0, float 3.0, float 4.0>, <4 x float> <float -1.0, float -2.0, float -3.0, float -4.0>)
+  %c1147 = fcmp oeq <4 x float> %r1147, <float -1.0, float -2.0, float -3.0, float 4.0>
+  %m1147 = bitcast <4 x i1> %c1147 to i4
+  %ok1147 = icmp eq i4 %m1147, -1
+  br i1 %ok1147, label %next1147, label %fail119
+next1147:
+  %r1148 = call <4 x float> @mixed_c16_sfloat_ult_4(<4 x i16> <i16 -1, i16 -1, i16 -1, i16 -1>, <4 x i16> <i16 0, i16 1, i16 32767, i16 -32768>, <4 x float> <float 1.0, float 2.0, float 3.0, float 4.0>, <4 x float> <float -1.0, float -2.0, float -3.0, float -4.0>)
+  %c1148 = fcmp oeq <4 x float> %r1148, <float -1.0, float -2.0, float -3.0, float -4.0>
+  %m1148 = bitcast <4 x i1> %c1148 to i4
+  %ok1148 = icmp eq i4 %m1148, -1
+  br i1 %ok1148, label %next1148, label %fail119
+next1148:
+  %r1149 = call <4 x float> @mixed_c16_sfloat_ult_4(<4 x i16> <i16 -1, i16 -1, i16 -1, i16 -1>, <4 x i16> <i16 -1, i16 -1, i16 -1, i16 -1>, <4 x float> <float 1.0, float 2.0, float 3.0, float 4.0>, <4 x float> <float -1.0, float -2.0, float -3.0, float -4.0>)
+  %c1149 = fcmp oeq <4 x float> %r1149, <float -1.0, float -2.0, float -3.0, float -4.0>
+  %m1149 = bitcast <4 x i1> %c1149 to i4
+  %ok1149 = icmp eq i4 %m1149, -1
+  br i1 %ok1149, label %next1149, label %fail119
+next1149:
+  ; 120: slt on <4 x i16> selecting <4 x float>
+  %r1150 = call <4 x float> @mixed_c16_sfloat_slt_4(<4 x i16> <i16 0, i16 0, i16 0, i16 0>, <4 x i16> <i16 0, i16 1, i16 32767, i16 -32768>, <4 x float> <float 1.0, float 2.0, float 3.0, float 4.0>, <4 x float> <float -1.0, float -2.0, float -3.0, float -4.0>)
+  %c1150 = fcmp oeq <4 x float> %r1150, <float -1.0, float 2.0, float 3.0, float -4.0>
+  %m1150 = bitcast <4 x i1> %c1150 to i4
+  %ok1150 = icmp eq i4 %m1150, -1
+  br i1 %ok1150, label %next1150, label %fail120
+next1150:
+  %r1151 = call <4 x float> @mixed_c16_sfloat_slt_4(<4 x i16> <i16 0, i16 1, i16 1, i16 1>, <4 x i16> <i16 -1, i16 0, i16 1, i16 32767>, <4 x float> <float 1.0, float 2.0, float 3.0, float 4.0>, <4 x float> <float -1.0, float -2.0, float -3.0, float -4.0>)
+  %c1151 = fcmp oeq <4 x float> %r1151, <float -1.0, float -2.0, float -3.0, float 4.0>
+  %m1151 = bitcast <4 x i1> %c1151 to i4
+  %ok1151 = icmp eq i4 %m1151, -1
+  br i1 %ok1151, label %next1151, label %fail120
+next1151:
+  %r1152 = call <4 x float> @mixed_c16_sfloat_slt_4(<4 x i16> <i16 1, i16 1, i16 32767, i16 32767>, <4 x i16> <i16 -32768, i16 -1, i16 0, i16 1>, <4 x float> <float 1.0, float 2.0, float 3.0, float 4.0>, <4 x float> <float -1.0, float -2.0, float -3.0, float -4.0>)
+  %c1152 = fcmp oeq <4 x float> %r1152, <float -1.0, float -2.0, float -3.0, float -4.0>
+  %m1152 = bitcast <4 x i1> %c1152 to i4
+  %ok1152 = icmp eq i4 %m1152, -1
+  br i1 %ok1152, label %next1152, label %fail120
+next1152:
+  %r1153 = call <4 x float> @mixed_c16_sfloat_slt_4(<4 x i16> <i16 32767, i16 32767, i16 32767, i16 -32768>, <4 x i16> <i16 32767, i16 -32768, i16 -1, i16 0>, <4 x float> <float 1.0, float 2.0, float 3.0, float 4.0>, <4 x float> <float -1.0, float -2.0, float -3.0, float -4.0>)
+  %c1153 = fcmp oeq <4 x float> %r1153, <float -1.0, float -2.0, float -3.0, float 4.0>
+  %m1153 = bitcast <4 x i1> %c1153 to i4
+  %ok1153 = icmp eq i4 %m1153, -1
+  br i1 %ok1153, label %next1153, label %fail120
+next1153:
+  %r1154 = call <4 x float> @mixed_c16_sfloat_slt_4(<4 x i16> <i16 -32768, i16 -32768, i16 -32768, i16 -32768>, <4 x i16> <i16 1, i16 32767, i16 -32768, i16 -1>, <4 x float> <float 1.0, float 2.0, float 3.0, float 4.0>, <4 x float> <float -1.0, float -2.0, float -3.0, float -4.0>)
+  %c1154 = fcmp oeq <4 x float> %r1154, <float 1.0, float 2.0, float -3.0, float 4.0>
+  %m1154 = bitcast <4 x i1> %c1154 to i4
+  %ok1154 = icmp eq i4 %m1154, -1
+  br i1 %ok1154, label %next1154, label %fail120
+next1154:
+  %r1155 = call <4 x float> @mixed_c16_sfloat_slt_4(<4 x i16> <i16 -1, i16 -1, i16 -1, i16 -1>, <4 x i16> <i16 0, i16 1, i16 32767, i16 -32768>, <4 x float> <float 1.0, float 2.0, float 3.0, float 4.0>, <4 x float> <float -1.0, float -2.0, float -3.0, float -4.0>)
+  %c1155 = fcmp oeq <4 x float> %r1155, <float 1.0, float 2.0, float 3.0, float -4.0>
+  %m1155 = bitcast <4 x i1> %c1155 to i4
+  %ok1155 = icmp eq i4 %m1155, -1
+  br i1 %ok1155, label %next1155, label %fail120
+next1155:
+  %r1156 = call <4 x float> @mixed_c16_sfloat_slt_4(<4 x i16> <i16 -1, i16 -1, i16 -1, i16 -1>, <4 x i16> <i16 -1, i16 -1, i16 -1, i16 -1>, <4 x float> <float 1.0, float 2.0, float 3.0, float 4.0>, <4 x float> <float -1.0, float -2.0, float -3.0, float -4.0>)
+  %c1156 = fcmp oeq <4 x float> %r1156, <float -1.0, float -2.0, float -3.0, float -4.0>
+  %m1156 = bitcast <4 x i1> %c1156 to i4
+  %ok1156 = icmp eq i4 %m1156, -1
+  br i1 %ok1156, label %next1156, label %fail120
+next1156:
+  ; 121: ne on <4 x i16> selecting <4 x float>
+  %r1157 = call <4 x float> @mixed_c16_sfloat_ne_4(<4 x i16> <i16 0, i16 0, i16 0, i16 0>, <4 x i16> <i16 0, i16 1, i16 32767, i16 -32768>, <4 x float> <float 1.0, float 2.0, float 3.0, float 4.0>, <4 x float> <float -1.0, float -2.0, float -3.0, float -4.0>)
+  %c1157 = fcmp oeq <4 x float> %r1157, <float -1.0, float 2.0, float 3.0, float 4.0>
+  %m1157 = bitcast <4 x i1> %c1157 to i4
+  %ok1157 = icmp eq i4 %m1157, -1
+  br i1 %ok1157, label %next1157, label %fail121
+next1157:
+  %r1158 = call <4 x float> @mixed_c16_sfloat_ne_4(<4 x i16> <i16 0, i16 1, i16 1, i16 1>, <4 x i16> <i16 -1, i16 0, i16 1, i16 32767>, <4 x float> <float 1.0, float 2.0, float 3.0, float 4.0>, <4 x float> <float -1.0, float -2.0, float -3.0, float -4.0>)
+  %c1158 = fcmp oeq <4 x float> %r1158, <float 1.0, float 2.0, float -3.0, float 4.0>
+  %m1158 = bitcast <4 x i1> %c1158 to i4
+  %ok1158 = icmp eq i4 %m1158, -1
+  br i1 %ok1158, label %next1158, label %fail121
+next1158:
+  %r1159 = call <4 x float> @mixed_c16_sfloat_ne_4(<4 x i16> <i16 1, i16 1, i16 32767, i16 32767>, <4 x i16> <i16 -32768, i16 -1, i16 0, i16 1>, <4 x float> <float 1.0, float 2.0, float 3.0, float 4.0>, <4 x float> <float -1.0, float -2.0, float -3.0, float -4.0>)
+  %c1159 = fcmp oeq <4 x float> %r1159, <float 1.0, float 2.0, float 3.0, float 4.0>
+  %m1159 = bitcast <4 x i1> %c1159 to i4
+  %ok1159 = icmp eq i4 %m1159, -1
+  br i1 %ok1159, label %next1159, label %fail121
+next1159:
+  %r1160 = call <4 x float> @mixed_c16_sfloat_ne_4(<4 x i16> <i16 32767, i16 32767, i16 32767, i16 -32768>, <4 x i16> <i16 32767, i16 -32768, i16 -1, i16 0>, <4 x float> <float 1.0, float 2.0, float 3.0, float 4.0>, <4 x float> <float -1.0, float -2.0, float -3.0, float -4.0>)
+  %c1160 = fcmp oeq <4 x float> %r1160, <float -1.0, float 2.0, float 3.0, float 4.0>
+  %m1160 = bitcast <4 x i1> %c1160 to i4
+  %ok1160 = icmp eq i4 %m1160, -1
+  br i1 %ok1160, label %next1160, label %fail121
+next1160:
+  %r1161 = call <4 x float> @mixed_c16_sfloat_ne_4(<4 x i16> <i16 -32768, i16 -32768, i16 -32768, i16 -32768>, <4 x i16> <i16 1, i16 32767, i16 -32768, i16 -1>, <4 x float> <float 1.0, float 2.0, float 3.0, float 4.0>, <4 x float> <float -1.0, float -2.0, float -3.0, float -4.0>)
+  %c1161 = fcmp oeq <4 x float> %r1161, <float 1.0, float 2.0, float -3.0, float 4.0>
+  %m1161 = bitcast <4 x i1> %c1161 to i4
+  %ok1161 = icmp eq i4 %m1161, -1
+  br i1 %ok1161, label %next1161, label %fail121
+next1161:
+  %r1162 = call <4 x float> @mixed_c16_sfloat_ne_4(<4 x i16> <i16 -1, i16 -1, i16 -1, i16 -1>, <4 x i16> <i16 0, i16 1, i16 32767, i16 -32768>, <4 x float> <float 1.0, float 2.0, float 3.0, float 4.0>, <4 x float> <float -1.0, float -2.0, float -3.0, float -4.0>)
+  %c1162 = fcmp oeq <4 x float> %r1162, <float 1.0, float 2.0, float 3.0, float 4.0>
+  %m1162 = bitcast <4 x i1> %c1162 to i4
+  %ok1162 = icmp eq i4 %m1162, -1
+  br i1 %ok1162, label %next1162, label %fail121
+next1162:
+  %r1163 = call <4 x float> @mixed_c16_sfloat_ne_4(<4 x i16> <i16 -1, i16 -1, i16 -1, i16 -1>, <4 x i16> <i16 -1, i16 -1, i16 -1, i16 -1>, <4 x float> <float 1.0, float 2.0, float 3.0, float 4.0>, <4 x float> <float -1.0, float -2.0, float -3.0, float -4.0>)
+  %c1163 = fcmp oeq <4 x float> %r1163, <float -1.0, float -2.0, float -3.0, float -4.0>
+  %m1163 = bitcast <4 x i1> %c1163 to i4
+  %ok1163 = icmp eq i4 %m1163, -1
+  br i1 %ok1163, label %next1163, label %fail121
+next1163:
+  ; 122: ult on <4 x i32> selecting <4 x double>
+  %r1164 = call <4 x double> @mixed_c32_sdouble_ult_4(<4 x i32> <i32 0, i32 0, i32 0, i32 0>, <4 x i32> <i32 0, i32 1, i32 2147483647, i32 -2147483648>, <4 x double> <double 1.0, double 2.0, double 3.0, double 4.0>, <4 x double> <double -1.0, double -2.0, double -3.0, double -4.0>)
+  %c1164 = fcmp oeq <4 x double> %r1164, <double -1.0, double 2.0, double 3.0, double 4.0>
+  %m1164 = bitcast <4 x i1> %c1164 to i4
+  %ok1164 = icmp eq i4 %m1164, -1
+  br i1 %ok1164, label %next1164, label %fail122
+next1164:
+  %r1165 = call <4 x double> @mixed_c32_sdouble_ult_4(<4 x i32> <i32 0, i32 1, i32 1, i32 1>, <4 x i32> <i32 -1, i32 0, i32 1, i32 2147483647>, <4 x double> <double 1.0, double 2.0, double 3.0, double 4.0>, <4 x double> <double -1.0, double -2.0, double -3.0, double -4.0>)
+  %c1165 = fcmp oeq <4 x double> %r1165, <double 1.0, double -2.0, double -3.0, double 4.0>
+  %m1165 = bitcast <4 x i1> %c1165 to i4
+  %ok1165 = icmp eq i4 %m1165, -1
+  br i1 %ok1165, label %next1165, label %fail122
+next1165:
+  %r1166 = call <4 x double> @mixed_c32_sdouble_ult_4(<4 x i32> <i32 1, i32 1, i32 2147483647, i32 2147483647>, <4 x i32> <i32 -2147483648, i32 -1, i32 0, i32 1>, <4 x double> <double 1.0, double 2.0, double 3.0, double 4.0>, <4 x double> <double -1.0, double -2.0, double -3.0, double -4.0>)
+  %c1166 = fcmp oeq <4 x double> %r1166, <double 1.0, double 2.0, double -3.0, double -4.0>
+  %m1166 = bitcast <4 x i1> %c1166 to i4
+  %ok1166 = icmp eq i4 %m1166, -1
+  br i1 %ok1166, label %next1166, label %fail122
+next1166:
+  %r1167 = call <4 x double> @mixed_c32_sdouble_ult_4(<4 x i32> <i32 2147483647, i32 2147483647, i32 2147483647, i32 -2147483648>, <4 x i32> <i32 2147483647, i32 -2147483648, i32 -1, i32 0>, <4 x double> <double 1.0, double 2.0, double 3.0, double 4.0>, <4 x double> <double -1.0, double -2.0, double -3.0, double -4.0>)
+  %c1167 = fcmp oeq <4 x double> %r1167, <double -1.0, double 2.0, double 3.0, double -4.0>
+  %m1167 = bitcast <4 x i1> %c1167 to i4
+  %ok1167 = icmp eq i4 %m1167, -1
+  br i1 %ok1167, label %next1167, label %fail122
+next1167:
+  %r1168 = call <4 x double> @mixed_c32_sdouble_ult_4(<4 x i32> <i32 -2147483648, i32 -2147483648, i32 -2147483648, i32 -2147483648>, <4 x i32> <i32 1, i32 2147483647, i32 -2147483648, i32 -1>, <4 x double> <double 1.0, double 2.0, double 3.0, double 4.0>, <4 x double> <double -1.0, double -2.0, double -3.0, double -4.0>)
+  %c1168 = fcmp oeq <4 x double> %r1168, <double -1.0, double -2.0, double -3.0, double 4.0>
+  %m1168 = bitcast <4 x i1> %c1168 to i4
+  %ok1168 = icmp eq i4 %m1168, -1
+  br i1 %ok1168, label %next1168, label %fail122
+next1168:
+  %r1169 = call <4 x double> @mixed_c32_sdouble_ult_4(<4 x i32> <i32 -1, i32 -1, i32 -1, i32 -1>, <4 x i32> <i32 0, i32 1, i32 2147483647, i32 -2147483648>, <4 x double> <double 1.0, double 2.0, double 3.0, double 4.0>, <4 x double> <double -1.0, double -2.0, double -3.0, double -4.0>)
+  %c1169 = fcmp oeq <4 x double> %r1169, <double -1.0, double -2.0, double -3.0, double -4.0>
+  %m1169 = bitcast <4 x i1> %c1169 to i4
+  %ok1169 = icmp eq i4 %m1169, -1
+  br i1 %ok1169, label %next1169, label %fail122
+next1169:
+  %r1170 = call <4 x double> @mixed_c32_sdouble_ult_4(<4 x i32> <i32 -1, i32 -1, i32 -1, i32 -1>, <4 x i32> <i32 -1, i32 -1, i32 -1, i32 -1>, <4 x double> <double 1.0, double 2.0, double 3.0, double 4.0>, <4 x double> <double -1.0, double -2.0, double -3.0, double -4.0>)
+  %c1170 = fcmp oeq <4 x double> %r1170, <double -1.0, double -2.0, double -3.0, double -4.0>
+  %m1170 = bitcast <4 x i1> %c1170 to i4
+  %ok1170 = icmp eq i4 %m1170, -1
+  br i1 %ok1170, label %next1170, label %fail122
+next1170:
+  ; 123: slt on <4 x i32> selecting <4 x double>
+  %r1171 = call <4 x double> @mixed_c32_sdouble_slt_4(<4 x i32> <i32 0, i32 0, i32 0, i32 0>, <4 x i32> <i32 0, i32 1, i32 2147483647, i32 -2147483648>, <4 x double> <double 1.0, double 2.0, double 3.0, double 4.0>, <4 x double> <double -1.0, double -2.0, double -3.0, double -4.0>)
+  %c1171 = fcmp oeq <4 x double> %r1171, <double -1.0, double 2.0, double 3.0, double -4.0>
+  %m1171 = bitcast <4 x i1> %c1171 to i4
+  %ok1171 = icmp eq i4 %m1171, -1
+  br i1 %ok1171, label %next1171, label %fail123
+next1171:
+  %r1172 = call <4 x double> @mixed_c32_sdouble_slt_4(<4 x i32> <i32 0, i32 1, i32 1, i32 1>, <4 x i32> <i32 -1, i32 0, i32 1, i32 2147483647>, <4 x double> <double 1.0, double 2.0, double 3.0, double 4.0>, <4 x double> <double -1.0, double -2.0, double -3.0, double -4.0>)
+  %c1172 = fcmp oeq <4 x double> %r1172, <double -1.0, double -2.0, double -3.0, double 4.0>
+  %m1172 = bitcast <4 x i1> %c1172 to i4
+  %ok1172 = icmp eq i4 %m1172, -1
+  br i1 %ok1172, label %next1172, label %fail123
+next1172:
+  %r1173 = call <4 x double> @mixed_c32_sdouble_slt_4(<4 x i32> <i32 1, i32 1, i32 2147483647, i32 2147483647>, <4 x i32> <i32 -2147483648, i32 -1, i32 0, i32 1>, <4 x double> <double 1.0, double 2.0, double 3.0, double 4.0>, <4 x double> <double -1.0, double -2.0, double -3.0, double -4.0>)
+  %c1173 = fcmp oeq <4 x double> %r1173, <double -1.0, double -2.0, double -3.0, double -4.0>
+  %m1173 = bitcast <4 x i1> %c1173 to i4
+  %ok1173 = icmp eq i4 %m1173, -1
+  br i1 %ok1173, label %next1173, label %fail123
+next1173:
+  %r1174 = call <4 x double> @mixed_c32_sdouble_slt_4(<4 x i32> <i32 2147483647, i32 2147483647, i32 2147483647, i32 -2147483648>, <4 x i32> <i32 2147483647, i32 -2147483648, i32 -1, i32 0>, <4 x double> <double 1.0, double 2.0, double 3.0, double 4.0>, <4 x double> <double -1.0, double -2.0, double -3.0, double -4.0>)
+  %c1174 = fcmp oeq <4 x double> %r1174, <double -1.0, double -2.0, double -3.0, double 4.0>
+  %m1174 = bitcast <4 x i1> %c1174 to i4
+  %ok1174 = icmp eq i4 %m1174, -1
+  br i1 %ok1174, label %next1174, label %fail123
+next1174:
+  %r1175 = call <4 x double> @mixed_c32_sdouble_slt_4(<4 x i32> <i32 -2147483648, i32 -2147483648, i32 -2147483648, i32 -2147483648>, <4 x i32> <i32 1, i32 2147483647, i32 -2147483648, i32 -1>, <4 x double> <double 1.0, double 2.0, double 3.0, double 4.0>, <4 x double> <double -1.0, double -2.0, double -3.0, double -4.0>)
+  %c1175 = fcmp oeq <4 x double> %r1175, <double 1.0, double 2.0, double -3.0, double 4.0>
+  %m1175 = bitcast <4 x i1> %c1175 to i4
+  %ok1175 = icmp eq i4 %m1175, -1
+  br i1 %ok1175, label %next1175, label %fail123
+next1175:
+  %r1176 = call <4 x double> @mixed_c32_sdouble_slt_4(<4 x i32> <i32 -1, i32 -1, i32 -1, i32 -1>, <4 x i32> <i32 0, i32 1, i32 2147483647, i32 -2147483648>, <4 x double> <double 1.0, double 2.0, double 3.0, double 4.0>, <4 x double> <double -1.0, double -2.0, double -3.0, double -4.0>)
+  %c1176 = fcmp oeq <4 x double> %r1176, <double 1.0, double 2.0, double 3.0, double -4.0>
+  %m1176 = bitcast <4 x i1> %c1176 to i4
+  %ok1176 = icmp eq i4 %m1176, -1
+  br i1 %ok1176, label %next1176, label %fail123
+next1176:
+  %r1177 = call <4 x double> @mixed_c32_sdouble_slt_4(<4 x i32> <i32 -1, i32 -1, i32 -1, i32 -1>, <4 x i32> <i32 -1, i32 -1, i32 -1, i32 -1>, <4 x double> <double 1.0, double 2.0, double 3.0, double 4.0>, <4 x double> <double -1.0, double -2.0, double -3.0, double -4.0>)
+  %c1177 = fcmp oeq <4 x double> %r1177, <double -1.0, double -2.0, double -3.0, double -4.0>
+  %m1177 = bitcast <4 x i1> %c1177 to i4
+  %ok1177 = icmp eq i4 %m1177, -1
+  br i1 %ok1177, label %next1177, label %fail123
+next1177:
+  ; 124: ne on <4 x i32> selecting <4 x double>
+  %r1178 = call <4 x double> @mixed_c32_sdouble_ne_4(<4 x i32> <i32 0, i32 0, i32 0, i32 0>, <4 x i32> <i32 0, i32 1, i32 2147483647, i32 -2147483648>, <4 x double> <double 1.0, double 2.0, double 3.0, double 4.0>, <4 x double> <double -1.0, double -2.0, double -3.0, double -4.0>)
+  %c1178 = fcmp oeq <4 x double> %r1178, <double -1.0, double 2.0, double 3.0, double 4.0>
+  %m1178 = bitcast <4 x i1> %c1178 to i4
+  %ok1178 = icmp eq i4 %m1178, -1
+  br i1 %ok1178, label %next1178, label %fail124
+next1178:
+  %r1179 = call <4 x double> @mixed_c32_sdouble_ne_4(<4 x i32> <i32 0, i32 1, i32 1, i32 1>, <4 x i32> <i32 -1, i32 0, i32 1, i32 2147483647>, <4 x double> <double 1.0, double 2.0, double 3.0, double 4.0>, <4 x double> <double -1.0, double -2.0, double -3.0, double -4.0>)
+  %c1179 = fcmp oeq <4 x double> %r1179, <double 1.0, double 2.0, double -3.0, double 4.0>
+  %m1179 = bitcast <4 x i1> %c1179 to i4
+  %ok1179 = icmp eq i4 %m1179, -1
+  br i1 %ok1179, label %next1179, label %fail124
+next1179:
+  %r1180 = call <4 x double> @mixed_c32_sdouble_ne_4(<4 x i32> <i32 1, i32 1, i32 2147483647, i32 2147483647>, <4 x i32> <i32 -2147483648, i32 -1, i32 0, i32 1>, <4 x double> <double 1.0, double 2.0, double 3.0, double 4.0>, <4 x double> <double -1.0, double -2.0, double -3.0, double -4.0>)
+  %c1180 = fcmp oeq <4 x double> %r1180, <double 1.0, double 2.0, double 3.0, double 4.0>
+  %m1180 = bitcast <4 x i1> %c1180 to i4
+  %ok1180 = icmp eq i4 %m1180, -1
+  br i1 %ok1180, label %next1180, label %fail124
+next1180:
+  %r1181 = call <4 x double> @mixed_c32_sdouble_ne_4(<4 x i32> <i32 2147483647, i32 2147483647, i32 2147483647, i32 -2147483648>, <4 x i32> <i32 2147483647, i32 -2147483648, i32 -1, i32 0>, <4 x double> <double 1.0, double 2.0, double 3.0, double 4.0>, <4 x double> <double -1.0, double -2.0, double -3.0, double -4.0>)
+  %c1181 = fcmp oeq <4 x double> %r1181, <double -1.0, double 2.0, double 3.0, double 4.0>
+  %m1181 = bitcast <4 x i1> %c1181 to i4
+  %ok1181 = icmp eq i4 %m1181, -1
+  br i1 %ok1181, label %next1181, label %fail124
+next1181:
+  %r1182 = call <4 x double> @mixed_c32_sdouble_ne_4(<4 x i32> <i32 -2147483648, i32 -2147483648, i32 -2147483648, i32 -2147483648>, <4 x i32> <i32 1, i32 2147483647, i32 -2147483648, i32 -1>, <4 x double> <double 1.0, double 2.0, double 3.0, double 4.0>, <4 x double> <double -1.0, double -2.0, double -3.0, double -4.0>)
+  %c1182 = fcmp oeq <4 x double> %r1182, <double 1.0, double 2.0, double -3.0, double 4.0>
+  %m1182 = bitcast <4 x i1> %c1182 to i4
+  %ok1182 = icmp eq i4 %m1182, -1
+  br i1 %ok1182, label %next1182, label %fail124
+next1182:
+  %r1183 = call <4 x double> @mixed_c32_sdouble_ne_4(<4 x i32> <i32 -1, i32 -1, i32 -1, i32 -1>, <4 x i32> <i32 0, i32 1, i32 2147483647, i32 -2147483648>, <4 x double> <double 1.0, double 2.0, double 3.0, double 4.0>, <4 x double> <double -1.0, double -2.0, double -3.0, double -4.0>)
+  %c1183 = fcmp oeq <4 x double> %r1183, <double 1.0, double 2.0, double 3.0, double 4.0>
+  %m1183 = bitcast <4 x i1> %c1183 to i4
+  %ok1183 = icmp eq i4 %m1183, -1
+  br i1 %ok1183, label %next1183, label %fail124
+next1183:
+  %r1184 = call <4 x double> @mixed_c32_sdouble_ne_4(<4 x i32> <i32 -1, i32 -1, i32 -1, i32 -1>, <4 x i32> <i32 -1, i32 -1, i32 -1, i32 -1>, <4 x double> <double 1.0, double 2.0, double 3.0, double 4.0>, <4 x double> <double -1.0, double -2.0, double -3.0, double -4.0>)
+  %c1184 = fcmp oeq <4 x double> %r1184, <double -1.0, double -2.0, double -3.0, double -4.0>
+  %m1184 = bitcast <4 x i1> %c1184 to i4
+  %ok1184 = icmp eq i4 %m1184, -1
+  br i1 %ok1184, label %next1184, label %fail124
+next1184:
+  ; 125: ult on <4 x i64> selecting <4 x double>
+  %r1185 = call <4 x double> @mixed_c64_sdouble_ult_4(<4 x i64> <i64 0, i64 0, i64 0, i64 0>, <4 x i64> <i64 0, i64 1, i64 9223372036854775807, i64 -9223372036854775808>, <4 x double> <double 1.0, double 2.0, double 3.0, double 4.0>, <4 x double> <double -1.0, double -2.0, double -3.0, double -4.0>)
+  %c1185 = fcmp oeq <4 x double> %r1185, <double -1.0, double 2.0, double 3.0, double 4.0>
+  %m1185 = bitcast <4 x i1> %c1185 to i4
+  %ok1185 = icmp eq i4 %m1185, -1
+  br i1 %ok1185, label %next1185, label %fail125
+next1185:
+  %r1186 = call <4 x double> @mixed_c64_sdouble_ult_4(<4 x i64> <i64 0, i64 1, i64 1, i64 1>, <4 x i64> <i64 -1, i64 0, i64 1, i64 9223372036854775807>, <4 x double> <double 1.0, double 2.0, double 3.0, double 4.0>, <4 x double> <double -1.0, double -2.0, double -3.0, double -4.0>)
+  %c1186 = fcmp oeq <4 x double> %r1186, <double 1.0, double -2.0, double -3.0, double 4.0>
+  %m1186 = bitcast <4 x i1> %c1186 to i4
+  %ok1186 = icmp eq i4 %m1186, -1
+  br i1 %ok1186, label %next1186, label %fail125
+next1186:
+  %r1187 = call <4 x double> @mixed_c64_sdouble_ult_4(<4 x i64> <i64 1, i64 1, i64 9223372036854775807, i64 9223372036854775807>, <4 x i64> <i64 -9223372036854775808, i64 -1, i64 0, i64 1>, <4 x double> <double 1.0, double 2.0, double 3.0, double 4.0>, <4 x double> <double -1.0, double -2.0, double -3.0, double -4.0>)
+  %c1187 = fcmp oeq <4 x double> %r1187, <double 1.0, double 2.0, double -3.0, double -4.0>
+  %m1187 = bitcast <4 x i1> %c1187 to i4
+  %ok1187 = icmp eq i4 %m1187, -1
+  br i1 %ok1187, label %next1187, label %fail125
+next1187:
+  %r1188 = call <4 x double> @mixed_c64_sdouble_ult_4(<4 x i64> <i64 9223372036854775807, i64 9223372036854775807, i64 9223372036854775807, i64 -9223372036854775808>, <4 x i64> <i64 9223372036854775807, i64 -9223372036854775808, i64 -1, i64 0>, <4 x double> <double 1.0, double 2.0, double 3.0, double 4.0>, <4 x double> <double -1.0, double -2.0, double -3.0, double -4.0>)
+  %c1188 = fcmp oeq <4 x double> %r1188, <double -1.0, double 2.0, double 3.0, double -4.0>
+  %m1188 = bitcast <4 x i1> %c1188 to i4
+  %ok1188 = icmp eq i4 %m1188, -1
+  br i1 %ok1188, label %next1188, label %fail125
+next1188:
+  %r1189 = call <4 x double> @mixed_c64_sdouble_ult_4(<4 x i64> <i64 -9223372036854775808, i64 -9223372036854775808, i64 -9223372036854775808, i64 -9223372036854775808>, <4 x i64> <i64 1, i64 9223372036854775807, i64 -9223372036854775808, i64 -1>, <4 x double> <double 1.0, double 2.0, double 3.0, double 4.0>, <4 x double> <double -1.0, double -2.0, double -3.0, double -4.0>)
+  %c1189 = fcmp oeq <4 x double> %r1189, <double -1.0, double -2.0, double -3.0, double 4.0>
+  %m1189 = bitcast <4 x i1> %c1189 to i4
+  %ok1189 = icmp eq i4 %m1189, -1
+  br i1 %ok1189, label %next1189, label %fail125
+next1189:
+  %r1190 = call <4 x double> @mixed_c64_sdouble_ult_4(<4 x i64> <i64 -1, i64 -1, i64 -1, i64 -1>, <4 x i64> <i64 0, i64 1, i64 9223372036854775807, i64 -9223372036854775808>, <4 x double> <double 1.0, double 2.0, double 3.0, double 4.0>, <4 x double> <double -1.0, double -2.0, double -3.0, double -4.0>)
+  %c1190 = fcmp oeq <4 x double> %r1190, <double -1.0, double -2.0, double -3.0, double -4.0>
+  %m1190 = bitcast <4 x i1> %c1190 to i4
+  %ok1190 = icmp eq i4 %m1190, -1
+  br i1 %ok1190, label %next1190, label %fail125
+next1190:
+  %r1191 = call <4 x double> @mixed_c64_sdouble_ult_4(<4 x i64> <i64 -1, i64 -1, i64 -1, i64 -1>, <4 x i64> <i64 -1, i64 -1, i64 -1, i64 -1>, <4 x double> <double 1.0, double 2.0, double 3.0, double 4.0>, <4 x double> <double -1.0, double -2.0, double -3.0, double -4.0>)
+  %c1191 = fcmp oeq <4 x double> %r1191, <double -1.0, double -2.0, double -3.0, double -4.0>
+  %m1191 = bitcast <4 x i1> %c1191 to i4
+  %ok1191 = icmp eq i4 %m1191, -1
+  br i1 %ok1191, label %next1191, label %fail125
+next1191:
+  ; 126: slt on <4 x i64> selecting <4 x double>
+  %r1192 = call <4 x double> @mixed_c64_sdouble_slt_4(<4 x i64> <i64 0, i64 0, i64 0, i64 0>, <4 x i64> <i64 0, i64 1, i64 9223372036854775807, i64 -9223372036854775808>, <4 x double> <double 1.0, double 2.0, double 3.0, double 4.0>, <4 x double> <double -1.0, double -2.0, double -3.0, double -4.0>)
+  %c1192 = fcmp oeq <4 x double> %r1192, <double -1.0, double 2.0, double 3.0, double -4.0>
+  %m1192 = bitcast <4 x i1> %c1192 to i4
+  %ok1192 = icmp eq i4 %m1192, -1
+  br i1 %ok1192, label %next1192, label %fail126
+next1192:
+  %r1193 = call <4 x double> @mixed_c64_sdouble_slt_4(<4 x i64> <i64 0, i64 1, i64 1, i64 1>, <4 x i64> <i64 -1, i64 0, i64 1, i64 9223372036854775807>, <4 x double> <double 1.0, double 2.0, double 3.0, double 4.0>, <4 x double> <double -1.0, double -2.0, double -3.0, double -4.0>)
+  %c1193 = fcmp oeq <4 x double> %r1193, <double -1.0, double -2.0, double -3.0, double 4.0>
+  %m1193 = bitcast <4 x i1> %c1193 to i4
+  %ok1193 = icmp eq i4 %m1193, -1
+  br i1 %ok1193, label %next1193, label %fail126
+next1193:
+  %r1194 = call <4 x double> @mixed_c64_sdouble_slt_4(<4 x i64> <i64 1, i64 1, i64 9223372036854775807, i64 9223372036854775807>, <4 x i64> <i64 -9223372036854775808, i64 -1, i64 0, i64 1>, <4 x double> <double 1.0, double 2.0, double 3.0, double 4.0>, <4 x double> <double -1.0, double -2.0, double -3.0, double -4.0>)
+  %c1194 = fcmp oeq <4 x double> %r1194, <double -1.0, double -2.0, double -3.0, double -4.0>
+  %m1194 = bitcast <4 x i1> %c1194 to i4
+  %ok1194 = icmp eq i4 %m1194, -1
+  br i1 %ok1194, label %next1194, label %fail126
+next1194:
+  %r1195 = call <4 x double> @mixed_c64_sdouble_slt_4(<4 x i64> <i64 9223372036854775807, i64 9223372036854775807, i64 9223372036854775807, i64 -9223372036854775808>, <4 x i64> <i64 9223372036854775807, i64 -9223372036854775808, i64 -1, i64 0>, <4 x double> <double 1.0, double 2.0, double 3.0, double 4.0>, <4 x double> <double -1.0, double -2.0, double -3.0, double -4.0>)
+  %c1195 = fcmp oeq <4 x double> %r1195, <double -1.0, double -2.0, double -3.0, double 4.0>
+  %m1195 = bitcast <4 x i1> %c1195 to i4
+  %ok1195 = icmp eq i4 %m1195, -1
+  br i1 %ok1195, label %next1195, label %fail126
+next1195:
+  %r1196 = call <4 x double> @mixed_c64_sdouble_slt_4(<4 x i64> <i64 -9223372036854775808, i64 -9223372036854775808, i64 -9223372036854775808, i64 -9223372036854775808>, <4 x i64> <i64 1, i64 9223372036854775807, i64 -9223372036854775808, i64 -1>, <4 x double> <double 1.0, double 2.0, double 3.0, double 4.0>, <4 x double> <double -1.0, double -2.0, double -3.0, double -4.0>)
+  %c1196 = fcmp oeq <4 x double> %r1196, <double 1.0, double 2.0, double -3.0, double 4.0>
+  %m1196 = bitcast <4 x i1> %c1196 to i4
+  %ok1196 = icmp eq i4 %m1196, -1
+  br i1 %ok1196, label %next1196, label %fail126
+next1196:
+  %r1197 = call <4 x double> @mixed_c64_sdouble_slt_4(<4 x i64> <i64 -1, i64 -1, i64 -1, i64 -1>, <4 x i64> <i64 0, i64 1, i64 9223372036854775807, i64 -9223372036854775808>, <4 x double> <double 1.0, double 2.0, double 3.0, double 4.0>, <4 x double> <double -1.0, double -2.0, double -3.0, double -4.0>)
+  %c1197 = fcmp oeq <4 x double> %r1197, <double 1.0, double 2.0, double 3.0, double -4.0>
+  %m1197 = bitcast <4 x i1> %c1197 to i4
+  %ok1197 = icmp eq i4 %m1197, -1
+  br i1 %ok1197, label %next1197, label %fail126
+next1197:
+  %r1198 = call <4 x double> @mixed_c64_sdouble_slt_4(<4 x i64> <i64 -1, i64 -1, i64 -1, i64 -1>, <4 x i64> <i64 -1, i64 -1, i64 -1, i64 -1>, <4 x double> <double 1.0, double 2.0, double 3.0, double 4.0>, <4 x double> <double -1.0, double -2.0, double -3.0, double -4.0>)
+  %c1198 = fcmp oeq <4 x double> %r1198, <double -1.0, double -2.0, double -3.0, double -4.0>
+  %m1198 = bitcast <4 x i1> %c1198 to i4
+  %ok1198 = icmp eq i4 %m1198, -1
+  br i1 %ok1198, label %next1198, label %fail126
+next1198:
+  ; 127: ne on <4 x i64> selecting <4 x double>
+  %r1199 = call <4 x double> @mixed_c64_sdouble_ne_4(<4 x i64> <i64 0, i64 0, i64 0, i64 0>, <4 x i64> <i64 0, i64 1, i64 9223372036854775807, i64 -9223372036854775808>, <4 x double> <double 1.0, double 2.0, double 3.0, double 4.0>, <4 x double> <double -1.0, double -2.0, double -3.0, double -4.0>)
+  %c1199 = fcmp oeq <4 x double> %r1199, <double -1.0, double 2.0, double 3.0, double 4.0>
+  %m1199 = bitcast <4 x i1> %c1199 to i4
+  %ok1199 = icmp eq i4 %m1199, -1
+  br i1 %ok1199, label %next1199, label %fail127
+next1199:
+  %r1200 = call <4 x double> @mixed_c64_sdouble_ne_4(<4 x i64> <i64 0, i64 1, i64 1, i64 1>, <4 x i64> <i64 -1, i64 0, i64 1, i64 9223372036854775807>, <4 x double> <double 1.0, double 2.0, double 3.0, double 4.0>, <4 x double> <double -1.0, double -2.0, double -3.0, double -4.0>)
+  %c1200 = fcmp oeq <4 x double> %r1200, <double 1.0, double 2.0, double -3.0, double 4.0>
+  %m1200 = bitcast <4 x i1> %c1200 to i4
+  %ok1200 = icmp eq i4 %m1200, -1
+  br i1 %ok1200, label %next1200, label %fail127
+next1200:
+  %r1201 = call <4 x double> @mixed_c64_sdouble_ne_4(<4 x i64> <i64 1, i64 1, i64 9223372036854775807, i64 9223372036854775807>, <4 x i64> <i64 -9223372036854775808, i64 -1, i64 0, i64 1>, <4 x double> <double 1.0, double 2.0, double 3.0, double 4.0>, <4 x double> <double -1.0, double -2.0, double -3.0, double -4.0>)
+  %c1201 = fcmp oeq <4 x double> %r1201, <double 1.0, double 2.0, double 3.0, double 4.0>
+  %m1201 = bitcast <4 x i1> %c1201 to i4
+  %ok1201 = icmp eq i4 %m1201, -1
+  br i1 %ok1201, label %next1201, label %fail127
+next1201:
+  %r1202 = call <4 x double> @mixed_c64_sdouble_ne_4(<4 x i64> <i64 9223372036854775807, i64 9223372036854775807, i64 9223372036854775807, i64 -9223372036854775808>, <4 x i64> <i64 9223372036854775807, i64 -9223372036854775808, i64 -1, i64 0>, <4 x double> <double 1.0, double 2.0, double 3.0, double 4.0>, <4 x double> <double -1.0, double -2.0, double -3.0, double -4.0>)
+  %c1202 = fcmp oeq <4 x double> %r1202, <double -1.0, double 2.0, double 3.0, double 4.0>
+  %m1202 = bitcast <4 x i1> %c1202 to i4
+  %ok1202 = icmp eq i4 %m1202, -1
+  br i1 %ok1202, label %next1202, label %fail127
+next1202:
+  %r1203 = call <4 x double> @mixed_c64_sdouble_ne_4(<4 x i64> <i64 -9223372036854775808, i64 -9223372036854775808, i64 -9223372036854775808, i64 -9223372036854775808>, <4 x i64> <i64 1, i64 9223372036854775807, i64 -9223372036854775808, i64 -1>, <4 x double> <double 1.0, double 2.0, double 3.0, double 4.0>, <4 x double> <double -1.0, double -2.0, double -3.0, double -4.0>)
+  %c1203 = fcmp oeq <4 x double> %r1203, <double 1.0, double 2.0, double -3.0, double 4.0>
+  %m1203 = bitcast <4 x i1> %c1203 to i4
+  %ok1203 = icmp eq i4 %m1203, -1
+  br i1 %ok1203, label %next1203, label %fail127
+next1203:
+  %r1204 = call <4 x double> @mixed_c64_sdouble_ne_4(<4 x i64> <i64 -1, i64 -1, i64 -1, i64 -1>, <4 x i64> <i64 0, i64 1, i64 9223372036854775807, i64 -9223372036854775808>, <4 x double> <double 1.0, double 2.0, double 3.0, double 4.0>, <4 x double> <double -1.0, double -2.0, double -3.0, double -4.0>)
+  %c1204 = fcmp oeq <4 x double> %r1204, <double 1.0, double 2.0, double 3.0, double 4.0>
+  %m1204 = bitcast <4 x i1> %c1204 to i4
+  %ok1204 = icmp eq i4 %m1204, -1
+  br i1 %ok1204, label %next1204, label %fail127
+next1204:
+  %r1205 = call <4 x double> @mixed_c64_sdouble_ne_4(<4 x i64> <i64 -1, i64 -1, i64 -1, i64 -1>, <4 x i64> <i64 -1, i64 -1, i64 -1, i64 -1>, <4 x double> <double 1.0, double 2.0, double 3.0, double 4.0>, <4 x double> <double -1.0, double -2.0, double -3.0, double -4.0>)
+  %c1205 = fcmp oeq <4 x double> %r1205, <double -1.0, double -2.0, double -3.0, double -4.0>
+  %m1205 = bitcast <4 x i1> %c1205 to i4
+  %ok1205 = icmp eq i4 %m1205, -1
+  br i1 %ok1205, label %next1205, label %fail127
+next1205:
+  ; 128: eq on <4 x i8> selecting <4 x i32>
+  %r1206 = call <4 x i32> @mixed_c8_si32_eq_4(<4 x i8> <i8 0, i8 0, i8 0, i8 0>, <4 x i8> <i8 0, i8 1, i8 127, i8 -128>, <4 x i32> <i32 1, i32 2, i32 3, i32 4>, <4 x i32> <i32 -1, i32 -2, i32 -3, i32 -4>)
+  %c1206 = icmp eq <4 x i32> %r1206, <i32 1, i32 -2, i32 -3, i32 -4>
+  %m1206 = bitcast <4 x i1> %c1206 to i4
+  %ok1206 = icmp eq i4 %m1206, -1
+  br i1 %ok1206, label %next1206, label %fail128
+next1206:
+  %r1207 = call <4 x i32> @mixed_c8_si32_eq_4(<4 x i8> <i8 0, i8 1, i8 1, i8 1>, <4 x i8> <i8 -1, i8 0, i8 1, i8 127>, <4 x i32> <i32 1, i32 2, i32 3, i32 4>, <4 x i32> <i32 -1, i32 -2, i32 -3, i32 -4>)
+  %c1207 = icmp eq <4 x i32> %r1207, <i32 -1, i32 -2, i32 3, i32 -4>
+  %m1207 = bitcast <4 x i1> %c1207 to i4
+  %ok1207 = icmp eq i4 %m1207, -1
+  br i1 %ok1207, label %next1207, label %fail128
+next1207:
+  %r1208 = call <4 x i32> @mixed_c8_si32_eq_4(<4 x i8> <i8 1, i8 1, i8 127, i8 127>, <4 x i8> <i8 -128, i8 -1, i8 0, i8 1>, <4 x i32> <i32 1, i32 2, i32 3, i32 4>, <4 x i32> <i32 -1, i32 -2, i32 -3, i32 -4>)
+  %c1208 = icmp eq <4 x i32> %r1208, <i32 -1, i32 -2, i32 -3, i32 -4>
+  %m1208 = bitcast <4 x i1> %c1208 to i4
+  %ok1208 = icmp eq i4 %m1208, -1
+  br i1 %ok1208, label %next1208, label %fail128
+next1208:
+  %r1209 = call <4 x i32> @mixed_c8_si32_eq_4(<4 x i8> <i8 127, i8 127, i8 127, i8 -128>, <4 x i8> <i8 127, i8 -128, i8 -1, i8 0>, <4 x i32> <i32 1, i32 2, i32 3, i32 4>, <4 x i32> <i32 -1, i32 -2, i32 -3, i32 -4>)
+  %c1209 = icmp eq <4 x i32> %r1209, <i32 1, i32 -2, i32 -3, i32 -4>
+  %m1209 = bitcast <4 x i1> %c1209 to i4
+  %ok1209 = icmp eq i4 %m1209, -1
+  br i1 %ok1209, label %next1209, label %fail128
+next1209:
+  %r1210 = call <4 x i32> @mixed_c8_si32_eq_4(<4 x i8> <i8 -128, i8 -128, i8 -128, i8 -128>, <4 x i8> <i8 1, i8 127, i8 -128, i8 -1>, <4 x i32> <i32 1, i32 2, i32 3, i32 4>, <4 x i32> <i32 -1, i32 -2, i32 -3, i32 -4>)
+  %c1210 = icmp eq <4 x i32> %r1210, <i32 -1, i32 -2, i32 3, i32 -4>
+  %m1210 = bitcast <4 x i1> %c1210 to i4
+  %ok1210 = icmp eq i4 %m1210, -1
+  br i1 %ok1210, label %next1210, label %fail128
+next1210:
+  %r1211 = call <4 x i32> @mixed_c8_si32_eq_4(<4 x i8> <i8 -1, i8 -1, i8 -1, i8 -1>, <4 x i8> <i8 0, i8 1, i8 127, i8 -128>, <4 x i32> <i32 1, i32 2, i32 3, i32 4>, <4 x i32> <i32 -1, i32 -2, i32 -3, i32 -4>)
+  %c1211 = icmp eq <4 x i32> %r1211, <i32 -1, i32 -2, i32 -3, i32 -4>
+  %m1211 = bitcast <4 x i1> %c1211 to i4
+  %ok1211 = icmp eq i4 %m1211, -1
+  br i1 %ok1211, label %next1211, label %fail128
+next1211:
+  %r1212 = call <4 x i32> @mixed_c8_si32_eq_4(<4 x i8> <i8 -1, i8 -1, i8 -1, i8 -1>, <4 x i8> <i8 -1, i8 -1, i8 -1, i8 -1>, <4 x i32> <i32 1, i32 2, i32 3, i32 4>, <4 x i32> <i32 -1, i32 -2, i32 -3, i32 -4>)
+  %c1212 = icmp eq <4 x i32> %r1212, <i32 1, i32 2, i32 3, i32 4>
+  %m1212 = bitcast <4 x i1> %c1212 to i4
+  %ok1212 = icmp eq i4 %m1212, -1
+  br i1 %ok1212, label %next1212, label %fail128
+next1212:
+  ; 129: eq on <4 x i32> selecting <4 x i8>
+  %r1213 = call <4 x i8> @mixed_c32_si8_eq_4(<4 x i32> <i32 0, i32 0, i32 0, i32 0>, <4 x i32> <i32 0, i32 1, i32 2147483647, i32 -2147483648>, <4 x i8> <i8 1, i8 2, i8 3, i8 4>, <4 x i8> <i8 -1, i8 -2, i8 -3, i8 -4>)
+  %c1213 = icmp eq <4 x i8> %r1213, <i8 1, i8 -2, i8 -3, i8 -4>
+  %m1213 = bitcast <4 x i1> %c1213 to i4
+  %ok1213 = icmp eq i4 %m1213, -1
+  br i1 %ok1213, label %next1213, label %fail129
+next1213:
+  %r1214 = call <4 x i8> @mixed_c32_si8_eq_4(<4 x i32> <i32 0, i32 1, i32 1, i32 1>, <4 x i32> <i32 -1, i32 0, i32 1, i32 2147483647>, <4 x i8> <i8 1, i8 2, i8 3, i8 4>, <4 x i8> <i8 -1, i8 -2, i8 -3, i8 -4>)
+  %c1214 = icmp eq <4 x i8> %r1214, <i8 -1, i8 -2, i8 3, i8 -4>
+  %m1214 = bitcast <4 x i1> %c1214 to i4
+  %ok1214 = icmp eq i4 %m1214, -1
+  br i1 %ok1214, label %next1214, label %fail129
+next1214:
+  %r1215 = call <4 x i8> @mixed_c32_si8_eq_4(<4 x i32> <i32 1, i32 1, i32 2147483647, i32 2147483647>, <4 x i32> <i32 -2147483648, i32 -1, i32 0, i32 1>, <4 x i8> <i8 1, i8 2, i8 3, i8 4>, <4 x i8> <i8 -1, i8 -2, i8 -3, i8 -4>)
+  %c1215 = icmp eq <4 x i8> %r1215, <i8 -1, i8 -2, i8 -3, i8 -4>
+  %m1215 = bitcast <4 x i1> %c1215 to i4
+  %ok1215 = icmp eq i4 %m1215, -1
+  br i1 %ok1215, label %next1215, label %fail129
+next1215:
+  %r1216 = call <4 x i8> @mixed_c32_si8_eq_4(<4 x i32> <i32 2147483647, i32 2147483647, i32 2147483647, i32 -2147483648>, <4 x i32> <i32 2147483647, i32 -2147483648, i32 -1, i32 0>, <4 x i8> <i8 1, i8 2, i8 3, i8 4>, <4 x i8> <i8 -1, i8 -2, i8 -3, i8 -4>)
+  %c1216 = icmp eq <4 x i8> %r1216, <i8 1, i8 -2, i8 -3, i8 -4>
+  %m1216 = bitcast <4 x i1> %c1216 to i4
+  %ok1216 = icmp eq i4 %m1216, -1
+  br i1 %ok1216, label %next1216, label %fail129
+next1216:
+  %r1217 = call <4 x i8> @mixed_c32_si8_eq_4(<4 x i32> <i32 -2147483648, i32 -2147483648, i32 -2147483648, i32 -2147483648>, <4 x i32> <i32 1, i32 2147483647, i32 -2147483648, i32 -1>, <4 x i8> <i8 1, i8 2, i8 3, i8 4>, <4 x i8> <i8 -1, i8 -2, i8 -3, i8 -4>)
+  %c1217 = icmp eq <4 x i8> %r1217, <i8 -1, i8 -2, i8 3, i8 -4>
+  %m1217 = bitcast <4 x i1> %c1217 to i4
+  %ok1217 = icmp eq i4 %m1217, -1
+  br i1 %ok1217, label %next1217, label %fail129
+next1217:
+  %r1218 = call <4 x i8> @mixed_c32_si8_eq_4(<4 x i32> <i32 -1, i32 -1, i32 -1, i32 -1>, <4 x i32> <i32 0, i32 1, i32 2147483647, i32 -2147483648>, <4 x i8> <i8 1, i8 2, i8 3, i8 4>, <4 x i8> <i8 -1, i8 -2, i8 -3, i8 -4>)
+  %c1218 = icmp eq <4 x i8> %r1218, <i8 -1, i8 -2, i8 -3, i8 -4>
+  %m1218 = bitcast <4 x i1> %c1218 to i4
+  %ok1218 = icmp eq i4 %m1218, -1
+  br i1 %ok1218, label %next1218, label %fail129
+next1218:
+  %r1219 = call <4 x i8> @mixed_c32_si8_eq_4(<4 x i32> <i32 -1, i32 -1, i32 -1, i32 -1>, <4 x i32> <i32 -1, i32 -1, i32 -1, i32 -1>, <4 x i8> <i8 1, i8 2, i8 3, i8 4>, <4 x i8> <i8 -1, i8 -2, i8 -3, i8 -4>)
+  %c1219 = icmp eq <4 x i8> %r1219, <i8 1, i8 2, i8 3, i8 4>
+  %m1219 = bitcast <4 x i1> %c1219 to i4
+  %ok1219 = icmp eq i4 %m1219, -1
+  br i1 %ok1219, label %next1219, label %fail129
+next1219:
   ret i32 0
 fail1:
   ret i32 1
@@ -4266,4 +7763,182 @@ fail39:
   ret i32 39
 fail40:
   ret i32 40
+fail41:
+  ret i32 41
+fail42:
+  ret i32 42
+fail43:
+  ret i32 43
+fail44:
+  ret i32 44
+fail45:
+  ret i32 45
+fail46:
+  ret i32 46
+fail47:
+  ret i32 47
+fail48:
+  ret i32 48
+fail49:
+  ret i32 49
+fail50:
+  ret i32 50
+fail51:
+  ret i32 51
+fail52:
+  ret i32 52
+fail53:
+  ret i32 53
+fail54:
+  ret i32 54
+fail55:
+  ret i32 55
+fail56:
+  ret i32 56
+fail57:
+  ret i32 57
+fail58:
+  ret i32 58
+fail59:
+  ret i32 59
+fail60:
+  ret i32 60
+fail61:
+  ret i32 61
+fail62:
+  ret i32 62
+fail63:
+  ret i32 63
+fail64:
+  ret i32 64
+fail65:
+  ret i32 65
+fail66:
+  ret i32 66
+fail67:
+  ret i32 67
+fail68:
+  ret i32 68
+fail69:
+  ret i32 69
+fail70:
+  ret i32 70
+fail71:
+  ret i32 71
+fail72:
+  ret i32 72
+fail73:
+  ret i32 73
+fail74:
+  ret i32 74
+fail75:
+  ret i32 75
+fail76:
+  ret i32 76
+fail77:
+  ret i32 77
+fail78:
+  ret i32 78
+fail79:
+  ret i32 79
+fail80:
+  ret i32 80
+fail81:
+  ret i32 81
+fail82:
+  ret i32 82
+fail83:
+  ret i32 83
+fail84:
+  ret i32 84
+fail85:
+  ret i32 85
+fail86:
+  ret i32 86
+fail87:
+  ret i32 87
+fail88:
+  ret i32 88
+fail89:
+  ret i32 89
+fail90:
+  ret i32 90
+fail91:
+  ret i32 91
+fail92:
+  ret i32 92
+fail93:
+  ret i32 93
+fail94:
+  ret i32 94
+fail95:
+  ret i32 95
+fail96:
+  ret i32 96
+fail97:
+  ret i32 97
+fail98:
+  ret i32 98
+fail99:
+  ret i32 99
+fail100:
+  ret i32 100
+fail101:
+  ret i32 101
+fail102:
+  ret i32 102
+fail103:
+  ret i32 103
+fail104:
+  ret i32 104
+fail105:
+  ret i32 105
+fail106:
+  ret i32 106
+fail107:
+  ret i32 107
+fail108:
+  ret i32 108
+fail109:
+  ret i32 109
+fail110:
+  ret i32 110
+fail111:
+  ret i32 111
+fail112:
+  ret i32 112
+fail113:
+  ret i32 113
+fail114:
+  ret i32 114
+fail115:
+  ret i32 115
+fail116:
+  ret i32 116
+fail117:
+  ret i32 117
+fail118:
+  ret i32 118
+fail119:
+  ret i32 119
+fail120:
+  ret i32 120
+fail121:
+  ret i32 121
+fail122:
+  ret i32 122
+fail123:
+  ret i32 123
+fail124:
+  ret i32 124
+fail125:
+  ret i32 125
+fail126:
+  ret i32 126
+fail127:
+  ret i32 127
+fail128:
+  ret i32 128
+fail129:
+  ret i32 129
 }

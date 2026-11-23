@@ -5,7 +5,10 @@ Every integer predicate (eq, ne, ugt, uge, ult, ule, sgt, sge, slt, sle) on vect
 lanes, over every pair of values from a set that includes the signed/unsigned boundaries (0, 1, 2^(w-1)-1,
 2^(w-1), 2^w-1). The result mask is read with `bitcast <N x i1> to iN` and compared with the mask computed here.
 A second check per width and predicate feeds the comparison to a vector `select`, which takes another code path
-(the comparison is used as it is, without being narrowed to <N x i1> first).
+(the comparison is used as it is, without being narrowed to <N x i1> first). The mixed-width groups at the end
+compare lanes of one width and select lanes of another (`icmp <4 x i64>` feeding `select <4 x i32>`), which
+resizes that mask; some select float or double lanes. The `eq` cases on <4 x i8> compare a custom 32-bit vector,
+which can't be resized, so they keep the <N x i1> path.
 
 `main` returns the 1-based number of the first (width, predicate) group that returned a wrong result, or 0.
 
@@ -78,12 +81,66 @@ def main():
                 calls.append(("select", name, bits, lanes, a, b, expected_select))
             groups.append((f"{predicate} on <{lanes} x i{bits}>", calls))
 
+    # Mixed widths: (compare lane bits, select lane bits, lanes, predicates, select as float?)
+    mixed = []
+    for lanes, widths in [(8, [8, 16, 32, 64]), (4, [16, 32, 64])]:
+        for cmp_bits in widths:
+            for sel_bits in widths:
+                if cmp_bits != sel_bits:
+                    mixed.append((cmp_bits, sel_bits, lanes, ["ult", "sgt", "ne", "sle"], False))
+    for cmp_bits, sel_bits in [(64, 32), (32, 32), (16, 32), (32, 64), (64, 64)]:
+        mixed.append((cmp_bits, sel_bits, 4, ["ult", "slt", "ne"], True))
+    mixed += [(8, 32, 4, ["eq"], False), (32, 8, 4, ["eq"], False)]
+
+    for cmp_bits, sel_bits, lanes, predicates, as_float in mixed:
+        sel_type = {32: "float", 64: "double"}[sel_bits] if as_float else f"i{sel_bits}"
+        values = sorted({0, 1, (1 << (cmp_bits - 1)) - 1, 1 << (cmp_bits - 1), (1 << cmp_bits) - 1})
+        pairs = [(a, b) for a in values for b in values]
+        chunks = [pairs[i:i + lanes] for i in range(0, len(pairs), lanes)]
+        for chunk in chunks:
+            chunk.extend([chunk[0]] * (lanes - len(chunk)))
+        for predicate in predicates:
+            name = f"c{cmp_bits}_s{sel_type}_{predicate}_{lanes}"
+            out += [
+                f"define <{lanes} x {sel_type}> @mixed_{name}(<{lanes} x i{cmp_bits}> %a, <{lanes} x i{cmp_bits}> %b, <{lanes} x {sel_type}> %x, <{lanes} x {sel_type}> %y) {{",
+                f"  %c = icmp {predicate} <{lanes} x i{cmp_bits}> %a, %b",
+                f"  %r = select <{lanes} x i1> %c, <{lanes} x {sel_type}> %x, <{lanes} x {sel_type}> %y",
+                f"  ret <{lanes} x {sel_type}> %r",
+                "}",
+                "",
+            ]
+            calls = []
+            for chunk in chunks:
+                a = [p[0] for p in chunk]
+                b = [p[1] for p in chunk]
+                x = list(range(1, lanes + 1))
+                y = [-v for v in x]
+                expected = [xi if holds(predicate, p[0], p[1], cmp_bits) else yi for xi, yi, p in zip(x, y, chunk)]
+                calls.append(("mixed", name, (cmp_bits, sel_type, sel_bits), lanes, (a, b, x, y), expected))
+            groups.append((f"{predicate} on <{lanes} x i{cmp_bits}> selecting <{lanes} x {sel_type}>", calls))
+
     out.append("define i32 @main() {")
     n = 0
     for gid, (title, calls) in enumerate(groups, start=1):
         out.append(f"  ; {gid}: {title}")
-        for kind, name, bits, lanes, a, b, expected in calls:
+        for call in calls:
             n += 1
+            if call[0] == "mixed":
+                _, name, (cmp_bits, sel_type, sel_bits), lanes, (a, b, x, y), expected = call
+                def sel_vector(values):
+                    if sel_type.startswith("i"):
+                        return f"<{lanes} x {sel_type}> <" + ", ".join(f"{sel_type} {v}" for v in values) + ">"
+                    return f"<{lanes} x {sel_type}> <" + ", ".join(f"{sel_type} {float(v)!r}" for v in values) + ">"
+                args = f"{vector(a, cmp_bits)}, {vector(b, cmp_bits)}, {sel_vector(x)}, {sel_vector(y)}"
+                out.append(f"  %r{n} = call <{lanes} x {sel_type}> @mixed_{name}({args})")
+                compare = "icmp eq" if sel_type.startswith("i") else "fcmp oeq"
+                out.append(f"  %c{n} = {compare} <{lanes} x {sel_type}> %r{n}, {sel_vector(expected)[len(f'<{lanes} x {sel_type}> '):]}")
+                out.append(f"  %m{n} = bitcast <{lanes} x i1> %c{n} to i{lanes}")
+                out.append(f"  %ok{n} = icmp eq i{lanes} %m{n}, -1")
+                out.append(f"  br i1 %ok{n}, label %next{n}, label %fail{gid}")
+                out.append(f"next{n}:")
+                continue
+            kind, name, bits, lanes, a, b, expected = call
             va, vb = vector(a, bits), vector(b, bits)
             if kind == "mask":
                 out.append(f"  %r{n} = call i{lanes} @mask_{name}({va}, {vb})")
