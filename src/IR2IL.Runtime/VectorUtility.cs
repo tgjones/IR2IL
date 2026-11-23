@@ -54,7 +54,9 @@ public static class VectorUtility
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public static Vector64<int> FPToSIV2F64ToV2I32(Vector128<double> vector)
     {
-        return Vector64.ConvertToInt32(Vector64.Narrow(vector.GetLower(), vector.GetUpper()));
+        // Convert as 64-bit integers: narrowing the doubles to float first would round them.
+        var longs = Vector128.ConvertToInt64(vector);
+        return Vector64.Narrow(longs.GetLower(), longs.GetUpper());
     }
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
@@ -95,7 +97,9 @@ public static class VectorUtility
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public static Vector64<int> FPToUIV2F64ToV2I32(Vector128<double> vector)
     {
-        return Vector64.ConvertToUInt32(Vector64.Narrow(vector.GetLower(), vector.GetUpper())).AsInt32();
+        // Convert as 64-bit integers: narrowing the doubles to float first would round them.
+        var longs = Vector128.ConvertToUInt64(vector);
+        return Vector64.Narrow(longs.GetLower(), longs.GetUpper()).AsInt32();
     }
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
