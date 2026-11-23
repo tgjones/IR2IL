@@ -3,7 +3,7 @@
 
 A `<N x i1>` mask is made by one instruction and read by another, possibly in a different block, possibly after
 passing through a phi, a call or memory. This crosses every way of making a mask (PRODUCERS) with every way of
-reading one (CONSUMERS), for N = 4 and 8 lanes and two input patterns each, so that any change to how masks are
+reading one (CONSUMERS), for N = 2, 4 and 8 lanes and two input patterns each, so that any change to how masks are
 represented in IL (their lane width, whether a comparison is fused into its consumer, ...) is checked against
 every combination, not only the ones that clang happens to produce.
 
@@ -24,7 +24,7 @@ Usage:
 import os
 import sys
 
-LANE_COUNTS = [4, 8]
+LANE_COUNTS = [2, 4, 8]
 PATTERNS = [0, 1]
 
 
@@ -89,8 +89,6 @@ def comparison(name, kind, predicate, lanes, pattern, salt=0):
 
 def comparison_producer(kind, predicate):
     def produce(lanes, pattern):
-        if kind == "i8" and lanes < 8:
-            return None  # <4 x i8> is a Vector32, which has no comparison methods
         lines, bits = comparison("m", kind, predicate, lanes, pattern)
         return lines, bits
     return produce

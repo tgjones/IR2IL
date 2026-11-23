@@ -10,13 +10,6 @@ public static class VectorUtility
     // There is no .NET cross-platform API for e.g. Vector128.NotEquals, so we simulate it.
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static Vector32<T> CompareVector32NotEquals<T>(Vector32<T> left, Vector32<T> right)
-        where T : unmanaged, IBitwiseOperators<T, T, T>, IEqualityOperators<T, T, bool>
-    {
-        return Vector32.OnesComplement(Vector32.Equals(left, right));
-    }
-
-    [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public static Vector64<T> CompareVector64NotEquals<T>(Vector64<T> left, Vector64<T> right)
     {
         return Vector64.OnesComplement(Vector64.Equals(left, right));
@@ -138,13 +131,13 @@ public static class VectorUtility
     // SExt
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static Vector64<int> SExtV2I16ToV2I32(Vector32<short> vector)
+    public static Vector64<int> SExtV2I16ToV2I32(Vector64<short> vector)
     {
-        return Vector64.Create(vector[0], vector[1]);
+        return Vector64.WidenLower(vector);
     }
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static Vector128<long> SExtV2I16ToV2I64(Vector32<short> vector)
+    public static Vector128<long> SExtV2I16ToV2I64(Vector64<short> vector)
     {
         return Vector128.Create(vector[0], vector[1]);
     }
@@ -154,6 +147,21 @@ public static class VectorUtility
     {
         return Vector128.Create(vector[0], vector[1]);
     }
+
+    // sext <2 x i1> to <2 x i8> and <4 x i1> to <4 x i8>: an i1 lane is already 0 or -1.
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    public static Vector64<sbyte> SExtV2I8ToV2I8(Vector64<sbyte> vector) => vector;
+
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    public static Vector64<sbyte> SExtV4I8ToV4I8(Vector64<sbyte> vector) => vector;
+
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    public static Vector64<int> SExtV2I8ToV2I32(Vector64<sbyte> vector) =>
+        Vector64.WidenLower(Vector64.WidenLower(vector));
+
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    public static Vector128<long> SExtV2I8ToV2I64(Vector64<sbyte> vector) =>
+        Vector128.Create((long)vector[0], (long)vector[1]);
 
     // sext <8 x i1> to <8 x i8>: an i1 lane is already 0 or -1.
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
@@ -168,13 +176,13 @@ public static class VectorUtility
     }
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static Vector256<long> SExtV4I8ToV4I64(Vector32<sbyte> vector)
+    public static Vector256<long> SExtV4I8ToV4I64(Vector64<sbyte> vector)
     {
         return Vector256.Create((long)vector[0], (long)vector[1], (long)vector[2], (long)vector[3]);
     }
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static Vector128<int> SExtV4I8ToV4I32(Vector32<sbyte> vector)
+    public static Vector128<int> SExtV4I8ToV4I32(Vector64<sbyte> vector)
     {
         return Vector128.Create((int)vector[0], (int)vector[1], (int)vector[2], (int)vector[3]);
     }
@@ -498,21 +506,21 @@ public static class VectorUtility
     // SRem
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static Vector16<sbyte> SignedRemainderV2I8(Vector16<sbyte> left, Vector16<sbyte> right)
+    public static Vector64<sbyte> SignedRemainderV2I8(Vector64<sbyte> left, Vector64<sbyte> right)
     {
         // TODO: Optimize this.
-        return Vector16.Create(
-            (sbyte)(left[0] % right[0]),
-            (sbyte)(left[1] % right[1]));
+        return Vector64<sbyte>.Zero
+            .WithElement(0, (sbyte)(left[0] % right[0]))
+            .WithElement(1, (sbyte)(left[1] % right[1]));
     }
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static Vector32<short> SignedRemainderV2I16(Vector32<short> left, Vector32<short> right)
+    public static Vector64<short> SignedRemainderV2I16(Vector64<short> left, Vector64<short> right)
     {
         // TODO: Optimize this.
-        return Vector32.Create(
-            (short)(left[0] % right[0]),
-            (short)(left[1] % right[1]));
+        return Vector64<short>.Zero
+            .WithElement(0, (short)(left[0] % right[0]))
+            .WithElement(1, (short)(left[1] % right[1]));
     }
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
@@ -570,9 +578,9 @@ public static class VectorUtility
     // Trunc
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static Vector32<short> TruncV2I64ToV2I16(Vector128<long> vector)
+    public static Vector64<short> TruncV2I64ToV2I16(Vector128<long> vector)
     {
-        return Vector32.Create((short)vector[0], (short)vector[1]);
+        return Vector64.Narrow(TruncV2I64ToV2I32(vector), Vector64<int>.Zero);
     }
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
@@ -596,9 +604,9 @@ public static class VectorUtility
     // UIToFP
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static Vector64<float> UIToFPV2I8ToV2F32(Vector16<sbyte> vector)
+    public static Vector64<float> UIToFPV2I8ToV2F32(Vector64<sbyte> vector)
     {
-        return Vector16.ConvertToSingle(vector.AsByte());
+        return Vector64.Create((float)(byte)vector[0], (float)(byte)vector[1]);
     }
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
@@ -656,31 +664,31 @@ public static class VectorUtility
     // URem
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static Vector16<sbyte> UnsignedRemainderV2I8(Vector16<sbyte> left, Vector16<sbyte> right)
+    public static Vector64<sbyte> UnsignedRemainderV2I8(Vector64<sbyte> left, Vector64<sbyte> right)
     {
         // TODO: Optimize this.
 
         var leftUnsigned = left.AsByte();
         var rightUnsigned = right.AsByte();
 
-        var signedResult = Vector16.Create(
-            (byte)(leftUnsigned[0] % rightUnsigned[0]),
-            (byte)(leftUnsigned[1] % rightUnsigned[1]));
+        var signedResult = Vector64<byte>.Zero
+            .WithElement(0, (byte)(leftUnsigned[0] % rightUnsigned[0]))
+            .WithElement(1, (byte)(leftUnsigned[1] % rightUnsigned[1]));
 
         return signedResult.AsSByte();
     }
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static Vector32<short> UnsignedRemainderV2I16(Vector32<short> left, Vector32<int> right)
+    public static Vector64<short> UnsignedRemainderV2I16(Vector64<short> left, Vector64<short> right)
     {
         // TODO: Optimize this.
 
         var leftUnsigned = left.AsUInt16();
         var rightUnsigned = right.AsUInt16();
 
-        var signedResult = Vector32.Create(
-            (ushort)(leftUnsigned[0] % rightUnsigned[0]),
-            (ushort)(leftUnsigned[1] % rightUnsigned[1]));
+        var signedResult = Vector64<ushort>.Zero
+            .WithElement(0, (ushort)(leftUnsigned[0] % rightUnsigned[0]))
+            .WithElement(1, (ushort)(leftUnsigned[1] % rightUnsigned[1]));
 
         return signedResult.AsInt16();
     }
@@ -759,13 +767,13 @@ public static class VectorUtility
     // MaskFromBits: bitcast iN to <N x i1>. Lane i is all ones (-1) when bit i is set, 0 otherwise,
     // the same representation as the result of a vector comparison.
 
+    // The masks of 2 and 4 lanes are held in a Vector64<sbyte> with 8 lanes, like the one of 8 lanes.
+    // The lanes after the real ones are undefined, so they can come from the bits above them.
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static Vector16<sbyte> MaskFromBits2(ulong bits) =>
-        Vector16.Create(MaskLane(bits, 0), MaskLane(bits, 1));
+    public static Vector64<sbyte> MaskFromBits2(ulong bits) => MaskFromBits8(bits);
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static Vector32<sbyte> MaskFromBits4(ulong bits) =>
-        Vector32.Create(MaskLane(bits, 0), MaskLane(bits, 1), MaskLane(bits, 2), MaskLane(bits, 3));
+    public static Vector64<sbyte> MaskFromBits4(ulong bits) => MaskFromBits8(bits);
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public static Vector64<sbyte> MaskFromBits8(ulong bits) =>
@@ -793,14 +801,6 @@ public static class VectorUtility
     // so before the generic ZExt helpers below (which extend an i8 lane) it clears the rest.
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static Vector16<sbyte> NormalizeI1Lanes(Vector16<sbyte> vector) =>
-        Vector16.Create((sbyte)(vector[0] & 1), (sbyte)(vector[1] & 1));
-
-    [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static Vector32<sbyte> NormalizeI1Lanes(Vector32<sbyte> vector) =>
-        Vector32.Create((sbyte)(vector[0] & 1), (sbyte)(vector[1] & 1), (sbyte)(vector[2] & 1), (sbyte)(vector[3] & 1));
-
-    [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public static Vector64<sbyte> NormalizeI1Lanes(Vector64<sbyte> vector) => vector & Vector64<sbyte>.One;
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
@@ -812,12 +812,23 @@ public static class VectorUtility
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public static Vector512<sbyte> NormalizeI1Lanes(Vector512<sbyte> vector) => vector & Vector512<sbyte>.One;
 
+    // zext <2 x i1> to <2 x i8>, <4 x i1> to <4 x i8>: the lanes have been cleared to 0 or 1 already.
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    public static Vector64<sbyte> ZExtV2I8ToV2I8(Vector64<sbyte> vector) => vector;
+
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    public static Vector64<sbyte> ZExtV4I8ToV4I8(Vector64<sbyte> vector) => vector;
+
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    public static Vector64<int> ZExtV2I8ToV2I32(Vector64<sbyte> vector) =>
+        Vector64.WidenLower(Vector64.WidenLower(vector.AsByte())).AsInt32();
+
     // zext <8 x i1> to <8 x i8>: the lanes have been cleared to 0 or 1 already.
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public static Vector64<sbyte> ZExtV8I8ToV8I8(Vector64<sbyte> vector) => vector;
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static Vector256<long> ZExtV4I8ToV4I64(Vector32<sbyte> vector)
+    public static Vector256<long> ZExtV4I8ToV4I64(Vector64<sbyte> vector)
     {
         return Vector256.Create((ulong)(byte)vector[0], (ulong)(byte)vector[1], (ulong)(byte)vector[2], (ulong)(byte)vector[3]).AsInt64();
     }
@@ -830,13 +841,13 @@ public static class VectorUtility
     }
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static Vector64<int> ZExtV2I16ToV2I32(Vector32<short> vector)
+    public static Vector64<int> ZExtV2I16ToV2I32(Vector64<short> vector)
     {
-        return Vector64.Create((ushort)vector[0], (ushort)vector[1]);
+        return Vector64.WidenLower(vector.AsUInt16()).AsInt32();
     }
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static Vector128<long> ZExtV2I16ToV2I64(Vector32<short> vector)
+    public static Vector128<long> ZExtV2I16ToV2I64(Vector64<short> vector)
     {
         return Vector128.Create((ushort)vector[0], (ushort)vector[1]);
     }
@@ -848,9 +859,9 @@ public static class VectorUtility
     }
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static Vector64<short> ZExtV4I8ToV4I16(Vector32<sbyte> vector)
+    public static Vector64<short> ZExtV4I8ToV4I16(Vector64<sbyte> vector)
     {
-        return Vector64.Create((ushort)(byte)vector[0], (ushort)(byte)vector[1], (ushort)(byte)vector[2], (ushort)(byte)vector[3]).AsInt16();
+        return Vector64.WidenLower(vector.AsByte()).AsInt16();
     }
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
@@ -873,7 +884,7 @@ public static class VectorUtility
     }
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static Vector128<int> ZExtV4I8ToV4I32(Vector32<sbyte> vector)
+    public static Vector128<int> ZExtV4I8ToV4I32(Vector64<sbyte> vector)
     {
         return Vector128.Create((uint)(byte)vector[0], (uint)(byte)vector[1], (uint)(byte)vector[2], (uint)(byte)vector[3]).AsInt32();
     }
@@ -893,7 +904,7 @@ public static class VectorUtility
     }
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static Vector128<long> ZExtV2I8ToV2I64(Vector16<sbyte> vector)
+    public static Vector128<long> ZExtV2I8ToV2I64(Vector64<sbyte> vector)
     {
         return Vector128.Create((ulong)(byte)vector[0], (ulong)(byte)vector[1]).AsInt64();
     }

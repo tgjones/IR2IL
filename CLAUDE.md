@@ -83,6 +83,18 @@ LLVM IR allows integers of any bit width (e.g. `i40` from a struct with 3+29+3-b
 
 **Loads and stores** move exactly ceil(N/8) bytes (`EmitStoreIntegerIndirect`, `EmitLoadPartialInteger`; wide loads use `LoadWideInt`): a non-power-of-2 width that is narrower than its container (`i24`, `i40`, `i72`) goes through a local and `cpblk`, so neighbouring bytes are untouched and nothing past the object is read. A partial load zero-fills the rest of the container.
 
+### Small vectors (16 and 32 bits)
+
+.NET has no vector smaller than `Vector64`, so `<2 x i8>`, `<4 x i8>` and `<2 x i16>` (and the `<N x i1>` masks of 2 and 4 lanes, whose lanes are bytes) are held in a `Vector64<T>` with padding lanes (`TypeSystem.GetVectorContainerSizeInBits`). `<3 x float>` in a `Vector128<float>` is the same situation. The padding lanes follow the rule of the bits above an `iN`: they may contain anything, and whatever reads all the lanes ignores them.
+
+- **Loads and stores** move exactly the vector's own bytes (`EmitLoadPartial`, `EmitStorePartial`), as for `i24`; `TypeSystem.IsPaddedVector` says when.
+- **Struct fields and array elements** of these vectors are integers of the vector's size (`TypeSystem.GetMsilMemoryType`), so the layout is LLVM's, and `extractvalue`/constant structs go through a partial load/store of the field.
+- **`bitcast`** from or to a padded vector goes through a local, as `Unsafe.BitCast` needs equal sizes.
+- **Creating a vector from lane values** (`select` on a mask) has to pass `GetVectorContainerLaneCount` arguments: zeros after the real lanes.
+- **Shuffles** that join two vectors with `Create(v0, v1)` only apply when the sources have no padding; otherwise the software path is used.
+- **Mask resizing** (`TryResizeVectorMask`) uses `Vector64.Narrow(m, m)` and `Vector64.WidenLower(m)` for masks of 64 bits or less.
+- `Vector1024` is a custom type of two `Vector512`s, with few operations.
+
 ### Handling varargs on macOS ARM64
 
 CoreCLR on macOS ARM64 does **not** support the managed vararg calling convention (`CallingConventions.VarArgs`). P/Invoke of native vararg functions (e.g. `printf`) also does not work reliably on this platform.

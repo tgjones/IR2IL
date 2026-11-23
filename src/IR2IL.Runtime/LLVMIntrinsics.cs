@@ -32,11 +32,13 @@ public static unsafe class LLVMIntrinsics
     }
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static Vector32<short> VectorShiftRightLogical(Vector32<short> vector, Vector32<short> count)
+    public static Vector64<short> VectorShiftRightLogical(Vector64<short> vector, Vector64<short> count)
     {
-        return Vector32.Create(
+        return Vector64.Create(
             (short)((ushort)vector[0] >> count[0]),
-            (short)((ushort)vector[1] >> count[1]));
+            (short)((ushort)vector[1] >> count[1]),
+            (short)((ushort)vector[2] >> count[2]),
+            (short)((ushort)vector[3] >> count[3]));
     }
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]

@@ -79,6 +79,53 @@ internal sealed class TypeSystem
         };
     }
 
+    /// <summary>
+    /// The type of a struct field or an array element of <paramref name="typeRef"/>. It is the type of the value
+    /// (<see cref="GetMsilType"/>), except for vectors of 16 or 32 bits: the value is held in a <c>Vector64</c>
+    /// with padding lanes (see <see cref="GetVectorContainerSizeInBits"/>), but in memory the vector takes
+    /// only its own bytes, so a field or an element is an integer of that size. Loads and stores of a vector
+    /// copy just the bytes it has.
+    /// </summary>
+    public Type GetMsilMemoryType(LLVMTypeRef typeRef)
+    {
+        if (typeRef.Kind == LLVMTypeKind.LLVMVectorTypeKind)
+        {
+            var storageBits = RoundUpToTypeSize(GetActualVectorSizeInBits(typeRef));
+            if (storageBits < GetVectorContainerSizeInBits(typeRef))
+            {
+                return GetIntegerType(storageBits);
+            }
+        }
+
+        return GetMsilType(typeRef);
+    }
+
+    /// <summary>
+    /// The size of the .NET vector that holds a value of <paramref name="vectorType"/>. The smallest .NET
+    /// hardware vector is a <c>Vector64</c>, so vectors of 16 and 32 bits (<c>&lt;2 x i8&gt;</c>,
+    /// <c>&lt;4 x i8&gt;</c>, <c>&lt;2 x i16&gt;</c>) are held in one, with undefined lanes after the real ones.
+    /// Like the bits above an <c>iN</c>, the padding lanes may contain anything: whatever reads all the lanes
+    /// (a bitcast, a reduction, a store) must ignore them.
+    /// </summary>
+    public int GetVectorContainerSizeInBits(LLVMTypeRef vectorType)
+    {
+        var bits = RoundUpToTypeSize(GetActualVectorSizeInBits(vectorType));
+        return bits is 16 or 32 ? 64 : bits;
+    }
+
+    /// <summary>
+    /// Whether the .NET vector that holds <paramref name="type"/> is larger than the vector itself: a vector of 16
+    /// or 32 bits in a <c>Vector64</c>, or one that isn't a power of two in size (<c>&lt;3 x float&gt;</c>
+    /// in a <c>Vector128&lt;float&gt;</c>). Such a vector is read and written in memory with its own number of bytes.
+    /// </summary>
+    public bool IsPaddedVector(LLVMTypeRef type) =>
+        type.Kind == LLVMTypeKind.LLVMVectorTypeKind
+        && GetActualVectorSizeInBits(type) != GetVectorContainerSizeInBits(type);
+
+    /// <summary>The number of lanes of the .NET vector that holds <paramref name="vectorType"/>.</summary>
+    public int GetVectorContainerLaneCount(LLVMTypeRef vectorType) =>
+        GetVectorContainerSizeInBits(vectorType) / RoundUpToTypeSize(GetSizeOfTypeInBits(vectorType.ElementType));
+
     public Type GetMsilVectorType(LLVMTypeRef typeRef)
     {
         if (typeRef.Kind != LLVMTypeKind.LLVMVectorTypeKind)
@@ -152,7 +199,7 @@ internal sealed class TypeSystem
             var structElementTypeRef = structElementTypes[i];
             structType.DefineField(
                 $"Field{i}",
-                GetMsilType(structElementTypeRef),
+                GetMsilMemoryType(structElementTypeRef),
                 FieldAttributes.Public);
         }
 
@@ -175,7 +222,7 @@ internal sealed class TypeSystem
 
     private Type CreateArrayType(LLVMTypeRef elementTypeRef, int length)
     {
-        var elementType = GetMsilType(elementTypeRef);
+        var elementType = GetMsilMemoryType(elementTypeRef);
 
         if (elementType.IsPointer)
         {
@@ -239,9 +286,7 @@ internal sealed class TypeSystem
 
         return vectorSizeInBits switch
         {
-            16 => typeof(Vector16),
-            32 => typeof(Vector32),
-            64 => typeof(Vector64),
+            16 or 32 or 64 => typeof(Vector64),
             128 => typeof(Vector128),
             256 => typeof(Vector256),
             512 => typeof(Vector512),
@@ -262,9 +307,7 @@ internal sealed class TypeSystem
 
         return vectorSizeInBits switch
         {
-            16 => typeof(Vector16<>),
-            32 => typeof(Vector32<>),
-            64 => typeof(Vector64<>),
+            16 or 32 or 64 => typeof(Vector64<>),
             128 => typeof(Vector128<>),
             256 => typeof(Vector256<>),
             512 => typeof(Vector512<>),

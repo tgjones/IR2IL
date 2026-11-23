@@ -7,8 +7,8 @@ lanes, over every pair of values from a set that includes the signed/unsigned bo
 A second check per width and predicate feeds the comparison to a vector `select`, which takes another code path
 (the comparison is used as it is, without being narrowed to <N x i1> first). The mixed-width groups at the end
 compare lanes of one width and select lanes of another (`icmp <4 x i64>` feeding `select <4 x i32>`), which
-resizes that mask; some select float or double lanes. The `eq` cases on <4 x i8> compare a custom 32-bit vector,
-which can't be resized, so they keep the <N x i1> path.
+resizes that mask; some select float or double lanes. Vectors of 16 and 32 bits (<2 x i8>, <4 x i8>, <2 x i16>)
+are held in a Vector64 with padding lanes, which the comparisons and the bitcast of the mask must ignore.
 
 `main` returns the 1-based number of the first (width, predicate) group that returned a wrong result, or 0.
 
@@ -18,8 +18,8 @@ Usage:
 
 import os
 
-# (lane bits, lanes). Not <2 x i64>: <2 x i1> is a Vector16, which has no ExtractMostSignificantBits.
-WIDTHS = [(8, 16), (16, 8), (32, 4), (64, 4)]
+# (lane bits, lanes). The vectors of 16 and 32 bits have padding lanes in their .NET vector.
+WIDTHS = [(8, 16), (8, 4), (8, 2), (16, 8), (16, 2), (32, 4), (32, 2), (64, 4), (64, 2)]
 PREDICATES = ["eq", "ne", "ugt", "uge", "ult", "ule", "sgt", "sge", "slt", "sle"]
 
 
@@ -57,7 +57,7 @@ def main():
         for chunk in chunks:  # pad the last chunk by repeating its first pair
             chunk.extend([chunk[0]] * (lanes - len(chunk)))
         for predicate in PREDICATES:
-            name = f"i{bits}_{predicate}"
+            name = f"i{bits}x{lanes}_{predicate}"
             out += [
                 f"define i{lanes} @mask_{name}(<{lanes} x i{bits}> %a, <{lanes} x i{bits}> %b) {{",
                 f"  %c = icmp {predicate} <{lanes} x i{bits}> %a, %b",
@@ -83,7 +83,7 @@ def main():
 
     # Mixed widths: (compare lane bits, select lane bits, lanes, predicates, select as float?)
     mixed = []
-    for lanes, widths in [(8, [8, 16, 32, 64]), (4, [16, 32, 64])]:
+    for lanes, widths in [(8, [8, 16, 32, 64]), (4, [8, 16, 32, 64]), (2, [8, 16, 32, 64])]:
         for cmp_bits in widths:
             for sel_bits in widths:
                 if cmp_bits != sel_bits:

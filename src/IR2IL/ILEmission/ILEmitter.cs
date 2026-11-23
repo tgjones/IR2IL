@@ -386,6 +386,15 @@ internal abstract class ILEmitter
             {
                 ILGenerator.Emit(OpCodes.Ldloca, local);
                 var elementValue = structValue.GetAggregateElement((uint)i);
+                if (TypeSystem.IsPaddedVector(elementValue.TypeOf))
+                {
+                    // The field holds only the bytes of the vector.
+                    ILGenerator.Emit(OpCodes.Ldflda, structFields[i]);
+                    EmitConstantValue(elementValue, elementValue.TypeOf);
+                    EmitStoreIndirect(elementValue.TypeOf);
+                    continue;
+                }
+
                 EmitConstantValue(elementValue, elementValue.TypeOf);
                 ILGenerator.Emit(OpCodes.Stfld, structFields[i]);
             }
@@ -407,12 +416,11 @@ internal abstract class ILEmitter
             {
                 var msilVectorType = TypeSystem.GetMsilType(type);
                 var actualBits = TypeSystem.GetActualVectorSizeInBits(type);
-                var roundedBits = TypeSystem.RoundUpToTypeSize(actualBits);
-                if (actualBits != roundedBits)
+                if (actualBits != TypeSystem.GetVectorContainerSizeInBits(type))
                 {
                     // The MSIL container type is larger than the true vector (e.g. <24 x float> = 768 bits
-                    // stored in Vector1024<float> = 1024 bits). Write only the actual bytes so we don't
-                    // overflow into adjacent allocations.
+                    // stored in Vector1024<float> = 1024 bits, or <2 x i8> in a Vector64<sbyte>). Write only
+                    // the actual bytes so we don't overflow into adjacent allocations.
                     EmitStorePartial(msilVectorType, actualBits / 8);
                 }
                 else
@@ -475,6 +483,24 @@ internal abstract class ILEmitter
             64 => OpCodes.Stind_I8,
             _ => throw new NotImplementedException($"Indirect store not implemented for integer width {width}: {type}")
         });
+    }
+
+    // Reads byteCount bytes (little-endian) into a zeroed value of msilType, for a value whose MSIL type is
+    // larger than its LLVM type. Stack on entry: [ptr].
+    protected void EmitLoadPartial(Type msilType, int byteCount)
+    {
+        var pointer = ILGenerator.DeclareLocal(typeof(nint));
+        var value = ILGenerator.DeclareLocal(msilType);
+
+        ILGenerator.Emit(OpCodes.Stloc, pointer);
+        ILGenerator.Emit(OpCodes.Ldloca, value);
+        ILGenerator.Emit(OpCodes.Initobj, msilType);
+        ILGenerator.Emit(OpCodes.Ldloca, value);           // [dest]
+        ILGenerator.Emit(OpCodes.Ldloc, pointer);          // [dest, src]
+        ILGenerator.Emit(OpCodes.Ldc_I4, byteCount);       // [dest, src, count]
+        ILGenerator.Emit(OpCodes.Conv_U);
+        ILGenerator.Emit(OpCodes.Cpblk);
+        ILGenerator.Emit(OpCodes.Ldloc, value);
     }
 
     // Writes the first byteCount bytes of a value of msilType (little-endian). Stack on entry: [dest_ptr, value].

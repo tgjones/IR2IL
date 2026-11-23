@@ -501,6 +501,19 @@ internal sealed class FunctionILEmitter : ILEmitter
         var fromTypeMsil = TypeSystem.GetMsilType(fromType);
         var toTypeMsil = TypeSystem.GetMsilType(toType);
 
+        if (!IsMaskType(fromType) && (TypeSystem.IsPaddedVector(fromType) || TypeSystem.IsPaddedVector(toType)))
+        {
+            // A padded vector (<2 x i8> in a Vector64<sbyte>) differs in size from the type it is cast to or
+            // from, so Unsafe.BitCast doesn't apply. Go through memory, where a vector has exactly its own bytes:
+            // the padding lanes are left behind, or the missing ones are zero.
+            var castLocal = ILGenerator.DeclareLocal(fromTypeMsil);
+            ILGenerator.Emit(OpCodes.Stloc, castLocal);
+            ILGenerator.Emit(OpCodes.Ldloca, castLocal);
+            ILGenerator.Emit(OpCodes.Conv_U);
+            EmitLoadIndirect(toType);
+            return;
+        }
+
         switch (fromType.Kind)
         {
             case LLVMTypeKind.LLVMIntegerTypeKind:
@@ -566,7 +579,7 @@ internal sealed class FunctionILEmitter : ILEmitter
         {
             case LLVMTypeKind.LLVMArrayTypeKind:
                 var bufferType = TypeSystem.GetMsilType(aggregateType);
-                var elementType = TypeSystem.GetMsilType(aggregateType.ElementType);
+                var elementType = TypeSystem.GetMsilMemoryType(aggregateType.ElementType);
 
                 // Get a ref to the target element via the InlineArrayElementRef helper.
                 ILGenerator.Emit(OpCodes.Ldc_I4, (int)indices[0]);
@@ -580,7 +593,17 @@ internal sealed class FunctionILEmitter : ILEmitter
                 var structType = TypeSystem.GetMsilType(aggregateType);
                 var fieldIndex = indices[0];
                 var field = structType.GetFields()[fieldIndex];
-                ILGenerator.Emit(OpCodes.Ldfld, field);
+                var fieldType = aggregateType.StructGetTypeAtIndex(fieldIndex);
+                if (TypeSystem.IsPaddedVector(fieldType))
+                {
+                    // The field holds only the bytes of the vector.
+                    ILGenerator.Emit(OpCodes.Ldflda, field);
+                    EmitLoadIndirect(fieldType);
+                }
+                else
+                {
+                    ILGenerator.Emit(OpCodes.Ldfld, field);
+                }
                 break;
             
             default:
@@ -697,7 +720,8 @@ internal sealed class FunctionILEmitter : ILEmitter
         // Vector256.Create(%15, %18)
 
         if (maskIndices.Length == sourceVector0.TypeOf.VectorSize * 2
-            && maskIndices.SequenceEqual(Enumerable.Range(0, maskIndices.Length)))
+            && maskIndices.SequenceEqual(Enumerable.Range(0, maskIndices.Length))
+            && !TypeSystem.IsPaddedVector(sourceVector0.TypeOf))
         {
             // Emit source vectors.
             EmitValue(sourceVector0);
@@ -827,7 +851,7 @@ internal sealed class FunctionILEmitter : ILEmitter
         }
 
         var bufferType = TypeSystem.GetMsilType(aggregateType);
-        var elementType = TypeSystem.GetMsilType(aggregateType.ElementType);
+        var elementType = TypeSystem.GetMsilMemoryType(aggregateType.ElementType);
 
         // Store the aggregate to a local so we can take its address.
         var aggregateLocal = ILGenerator.DeclareLocal(bufferType);
@@ -1212,9 +1236,9 @@ internal sealed class FunctionILEmitter : ILEmitter
         var intermediateLocal = ILGenerator.DeclareLocal(integerVectorType);
         ILGenerator.Emit(OpCodes.Stloc, intermediateLocal);
 
-        // We need to truncate the result from e.g. Vector128<long> to Vector16<sbyte>,
+        // We need to truncate the result from e.g. Vector128<long> to Vector64<sbyte>,
         // something like this:
-        // Vector16<sbyte>.Zero.WithElement(0, (sbyte)input[0]).WithElement(1, (sbyte)input[1]);
+        // Vector64<sbyte>.Zero.WithElement(0, (sbyte)input[0]).WithElement(1, (sbyte)input[1]);
         var resultVectorType = TypeSystem.GetMsilVectorType(maskType);
         ILGenerator.Emit(OpCodes.Call, resultVectorType.GetMethodStrict("get_Zero"));
 
@@ -2388,9 +2412,10 @@ internal sealed class FunctionILEmitter : ILEmitter
                     var intermediateLocal = ILGenerator.DeclareLocal(TypeSystem.GetMsilVectorType(operand0.TypeOf));
                     ILGenerator.Emit(OpCodes.Stloc, intermediateLocal);
 
-                    // We need to extend the result from e.g. Vector16<sbyte> to Vector64<int>,
+                    // We need to extend the result from e.g. Vector64<sbyte> to Vector64<int>,
                     // something like this:
                     // Vector64.Create((int)input[0], (int)input[1]);
+                    // The padding lanes of a vector of 16 or 32 bits are zero.
 
                     var inputVectorType = TypeSystem.GetMsilVectorType(operand0.TypeOf);
                     var operand1ElementSizeInBits = TypeSystem.GetSizeOfTypeInBits(operand1.TypeOf.ElementType);
@@ -2407,7 +2432,13 @@ internal sealed class FunctionILEmitter : ILEmitter
                         }
                     }
 
-                    var createMethodArgumentTypes = new Type[operand1.TypeOf.VectorSize];
+                    var containerLaneCount = TypeSystem.GetVectorContainerLaneCount(operand1.TypeOf);
+                    for (var i = (int)instruction.TypeOf.VectorSize; i < containerLaneCount; i++)
+                    {
+                        ILGenerator.Emit(OpCodes.Ldc_I4_0);
+                    }
+
+                    var createMethodArgumentTypes = new Type[containerLaneCount];
                     // Integer type with same bitwidth as operand1 element type.
                     Array.Fill(createMethodArgumentTypes, TypeSystem.GetIntegerType(TypeSystem.RoundUpToTypeSize(operand1ElementSizeInBits)));
                     var createMethod = nonGenericVectorType.GetMethodStrict(nameof(Vector128.Create), createMethodArgumentTypes);
@@ -2469,8 +2500,15 @@ internal sealed class FunctionILEmitter : ILEmitter
     /// narrow: Vector128.Narrow(mask.GetLower(), mask.GetUpper())      // Vector256&lt;long&gt; to Vector128&lt;int&gt;
     /// widen:  Vector256.Create(Vector128.WidenLower(mask), Vector128.WidenUpper(mask))   // Vector128&lt;int&gt; to Vector256&lt;long&gt;
     /// </code>
+    /// A mask of 16 or 32 bits (<c>&lt;2 x i8&gt;</c>, <c>&lt;2 x i16&gt;</c>, <c>&lt;4 x i8&gt;</c>) is in a
+    /// <c>Vector64</c> with padding lanes, and a mask of 64 bits can be narrowed without splitting it, so those
+    /// use only the lower half:
+    /// <code>
+    /// narrow: Vector64.Narrow(mask, mask)       // Vector64&lt;int&gt; to Vector64&lt;short&gt;
+    /// widen:  Vector64.WidenLower(mask)         // Vector64&lt;sbyte&gt; to Vector64&lt;short&gt;
+    /// </code>
     /// Returns whether it can be done, which needs the .NET vector types (64 to 512 bits) at every step: the
-    /// custom <c>Vector16</c>, <c>Vector32</c> and <c>Vector1024</c> have neither <c>Narrow</c> nor <c>Widen</c>.
+    /// custom <c>Vector1024</c> has neither <c>Narrow</c> nor <c>Widen</c>.
     /// With <paramref name="emit"/> false it only checks.
     /// </summary>
     private bool TryResizeVectorMask(int fromLaneBits, int toLaneBits, int laneCount, bool emit)
@@ -2486,11 +2524,12 @@ internal sealed class FunctionILEmitter : ILEmitter
             var totalBits = laneBits * laneCount;
             var narrow = toLaneBits < laneBits;
 
-            // A narrow splits the vector in halves, so it needs a vector of at least 128 bits;
-            // a widen doubles the vector, so the result must fit in 512 bits.
+            // A narrow splits the vector in halves, so it needs a vector of at least 128 bits, unless it is
+            // in a Vector64 (which Narrow takes twice, and keeps the lower half of); a widen doubles the
+            // vector, so the result must fit in 512 bits.
             var supported = laneBits is 8 or 16 or 32 or 64
-                && totalBits is >= 64 and <= 512
-                && (narrow ? totalBits >= 128 && laneBits > 8 : totalBits <= 256 && laneBits < 64);
+                && totalBits is >= 16 and <= 512
+                && (narrow ? laneBits > 8 : totalBits <= 256 && laneBits < 64);
             if (!supported)
             {
                 return false;
@@ -2544,6 +2583,15 @@ internal sealed class FunctionILEmitter : ILEmitter
 
     private void EmitNarrowMaskStep(int laneBits, int totalBits)
     {
+        if (totalBits <= 64)
+        {
+            // The lanes that count are in the lower half of the Vector64: narrow it with itself.
+            var vector64 = GetVectorOf(64, laneBits);
+            ILGenerator.Emit(OpCodes.Dup);
+            ILGenerator.Emit(OpCodes.Call, typeof(Vector64).GetMethodStrict(nameof(Vector128.Narrow), [vector64, vector64]));
+            return;
+        }
+
         var vectorClass = GetVectorClass(totalBits);
         var halfClass = GetVectorClass(totalBits / 2);
         var laneType = GetMaskLaneType(laneBits);
@@ -2561,6 +2609,13 @@ internal sealed class FunctionILEmitter : ILEmitter
 
     private void EmitWidenMaskStep(int laneBits, int totalBits)
     {
+        if (totalBits < 64)
+        {
+            // The mask is in a Vector64 with padding lanes, and widened it still fits in one.
+            ILGenerator.Emit(OpCodes.Call, typeof(Vector64).GetMethodStrict(nameof(Vector128.WidenLower), [GetVectorOf(64, laneBits)]));
+            return;
+        }
+
         var vectorClass = GetVectorClass(totalBits);
         var doubleClass = GetVectorClass(totalBits * 2);
         var vector = GetVectorOf(totalBits, laneBits);
@@ -2809,25 +2864,6 @@ internal sealed class FunctionILEmitter : ILEmitter
         // TODO: Atomic load?
     }
 
-    // An iN is stored in ceil(N/8) bytes, less than its container for i24, i40 and so on: reading the whole
-    // container would go past the end of the object. Copies those bytes (little-endian) into a zeroed local.
-    // Stack on entry: [ptr].
-    private void EmitLoadPartialInteger(int containerBits, int byteCount)
-    {
-        var pointer = ILGenerator.DeclareLocal(typeof(nint));
-        var value = ILGenerator.DeclareLocal(containerBits == 64 ? typeof(long) : typeof(int));
-
-        ILGenerator.Emit(OpCodes.Stloc, pointer);
-        ILGenerator.Emit(OpCodes.Ldloca, value);
-        ILGenerator.Emit(OpCodes.Initobj, value.LocalType);
-        ILGenerator.Emit(OpCodes.Ldloca, value);           // [dest]
-        ILGenerator.Emit(OpCodes.Ldloc, pointer);          // [dest, src]
-        ILGenerator.Emit(OpCodes.Ldc_I4, byteCount);       // [dest, src, count]
-        ILGenerator.Emit(OpCodes.Conv_U);
-        ILGenerator.Emit(OpCodes.Cpblk);
-        ILGenerator.Emit(OpCodes.Ldloc, value);
-    }
-
     private void EmitLoadIndirect(LLVMTypeRef typeRef)
     {
         switch (typeRef.Kind)
@@ -2845,7 +2881,7 @@ internal sealed class FunctionILEmitter : ILEmitter
                 var loadBytes = ((int)typeRef.IntWidth + 7) / 8;
                 if (containerBits <= 64 && loadBytes * 8 != containerBits)
                 {
-                    EmitLoadPartialInteger(containerBits, loadBytes);
+                    EmitLoadPartial(TypeSystem.GetMsilType(typeRef), loadBytes);
                     break;
                 }
 
@@ -2883,9 +2919,20 @@ internal sealed class FunctionILEmitter : ILEmitter
                 ILGenerator.Emit(OpCodes.Ldind_I);
                 break;
 
+            case LLVMTypeKind.LLVMVectorTypeKind:
+                // A vector held in a larger .NET vector (<2 x i8> in a Vector64<sbyte>, <3 x float> in a
+                // Vector128<float>) has fewer bytes in memory than its container: reading the whole
+                // container would go past the end of the object.
+                if (TypeSystem.IsPaddedVector(typeRef))
+                {
+                    EmitLoadPartial(TypeSystem.GetMsilType(typeRef), TypeSystem.GetActualVectorSizeInBits(typeRef) / 8);
+                    break;
+                }
+
+                goto case LLVMTypeKind.LLVMStructTypeKind;
+
             case LLVMTypeKind.LLVMArrayTypeKind:
             case LLVMTypeKind.LLVMStructTypeKind:
-            case LLVMTypeKind.LLVMVectorTypeKind:
                 ILGenerator.Emit(OpCodes.Ldobj, TypeSystem.GetMsilType(typeRef));
                 break;
 
