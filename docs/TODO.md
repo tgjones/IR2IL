@@ -44,7 +44,27 @@ Each test case currently:
 - [x] Moved to MSTest 4.5.3 with Microsoft.Testing.Platform (`MSTest.Sdk`, opted in via `global.json`). Measured on the 414-test `CTestSuite`: run time unchanged (~6 s), discovery ~0.4 s faster. Kept for the future direction of .NET testing and extensions such as `--hangdump`.
 
 ### Coverage and visibility
-- [ ] **Add small hand-written `.ll` tests per instruction/intrinsic** (started in `HandWrittenIRTests.cs`, which builds each file with clang as the oracle and compares exit code, stdout and stderr; covers load/store reordering, narrow and wide integers, vector `icmp` and masks, scalar `float`/`double` arithmetic and `fptosi`/`fptoui`/`fpext`/`fptrunc`) (with expected output) that run without clang. They'd be fast and precise, and could cover the bugs listed above: ULE, unsigned vector compares, negative const GEPs, `i40` signed compares, `fcmp` NaN cases, and load/store reordering.
+- [ ] **Add small hand-written `.ll` tests per instruction/intrinsic.** `HandWrittenIRTests.cs` builds every `tests/hand-written/*.ll` file twice, with IR2IL and with clang, and compares exit code, stdout and stderr, so a test needs no expected value: it prints its results or returns a failing code. A file must avoid undefined behaviour and poison, since clang and IR2IL may legitimately differ there. Most files are written by a script in `tests/generators/`. A test that exposes a bug is not committed until the bug is fixed.
+  - [x] Harness: clang as the oracle; the `; exit-code:` comments are gone
+  - [x] Integers: `i1`/`i8`/`i16`/`i24`/`i40` crossed with every consumer, `i65`+ unnormalised, exact-width loads and stores, narrow constants, `inttoptr`, GEP with a narrow index
+  - [x] Vector `icmp` (all integer predicates), mask flow, padded lanes, `zext` of `sbyte` lanes
+  - [x] Memory ordering: load/store reordering, `memcpy`, `switch` on an inlined expression
+  - [x] Scalar `float`/`double` arithmetic (`fadd`, `fsub`, `fmul`, `fdiv`, `frem`, `fneg`): `float_arithmetic.ll`
+  - [x] Scalar float conversions (`fptosi`, `fptoui`, `fpext`, `fptrunc`): `float_conversions.ll`
+  - [x] Scalar `fcmp`, all 16 predicates stored, as a `br` and as a `select` condition: `float_fcmp.ll` (found and fixed missing predicates and NaN in `oge`/`ole`/`uge`/`ule`)
+  - [x] Vector `fcmp` predicates: found and fixed (all 16, with NaN)
+  - [ ] `vector_float_fcmp.ll` passes: only `sext <3 x i8>` to `<3 x i32>` (the `<3 x float>` cases) still fails
+  - [ ] `vector_float_arithmetic.ll` passes: vector `frem` for 3, 8 and 16 lanes still fails
+  - [ ] `vector_float_conversions.ll` passes: about 10 `fptosi`/`fptoui` and 5 `sitofp`/`uitofp` shapes still fail (see the vector conversions item below). `fptosi`/`fptoui` from `<2 x double>` to `<2 x i32>` is fixed
+  - [ ] Scalar and vector `sitofp`/`uitofp` over their full ranges (the scalar conversions file has `fptosi`/`fptoui`/`fpext`/`fptrunc` only)
+  - [ ] GEP and aggregates: struct and array GEPs, negative constant offsets, `extractvalue`/`insertvalue`, `ptrtoint`/`inttoptr`
+  - [ ] `atomicrmw` (every operation), `unreachable`, calls with mixed argument types, globals and constant expressions
+  - [ ] Intrinsics, one generated test per family, across their overloads:
+    - [ ] math (`sqrt`, `sin`, `cos`, `tan`, `asin`, `acos`, `atan`, `atan2`, `sinh`, `cosh`, `tanh`, `exp`, `log`, `log10`, `pow`, `fabs`, `ceil`, `copysign`, `fmuladd`, `is.fpclass`)
+    - [ ] integer (`abs`, `smin`/`smax`/`umin`/`umax`, `scmp`, `ctpop`, `usub.sat`)
+    - [ ] vector reductions (`vector.reduce.add`/`mul`/`fadd`/`smax`)
+    - [ ] memory (`memcpy`, `memmove`, `memset`)
+    - [ ] stack and varargs (`stacksave`/`stackrestore`, `va_start`) and the housekeeping ones (`lifetime`, `dbg`, `assume`, `objectsize`, `threadlocal.address`)
 - [ ] **Expand the Fujitsu suite beyond directory `0020`.** Only about 2.6k of its 21k C files are used (`<= 0020` filter). Add directories one at a time and track the pass rate per directory.
 - [ ] **Make excluded tests visible.** Move the large `switch` ignore lists in `CompilerTests.cs` into a data file (test id, platform, reason). Report excluded tests as `Inconclusive`/skipped rather than silently dropping them, so tests that start passing get noticed and the reasons stay reviewable.
 - [ ] **Re-check stale exclusions.** Several ignore comments mention MSVC-specific problems but apply on all platforms (e.g. `0005_0005`, `0005_0006`, `0014_*` bitfields, `0016_*`/`0018_*` `_Complex`), so they could run on macOS. Similarly, `0021_*` (`extern int printf(...)`) is excluded everywhere but the comment is Windows-specific.
@@ -74,7 +94,8 @@ Each test case currently:
 - [ ] `sdiv`/`srem` with `INT_MIN / -1` and division by zero throw .NET exceptions. That's UB in C, so acceptable, but document it.
 
 ### Floating point
-- [ ] **[bug] Vector `fcmp` predicates.** Scalar `fcmp` is done: `EmitFloatComparison` handles all 16 predicates for stored and branch conditions, and `float_fcmp.ll` checks them against clang with NaN operands (it fixed `false`/`true`/`ord`/`ugt`/`one` in branches, and NaN in stored `oge`/`ole`/`uge`/`ule`). Vector: only OEQ/OGT/OLT/UGE/UNE exist, and vector `UGE` uses `GreaterThanOrEqual`, which is *ordered* (wrong for NaN). Build a table-driven implementation covering all 16 predicates for vectors, with NaN tests.
+- [ ] **[bug] Vector conversions and `frem` need a helper per shape.** The emitter names a `VectorUtility` method from the opcode and the two types (`FPToSIV4F32ToV4I32`) and fails with `Method X not found` for any shape nobody wrote: vector `frem` (`SignedRemainderV3F32`, `V8F32`, `V16F32`, `V4F64`, `V8F64`), `fptosi`/`fptoui` (`V2F32ToV2I32`, `V4F32ToV4I16`, `V8F32ToV8I32`, `V4F64ToV4I64`, `V2F64ToV2I64`), `sitofp`/`uitofp` (`V4I16ToV4F32`, `V8I32ToV8F32`, `V4I64ToV4F64`) and `sext <3 x i8>` to `<3 x i32>`. Plan: compose every conversion in the emitter from `WidenLower`/`WidenUpper`/`Narrow` (a lane width change of 2), `ConvertTo*` (a change of kind at one lane width) and `GetLower`/`GetUpper`/`Create` (container size), emitted inline so it is as fast as the helpers, then delete the per-shape helpers. Vector `frem` has no SIMD form, so it stays a per-lane loop, written once and generic. `vector_float_conversions.ll` and `vector_float_arithmetic.ll` are the tests.
+  - **Known deviation:** a vector `sitofp`/`uitofp` from 64-bit integers to `float` goes through `double`, which rounds twice, because .NET has no direct `ConvertToSingle` for 64-bit lanes. `2^60 + 2^36 + 1` becomes `0x5d800000`, and a single rounding gives `0x5d800001`. LLVM's ARM64 backend lowers it the same way, so clang agrees with IR2IL on this machine and the clang-oracle tests cannot see it, but the scalar `sitofp` is correct and native code for another target may differ. The tests avoid such values. Do not add a special case without a decision: it would need a round-to-odd step or a per-lane scalar conversion.
 - [ ] **[bug] `undef`/`poison` of `double` and `i128` types throw** in `EmitConstantValue` (only `float` and integers up to 64 bits are handled).
 - [ ] **[gap]** `half`, `bfloat`, `fp128`, `x86_fp80` types (`0022_*` Fujitsu tests are excluded for `half`).
 
