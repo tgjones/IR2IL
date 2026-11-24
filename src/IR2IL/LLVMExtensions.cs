@@ -253,13 +253,6 @@ internal static partial class LLVMExtensions
         return LLVM.ValueAsMetadata(value);
     }
 
-    public static unsafe LLVMMetadataRef GetMetadata(this LLVMValueRef value, string name)
-    {
-        using var marshaledName = new MarshaledString(name);
-        var kindID = LLVM.GetMDKindID(marshaledName.Value, (uint)marshaledName.Length);
-        return value.GetMetadata(kindID).AsMetadata();
-    }
-
     public static unsafe LLVMMetadataKind GetMetadataKind(this LLVMMetadataRef metadata)
         => (LLVMMetadataKind)LLVM.GetMetadataKind(metadata);
 

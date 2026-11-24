@@ -6,9 +6,9 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <PackageReference Include="LLVMSharp.Interop" Version="20.1.2" />
-    <PackageReference Include="libLLVM.runtime.win-x64" Version="20.1.2" Condition="$([MSBuild]::IsOSPlatform('Windows'))" />
-    <PackageReference Include="libLLVM.runtime.osx-arm64" Version="20.1.2" Condition="$([MSBuild]::IsOSPlatform('OSX'))" />
+    <PackageReference Include="LLVMSharp.Interop" Version="21.1.8.1" />
+    <PackageReference Include="libLLVM.runtime.win-x64" Version="21.1.8" Condition="$([MSBuild]::IsOSPlatform('Windows'))" />
+    <PackageReference Include="libLLVM.runtime.osx-arm64" Version="21.1.8" Condition="$([MSBuild]::IsOSPlatform('OSX'))" />
   </ItemGroup>
 
   <ItemGroup>
