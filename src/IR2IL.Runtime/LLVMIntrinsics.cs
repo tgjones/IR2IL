@@ -31,40 +31,37 @@ public static unsafe class LLVMIntrinsics
         return a > b || a < b;
     }
 
+    /// <summary>
+    /// <c>llvm.experimental.vector.partial.reduce.add.v4i32.v16i32</c>: adds the lanes of <paramref name="vector"/> into
+    /// the lanes of <paramref name="accumulator"/>. LLVM leaves the grouping of the lanes open, so lane <c>i</c>
+    /// takes the lanes <c>i</c>, <c>i + 4</c>, <c>i + 8</c> and <c>i + 12</c>.
+    /// </summary>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static Vector64<short> VectorShiftRightLogical(Vector64<short> vector, Vector64<short> count)
+    public static Vector128<int> VectorPartialReduceAddV4I32V16I32(Vector128<int> accumulator, Vector512<int> vector)
     {
-        return Vector64.Create(
-            (short)((ushort)vector[0] >> count[0]),
-            (short)((ushort)vector[1] >> count[1]),
-            (short)((ushort)vector[2] >> count[2]),
-            (short)((ushort)vector[3] >> count[3]));
+        var half = vector.GetLower() + vector.GetUpper();
+        return accumulator + half.GetLower() + half.GetUpper();
     }
 
+    /// <summary>
+    /// <c>llvm.experimental.cttz.elts.i64.v2i1</c>: the number of lanes before the first one that is true, or 2 when none
+    /// is. The mask is a <c>Vector64&lt;sbyte&gt;</c> whose lanes after the real two are undefined, and a lane is true when
+    /// its low bit is set. When <paramref name="isZeroPoison"/> is set, a mask with no true lane is poison, so 2 is fine.
+    /// </summary>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static Vector64<int> VectorShiftRightLogical(Vector64<int> vector, Vector64<int> count)
+    public static long CttzElemsV2I1(Vector64<sbyte> mask, bool isZeroPoison)
     {
-        if (Avx2.IsSupported)
-        {
-            return Avx2.ShiftRightLogicalVariable(vector.ToVector128(), count.AsUInt32().ToVector128()).GetLower();
-        }
-        else
-        {
-            throw new PlatformNotSupportedException();
-        }
+        return (mask[0] & 1) != 0 ? 0 : (mask[1] & 1) != 0 ? 1 : 2;
     }
 
-    [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static Vector128<int> VectorShiftRightLogical(Vector128<int> vector, Vector128<int> count)
+    /// <summary>
+    /// <c>llvm.experimental.memset.pattern</c>: stores <paramref name="count"/> copies of <paramref name="pattern"/>
+    /// from <paramref name="destination"/>. <paramref name="count"/> is a number of elements, not of bytes.
+    /// </summary>
+    public static void MemSetPattern<T>(void* destination, T pattern, long count)
+        where T : unmanaged
     {
-        if (Avx2.IsSupported)
-        {
-            return Avx2.ShiftRightLogicalVariable(vector, count.AsUInt32());
-        }
-        else
-        {
-            throw new PlatformNotSupportedException();
-        }
+        new Span<T>(destination, checked((int)count)).Fill(pattern);
     }
 
     public static bool IsFPClassF32(float value, int mask)

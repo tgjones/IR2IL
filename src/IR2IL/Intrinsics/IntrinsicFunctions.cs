@@ -134,6 +134,8 @@ internal static class IntrinsicFunctions
         { "llvm.vector.reduce.mul.v4i32", StandardIntrinsicFunction.Create(typeof(LLVMIntrinsics), nameof(Runtime.LLVMIntrinsics.VectorReduceMulV4I32)) },
         { "llvm.vector.reduce.mul.v16i8", StandardIntrinsicFunction.Create(typeof(LLVMIntrinsics), nameof(Runtime.LLVMIntrinsics.VectorReduceMulV16I8)) },
         { "llvm.vector.reduce.mul.v16i16", StandardIntrinsicFunction.Create(typeof(LLVMIntrinsics), nameof(Runtime.LLVMIntrinsics.VectorReduceMulV16I16)) },
+        { "llvm.experimental.vector.partial.reduce.add.v4i32.v16i32", StandardIntrinsicFunction.Create(typeof(LLVMIntrinsics), nameof(Runtime.LLVMIntrinsics.VectorPartialReduceAddV4I32V16I32)) },
+        { "llvm.experimental.cttz.elts.i64.v2i1", StandardIntrinsicFunction.Create(typeof(LLVMIntrinsics), nameof(Runtime.LLVMIntrinsics.CttzElemsV2I1)) },
         { "llvm.vector.reduce.smax.v4i32", StandardIntrinsicFunction.Create(typeof(LLVMIntrinsics), nameof(Runtime.LLVMIntrinsics.VectorReduceSMaxV4I32)) },
 
         // Irregular intrinsics.
@@ -141,6 +143,11 @@ internal static class IntrinsicFunctions
         { "llvm.memcpy.p0.p0.i64", new LLVMMemCpyI64IntrinsicFunction() },
         { "llvm.memmove.p0.p0.i64", new LLVMMemCpyI64IntrinsicFunction() },
         { "llvm.memset.p0.i64", new LLVMMemSetI64IntrinsicFunction() },
+        { "llvm.experimental.memset.pattern.p0.i16.i64", new LLVMMemSetPatternIntrinsicFunction(typeof(short)) },
+        { "llvm.experimental.memset.pattern.p0.i32.i64", new LLVMMemSetPatternIntrinsicFunction(typeof(int)) },
+        { "llvm.experimental.memset.pattern.p0.i64.i64", new LLVMMemSetPatternIntrinsicFunction(typeof(long)) },
+        { "llvm.experimental.memset.pattern.p0.f32.i64", new LLVMMemSetPatternIntrinsicFunction(typeof(float)) },
+        { "llvm.experimental.memset.pattern.p0.f64.i64", new LLVMMemSetPatternIntrinsicFunction(typeof(double)) },
         { "llvm.stacksave", new LLVMStackSaveIntrinsicFunction() },
         { "llvm.stacksave.p0", new LLVMStackSaveIntrinsicFunction() },
         { "llvm.threadlocal.address.p0", new LLVMThreadLocalAddressIntrinsicFunction() },

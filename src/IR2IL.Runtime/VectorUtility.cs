@@ -272,6 +272,65 @@ public static class VectorUtility
         return result;
     }
 
+    // VariableShift*
+    // `shl`, `ashr` and `lshr` of vectors by a vector of counts that are not all the same. A count of the lane
+    // width or more is poison, so any result will do. As for Remainder, one generic method serves every vector type
+    // and lane type, and only the real lanes are computed.
+
+    /// <param name="laneCount">The number of lanes of the LLVM vector (not of <typeparamref name="TVector"/>).</param>
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    public static TVector VariableShiftLeft<TVector, TLane>(TVector value, TVector count, int laneCount)
+        where TVector : struct
+        where TLane : struct, IBinaryInteger<TLane>
+    {
+        var result = default(TVector);
+        ref var v = ref Unsafe.As<TVector, TLane>(ref value);
+        ref var c = ref Unsafe.As<TVector, TLane>(ref count);
+        ref var o = ref Unsafe.As<TVector, TLane>(ref result);
+        for (var i = 0; i < laneCount; i++)
+        {
+            Unsafe.Add(ref o, i) = Unsafe.Add(ref v, i) << int.CreateTruncating(Unsafe.Add(ref c, i));
+        }
+
+        return result;
+    }
+
+    /// <inheritdoc cref="VariableShiftLeft{TVector, TLane}"/>
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    public static TVector VariableShiftRightArithmetic<TVector, TLane>(TVector value, TVector count, int laneCount)
+        where TVector : struct
+        where TLane : struct, IBinaryInteger<TLane>
+    {
+        var result = default(TVector);
+        ref var v = ref Unsafe.As<TVector, TLane>(ref value);
+        ref var c = ref Unsafe.As<TVector, TLane>(ref count);
+        ref var o = ref Unsafe.As<TVector, TLane>(ref result);
+        for (var i = 0; i < laneCount; i++)
+        {
+            Unsafe.Add(ref o, i) = Unsafe.Add(ref v, i) >> int.CreateTruncating(Unsafe.Add(ref c, i));
+        }
+
+        return result;
+    }
+
+    /// <inheritdoc cref="VariableShiftLeft{TVector, TLane}"/>
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    public static TVector VariableShiftRightLogical<TVector, TLane>(TVector value, TVector count, int laneCount)
+        where TVector : struct
+        where TLane : struct, IBinaryInteger<TLane>
+    {
+        var result = default(TVector);
+        ref var v = ref Unsafe.As<TVector, TLane>(ref value);
+        ref var c = ref Unsafe.As<TVector, TLane>(ref count);
+        ref var o = ref Unsafe.As<TVector, TLane>(ref result);
+        for (var i = 0; i < laneCount; i++)
+        {
+            Unsafe.Add(ref o, i) = Unsafe.Add(ref v, i) >>> int.CreateTruncating(Unsafe.Add(ref c, i));
+        }
+
+        return result;
+    }
+
     // MaskFromBits: bitcast iN to <N x i1>. Lane i is all ones (-1) when bit i is set, 0 otherwise,
     // the same representation as the result of a vector comparison.
 

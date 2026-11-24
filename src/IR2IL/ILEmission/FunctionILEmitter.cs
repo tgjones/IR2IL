@@ -1564,6 +1564,31 @@ internal sealed partial class FunctionILEmitter : ILEmitter
         }
     }
 
+    /// <summary>
+    /// The distinct shift counts of a constant vector, ignoring <c>undef</c> and <c>poison</c> lanes, or
+    /// <see langword="null"/> when <paramref name="operand"/> is not a constant vector.
+    /// </summary>
+    private static List<int>? GetConstantShiftCounts(LLVMValueRef operand)
+    {
+        switch (operand.Kind)
+        {
+            case LLVMValueKind.LLVMConstantAggregateZeroValueKind:
+                return [0];
+
+            case LLVMValueKind.LLVMConstantDataVectorValueKind:
+            case LLVMValueKind.LLVMConstantVectorValueKind:
+                return Enumerable.Range(0, (int)operand.TypeOf.VectorSize)
+                    .Select(j => operand.GetAggregateElement((uint)j))
+                    .Where(element => element.Kind == LLVMValueKind.LLVMConstantIntValueKind)
+                    .Select(element => (int)element.ConstIntSExt)
+                    .Distinct()
+                    .ToList();
+
+            default:
+                return null;
+        }
+    }
+
     private void EmitUnaryOrBinaryOperation(
         LLVMValueRef instruction,
         OpCode scalarOpCode,
@@ -1597,38 +1622,17 @@ internal sealed partial class FunctionILEmitter : ILEmitter
                     case nameof(Vector128.ShiftRightLogical):
                         if (i == 1)
                         {
-                            // Amount to shift by. We currently only support constant values,
-                            // where all values in the vector are the same constant.
-                            switch (operand.Kind)
+                            // Amount to shift by. A constant with the same value in every defined lane (undef lanes
+                            // don't count) is a scalar count; anything else is a vector of counts.
+                            var counts = GetConstantShiftCounts(operand);
+                            if (counts is { Count: <= 1 })
                             {
-                                case LLVMValueKind.LLVMConstantDataVectorValueKind:
-                                    var firstValue = operand.GetAggregateElement(0);
-                                    var firstValueConstant = firstValue.Kind switch
-                                    {
-                                        LLVMValueKind.LLVMConstantIntValueKind => (int)firstValue.ConstIntSExt,
-                                        _ => throw new NotImplementedException(),
-                                    };
-                                    for (var j = 1u; j < operand.TypeOf.VectorSize; j++)
-                                    {
-                                        var value = operand.GetAggregateElement(j);
-                                        if (firstValueConstant != (int)value.ConstIntSExt)
-                                        {
-                                            isVectorShiftWithVectorCount = true;
-                                            break;
-                                        }
-                                    }
-                                    if (isVectorShiftWithVectorCount)
-                                    {
-                                        EmitValue(operand);
-                                    }
-                                    else
-                                    {
-                                        ILGenerator.Emit(OpCodes.Ldc_I4, firstValueConstant);
-                                    }
-                                    break;
-
-                                default:
-                                    throw new NotImplementedException();
+                                ILGenerator.Emit(OpCodes.Ldc_I4, counts.FirstOrDefault());
+                            }
+                            else
+                            {
+                                isVectorShiftWithVectorCount = true;
+                                EmitValue(operand);
                             }
                         }
                         else
@@ -1676,7 +1680,9 @@ internal sealed partial class FunctionILEmitter : ILEmitter
                         var vectorType = TypeSystem.GetMsilType(instruction.TypeOf);
                         if (isVectorShiftWithVectorCount)
                         {
-                            vectorMethod = typeof(LLVMIntrinsics).GetMethodStrict($"Vector{vectorMethodName}", [vectorType, vectorType]);
+                            ILGenerator.Emit(OpCodes.Ldc_I4, (int)instruction.TypeOf.VectorSize);
+                            vectorMethod = typeof(VectorUtility).GetStaticMethodStrict($"Variable{vectorMethodName}")
+                                .MakeGenericMethod(vectorType, TypeSystem.GetMsilVectorElementType(instruction.TypeOf.ElementType));
                         }
                         else
                         {
