@@ -54,7 +54,7 @@ Each test case currently:
   - [x] Scalar `fcmp`, all 16 predicates stored, as a `br` and as a `select` condition: `float_fcmp.ll` (found and fixed missing predicates and NaN in `oge`/`ole`/`uge`/`ule`)
   - [x] Vector `fcmp` predicates: found and fixed (all 16, with NaN)
   - [x] `vector_float_fcmp.ll`, `vector_float_arithmetic.ll` and `vector_float_conversions.ll` pass (all 16 `fcmp` predicates, `fadd`/`fsub`/`fmul`/`fdiv`/`frem`/`fneg`, every float/integer conversion, over 2 to 16 lanes of `float` and `double` including the padded `<3 x float>`)
-  - [ ] Scalar and vector `sitofp`/`uitofp` over their full ranges (the scalar conversions file has `fptosi`/`fptoui`/`fpext`/`fptrunc` only)
+  - [x] Scalar and vector `sitofp`/`uitofp` over their full ranges: from `i8`/`i16`/`i32`/`i64` to `float` and `double` (2 to 16 lanes, and `<3 x i32>`), over the limits, powers of two and the values around the ties that must round to even (`float_conversions.ll`, `vector_float_conversions.ll`; found the double rounding of vector `i64` to `float` once the pin moved to LLVM 21)
   - [x] Vector `shl`/`lshr`/`ashr` by a vector of different counts, over `i8` to `i64` lanes and 2 to 32 lanes: `vector_variable_shifts.ll` (ARM64 uses `USHL`/`SSHL`; the AVX2 and AVX-512 paths in `VectorUtility.TryShiftWithHardware` have never been run, as the machine they were written on is ARM64, so check that CI covers them)
   - [ ] GEP and aggregates: struct and array GEPs, negative constant offsets, `extractvalue`/`insertvalue`, `ptrtoint`/`inttoptr`
   - [ ] `atomicrmw` (every operation), `unreachable`, calls with mixed argument types, globals and constant expressions
