@@ -274,6 +274,89 @@ public static class VectorUtility
         return result;
     }
 
+    // ConvertInt64ToSingle, ConvertUInt64ToSingle
+    // `sitofp` and `uitofp` of 64-bit lanes to float. Converting to double first would round twice. AVX-512 DQ has
+    // one rounding conversion for 2, 4 and 8 lanes; ARM64 has none (its vector conversion doesn't narrow), and nor
+    // do other x64 CPUs, so there each lane is converted on its own, which is what LLVM does.
+
+    /// <param name="laneCount">The number of lanes of the LLVM vector (not of <typeparamref name="TVector"/>).</param>
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    public static TResult ConvertInt64ToSingle<TVector, TResult>(TVector value, int laneCount)
+        where TVector : struct
+        where TResult : struct
+    {
+        if (Avx512DQ.VL.IsSupported)
+        {
+            // The result of 2 lanes is a Vector64<float>, the lower half of the Vector128<float> of the instruction.
+            if (Unsafe.SizeOf<TVector>() == 16 && Unsafe.SizeOf<TResult>() == 8)
+            {
+                return Unsafe.BitCast<Vector64<float>, TResult>(
+                    Avx512DQ.VL.ConvertToVector128Single(Unsafe.BitCast<TVector, Vector128<long>>(value)).GetLower());
+            }
+
+            if (Unsafe.SizeOf<TVector>() == 32 && Unsafe.SizeOf<TResult>() == 16)
+            {
+                return Unsafe.BitCast<Vector128<float>, TResult>(
+                    Avx512DQ.VL.ConvertToVector128Single(Unsafe.BitCast<TVector, Vector256<long>>(value)));
+            }
+        }
+
+        if (Avx512DQ.IsSupported && Unsafe.SizeOf<TVector>() == 64 && Unsafe.SizeOf<TResult>() == 32)
+        {
+            return Unsafe.BitCast<Vector256<float>, TResult>(
+                Avx512DQ.ConvertToVector256Single(Unsafe.BitCast<TVector, Vector512<long>>(value)));
+        }
+
+        var result = default(TResult);
+        ref var v = ref Unsafe.As<TVector, long>(ref value);
+        ref var o = ref Unsafe.As<TResult, float>(ref result);
+        for (var i = 0; i < laneCount; i++)
+        {
+            Unsafe.Add(ref o, i) = Unsafe.Add(ref v, i);
+        }
+
+        return result;
+    }
+
+    /// <inheritdoc cref="ConvertInt64ToSingle{TVector, TResult}"/>
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    public static TResult ConvertUInt64ToSingle<TVector, TResult>(TVector value, int laneCount)
+        where TVector : struct
+        where TResult : struct
+    {
+        if (Avx512DQ.VL.IsSupported)
+        {
+            // The result of 2 lanes is a Vector64<float>, the lower half of the Vector128<float> of the instruction.
+            if (Unsafe.SizeOf<TVector>() == 16 && Unsafe.SizeOf<TResult>() == 8)
+            {
+                return Unsafe.BitCast<Vector64<float>, TResult>(
+                    Avx512DQ.VL.ConvertToVector128Single(Unsafe.BitCast<TVector, Vector128<ulong>>(value)).GetLower());
+            }
+
+            if (Unsafe.SizeOf<TVector>() == 32 && Unsafe.SizeOf<TResult>() == 16)
+            {
+                return Unsafe.BitCast<Vector128<float>, TResult>(
+                    Avx512DQ.VL.ConvertToVector128Single(Unsafe.BitCast<TVector, Vector256<ulong>>(value)));
+            }
+        }
+
+        if (Avx512DQ.IsSupported && Unsafe.SizeOf<TVector>() == 64 && Unsafe.SizeOf<TResult>() == 32)
+        {
+            return Unsafe.BitCast<Vector256<float>, TResult>(
+                Avx512DQ.ConvertToVector256Single(Unsafe.BitCast<TVector, Vector512<ulong>>(value)));
+        }
+
+        var result = default(TResult);
+        ref var v = ref Unsafe.As<TVector, ulong>(ref value);
+        ref var o = ref Unsafe.As<TResult, float>(ref result);
+        for (var i = 0; i < laneCount; i++)
+        {
+            Unsafe.Add(ref o, i) = Unsafe.Add(ref v, i);
+        }
+
+        return result;
+    }
+
     // VariableShift*
     // `shl`, `ashr` and `lshr` of vectors by a vector of counts that are not all the same. A count of the lane
     // width or more is poison, so any result will do. As for Remainder, one generic method serves every vector type

@@ -2,6 +2,7 @@ using System;
 using System.Reflection.Emit;
 using System.Runtime.Intrinsics;
 using IR2IL.Helpers;
+using IR2IL.Runtime;
 using LLVMSharp.Interop;
 
 namespace IR2IL.ILEmission;
@@ -31,8 +32,8 @@ internal sealed partial class FunctionILEmitter
     /// <item><c>sitofp</c>, <c>uitofp</c>, <c>fptosi</c>, <c>fptoui</c>: widen the source to the wider lane width,
     /// convert the kind there (<c>ConvertToDouble</c> of an <c>i16</c> lane widened to <c>i64</c>), narrow the result.</item>
     /// </list>
-    /// <c>i64</c> lanes to <c>float</c> are converted to <c>double</c> first, because the BCL has no direct conversion,
-    /// which rounds twice (see the vector conversions item of docs/TODO.md).
+    /// <c>i64</c> lanes to <c>float</c> are converted one lane at a time, because the BCL has no vector conversion for
+    /// them and going through <c>double</c> would round twice.
     /// </summary>
     private void EmitVectorLaneConversion(LLVMOpcode opcode, LLVMTypeRef fromType, LLVMTypeRef toType)
     {
@@ -40,6 +41,15 @@ internal sealed partial class FunctionILEmitter
         var sourceLane = TypeSystem.GetMsilVectorElementType(fromType.ElementType);
         var destinationLane = TypeSystem.GetMsilVectorElementType(toType.ElementType);
         var destinationBits = GetLaneBits(destinationLane);
+
+        if (opcode is LLVMOpcode.LLVMSIToFP or LLVMOpcode.LLVMUIToFP && GetLaneBits(sourceLane) == 64 && destinationLane == typeof(float))
+        {
+            ILGenerator.Emit(OpCodes.Ldc_I4, laneCount);
+            ILGenerator.Emit(OpCodes.Call, typeof(VectorUtility)
+                .GetStaticMethodStrict(opcode == LLVMOpcode.LLVMSIToFP ? nameof(VectorUtility.ConvertInt64ToSingle) : nameof(VectorUtility.ConvertUInt64ToSingle))
+                .MakeGenericMethod(TypeSystem.GetMsilType(fromType), TypeSystem.GetMsilType(toType)));
+            return;
+        }
 
         // The lanes are signed (or floating point) in our representation; zero extension and unsigned
         // conversions work on the unsigned type of the same width.
