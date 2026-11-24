@@ -55,6 +55,7 @@ Each test case currently:
   - [x] Vector `fcmp` predicates: found and fixed (all 16, with NaN)
   - [x] `vector_float_fcmp.ll`, `vector_float_arithmetic.ll` and `vector_float_conversions.ll` pass (all 16 `fcmp` predicates, `fadd`/`fsub`/`fmul`/`fdiv`/`frem`/`fneg`, every float/integer conversion, over 2 to 16 lanes of `float` and `double` including the padded `<3 x float>`)
   - [ ] Scalar and vector `sitofp`/`uitofp` over their full ranges (the scalar conversions file has `fptosi`/`fptoui`/`fpext`/`fptrunc` only)
+  - [x] Vector `shl`/`lshr`/`ashr` by a vector of different counts, over `i8` to `i64` lanes and 2 to 32 lanes: `vector_variable_shifts.ll` (ARM64 uses `USHL`/`SSHL`; the AVX2 and AVX-512 paths in `VectorUtility.TryShiftWithHardware` have never been run, as the machine they were written on is ARM64, so check that CI covers them)
   - [ ] GEP and aggregates: struct and array GEPs, negative constant offsets, `extractvalue`/`insertvalue`, `ptrtoint`/`inttoptr`
   - [ ] `atomicrmw` (every operation), `unreachable`, calls with mixed argument types, globals and constant expressions
   - [ ] Intrinsics, one generated test per family, across their overloads:

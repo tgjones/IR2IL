@@ -1,6 +1,8 @@
 using System.Numerics;
 using System.Runtime.CompilerServices;
 using System.Runtime.Intrinsics;
+using System.Runtime.Intrinsics.Arm;
+using System.Runtime.Intrinsics.X86;
 
 namespace IR2IL.Runtime;
 
@@ -283,6 +285,11 @@ public static class VectorUtility
         where TVector : struct
         where TLane : struct, IBinaryInteger<TLane>
     {
+        if (TryShiftWithHardware<TVector, TLane>(LeftShift, value, count, out var hardwareResult))
+        {
+            return hardwareResult;
+        }
+
         var result = default(TVector);
         ref var v = ref Unsafe.As<TVector, TLane>(ref value);
         ref var c = ref Unsafe.As<TVector, TLane>(ref count);
@@ -301,6 +308,11 @@ public static class VectorUtility
         where TVector : struct
         where TLane : struct, IBinaryInteger<TLane>
     {
+        if (TryShiftWithHardware<TVector, TLane>(ArithmeticRightShift, value, count, out var hardwareResult))
+        {
+            return hardwareResult;
+        }
+
         var result = default(TVector);
         ref var v = ref Unsafe.As<TVector, TLane>(ref value);
         ref var c = ref Unsafe.As<TVector, TLane>(ref count);
@@ -319,6 +331,11 @@ public static class VectorUtility
         where TVector : struct
         where TLane : struct, IBinaryInteger<TLane>
     {
+        if (TryShiftWithHardware<TVector, TLane>(LogicalRightShift, value, count, out var hardwareResult))
+        {
+            return hardwareResult;
+        }
+
         var result = default(TVector);
         ref var v = ref Unsafe.As<TVector, TLane>(ref value);
         ref var c = ref Unsafe.As<TVector, TLane>(ref count);
@@ -330,6 +347,188 @@ public static class VectorUtility
 
         return result;
     }
+
+    private const int LeftShift = 0;
+    private const int ArithmeticRightShift = 1;
+    private const int LogicalRightShift = 2;
+
+    /// <summary>
+    /// Shifts every lane by the count in the same lane of <paramref name="count"/> with a SIMD instruction, when the
+    /// CPU has one for this vector and lane type. ARM64 shifts all of them (<c>USHL</c> and <c>SSHL</c> take signed
+    /// counts, so a right shift negates the count). AVX2 shifts <c>int</c> and <c>long</c> lanes of 128 and 256 bits,
+    /// and AVX-512 adds the arithmetic shift of <c>long</c> lanes. Anything else is left to the caller's loop.
+    /// A count of the lane width or more is poison, so the different results of the instructions don't matter.
+    /// The padding lanes of a vector may hold anything and are shifted too, which is harmless.
+    /// </summary>
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    private static bool TryShiftWithHardware<TVector, TLane>(int kind, TVector value, TVector count, out TVector result)
+        where TVector : struct
+        where TLane : struct
+    {
+        if (AdvSimd.IsSupported)
+        {
+            if (Unsafe.SizeOf<TVector>() == 16)
+            {
+                if (typeof(TLane) == typeof(sbyte))
+                {
+                    result = Unsafe.BitCast<Vector128<sbyte>, TVector>(ShiftArm(kind, Unsafe.BitCast<TVector, Vector128<sbyte>>(value), Unsafe.BitCast<TVector, Vector128<sbyte>>(count)));
+                    return true;
+                }
+
+                if (typeof(TLane) == typeof(short))
+                {
+                    result = Unsafe.BitCast<Vector128<short>, TVector>(ShiftArm(kind, Unsafe.BitCast<TVector, Vector128<short>>(value), Unsafe.BitCast<TVector, Vector128<short>>(count)));
+                    return true;
+                }
+
+                if (typeof(TLane) == typeof(int))
+                {
+                    result = Unsafe.BitCast<Vector128<int>, TVector>(ShiftArm(kind, Unsafe.BitCast<TVector, Vector128<int>>(value), Unsafe.BitCast<TVector, Vector128<int>>(count)));
+                    return true;
+                }
+
+                if (typeof(TLane) == typeof(long))
+                {
+                    result = Unsafe.BitCast<Vector128<long>, TVector>(ShiftArm(kind, Unsafe.BitCast<TVector, Vector128<long>>(value), Unsafe.BitCast<TVector, Vector128<long>>(count)));
+                    return true;
+                }
+            }
+            else if (Unsafe.SizeOf<TVector>() == 8)
+            {
+                if (typeof(TLane) == typeof(sbyte))
+                {
+                    result = Unsafe.BitCast<Vector64<sbyte>, TVector>(ShiftArm(kind, Unsafe.BitCast<TVector, Vector64<sbyte>>(value), Unsafe.BitCast<TVector, Vector64<sbyte>>(count)));
+                    return true;
+                }
+
+                if (typeof(TLane) == typeof(short))
+                {
+                    result = Unsafe.BitCast<Vector64<short>, TVector>(ShiftArm(kind, Unsafe.BitCast<TVector, Vector64<short>>(value), Unsafe.BitCast<TVector, Vector64<short>>(count)));
+                    return true;
+                }
+
+                if (typeof(TLane) == typeof(int))
+                {
+                    result = Unsafe.BitCast<Vector64<int>, TVector>(ShiftArm(kind, Unsafe.BitCast<TVector, Vector64<int>>(value), Unsafe.BitCast<TVector, Vector64<int>>(count)));
+                    return true;
+                }
+            }
+        }
+        else if (Avx2.IsSupported)
+        {
+            if (Unsafe.SizeOf<TVector>() == 16)
+            {
+                if (typeof(TLane) == typeof(int))
+                {
+                    result = Unsafe.BitCast<Vector128<int>, TVector>(ShiftX86(kind, Unsafe.BitCast<TVector, Vector128<int>>(value), Unsafe.BitCast<TVector, Vector128<int>>(count)));
+                    return true;
+                }
+
+                if (typeof(TLane) == typeof(long) && (kind != ArithmeticRightShift || Avx512F.VL.IsSupported))
+                {
+                    result = Unsafe.BitCast<Vector128<long>, TVector>(ShiftX86(kind, Unsafe.BitCast<TVector, Vector128<long>>(value), Unsafe.BitCast<TVector, Vector128<long>>(count)));
+                    return true;
+                }
+            }
+            else if (Unsafe.SizeOf<TVector>() == 32)
+            {
+                if (typeof(TLane) == typeof(int))
+                {
+                    result = Unsafe.BitCast<Vector256<int>, TVector>(ShiftX86(kind, Unsafe.BitCast<TVector, Vector256<int>>(value), Unsafe.BitCast<TVector, Vector256<int>>(count)));
+                    return true;
+                }
+
+                if (typeof(TLane) == typeof(long) && (kind != ArithmeticRightShift || Avx512F.VL.IsSupported))
+                {
+                    result = Unsafe.BitCast<Vector256<long>, TVector>(ShiftX86(kind, Unsafe.BitCast<TVector, Vector256<long>>(value), Unsafe.BitCast<TVector, Vector256<long>>(count)));
+                    return true;
+                }
+            }
+        }
+
+        result = default;
+        return false;
+    }
+
+    // ARM64: USHL/SSHL shift left by a signed count, and right when it is negative.
+    private static Vector128<sbyte> ShiftArm(int kind, Vector128<sbyte> v, Vector128<sbyte> c) => kind switch
+    {
+        LeftShift => AdvSimd.ShiftLogical(v, c),
+        ArithmeticRightShift => AdvSimd.ShiftArithmetic(v, -c),
+        _ => AdvSimd.ShiftLogical(v.AsByte(), -c).AsSByte(),
+    };
+
+    private static Vector128<short> ShiftArm(int kind, Vector128<short> v, Vector128<short> c) => kind switch
+    {
+        LeftShift => AdvSimd.ShiftLogical(v, c),
+        ArithmeticRightShift => AdvSimd.ShiftArithmetic(v, -c),
+        _ => AdvSimd.ShiftLogical(v.AsUInt16(), -c).AsInt16(),
+    };
+
+    private static Vector128<int> ShiftArm(int kind, Vector128<int> v, Vector128<int> c) => kind switch
+    {
+        LeftShift => AdvSimd.ShiftLogical(v, c),
+        ArithmeticRightShift => AdvSimd.ShiftArithmetic(v, -c),
+        _ => AdvSimd.ShiftLogical(v.AsUInt32(), -c).AsInt32(),
+    };
+
+    private static Vector128<long> ShiftArm(int kind, Vector128<long> v, Vector128<long> c) => kind switch
+    {
+        LeftShift => AdvSimd.ShiftLogical(v, c),
+        ArithmeticRightShift => AdvSimd.ShiftArithmetic(v, -c),
+        _ => AdvSimd.ShiftLogical(v.AsUInt64(), -c).AsInt64(),
+    };
+
+    private static Vector64<sbyte> ShiftArm(int kind, Vector64<sbyte> v, Vector64<sbyte> c) => kind switch
+    {
+        LeftShift => AdvSimd.ShiftLogical(v, c),
+        ArithmeticRightShift => AdvSimd.ShiftArithmetic(v, -c),
+        _ => AdvSimd.ShiftLogical(v.AsByte(), -c).AsSByte(),
+    };
+
+    private static Vector64<short> ShiftArm(int kind, Vector64<short> v, Vector64<short> c) => kind switch
+    {
+        LeftShift => AdvSimd.ShiftLogical(v, c),
+        ArithmeticRightShift => AdvSimd.ShiftArithmetic(v, -c),
+        _ => AdvSimd.ShiftLogical(v.AsUInt16(), -c).AsInt16(),
+    };
+
+    private static Vector64<int> ShiftArm(int kind, Vector64<int> v, Vector64<int> c) => kind switch
+    {
+        LeftShift => AdvSimd.ShiftLogical(v, c),
+        ArithmeticRightShift => AdvSimd.ShiftArithmetic(v, -c),
+        _ => AdvSimd.ShiftLogical(v.AsUInt32(), -c).AsInt32(),
+    };
+
+    // x64: AVX2 has per-lane shifts of 32- and 64-bit lanes (a count above the width gives 0). The arithmetic shift of
+    // 64-bit lanes needs AVX-512 (checked by the caller).
+    private static Vector128<int> ShiftX86(int kind, Vector128<int> v, Vector128<int> c) => kind switch
+    {
+        LeftShift => Avx2.ShiftLeftLogicalVariable(v, c.AsUInt32()),
+        ArithmeticRightShift => Avx2.ShiftRightArithmeticVariable(v, c.AsUInt32()),
+        _ => Avx2.ShiftRightLogicalVariable(v, c.AsUInt32()),
+    };
+
+    private static Vector128<long> ShiftX86(int kind, Vector128<long> v, Vector128<long> c) => kind switch
+    {
+        LeftShift => Avx2.ShiftLeftLogicalVariable(v, c.AsUInt64()),
+        ArithmeticRightShift => Avx512F.VL.ShiftRightArithmeticVariable(v, c.AsUInt64()),
+        _ => Avx2.ShiftRightLogicalVariable(v, c.AsUInt64()),
+    };
+
+    private static Vector256<int> ShiftX86(int kind, Vector256<int> v, Vector256<int> c) => kind switch
+    {
+        LeftShift => Avx2.ShiftLeftLogicalVariable(v, c.AsUInt32()),
+        ArithmeticRightShift => Avx2.ShiftRightArithmeticVariable(v, c.AsUInt32()),
+        _ => Avx2.ShiftRightLogicalVariable(v, c.AsUInt32()),
+    };
+
+    private static Vector256<long> ShiftX86(int kind, Vector256<long> v, Vector256<long> c) => kind switch
+    {
+        LeftShift => Avx2.ShiftLeftLogicalVariable(v, c.AsUInt64()),
+        ArithmeticRightShift => Avx512F.VL.ShiftRightArithmeticVariable(v, c.AsUInt64()),
+        _ => Avx2.ShiftRightLogicalVariable(v, c.AsUInt64()),
+    };
 
     // MaskFromBits: bitcast iN to <N x i1>. Lane i is all ones (-1) when bit i is set, 0 otherwise,
     // the same representation as the result of a vector comparison.
