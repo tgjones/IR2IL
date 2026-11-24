@@ -14,7 +14,7 @@ using LLVMSharp.Interop;
 
 namespace IR2IL.ILEmission;
 
-internal sealed class FunctionILEmitter : ILEmitter
+internal sealed partial class FunctionILEmitter : ILEmitter
 {
     private readonly MethodInfo _method;
     private readonly LLVMValueRef _function;
@@ -1469,10 +1469,17 @@ internal sealed class FunctionILEmitter : ILEmitter
                         typeof(VectorUtility).GetMethodStrict(nameof(VectorUtility.NormalizeI1Lanes), [TypeSystem.GetMsilVectorType(fromType)]));
                 }
 
-                var convertMethodPrefix = opcode.ToString().Remove(0, 4);
-                var convertMethodName = $"{convertMethodPrefix}{GetIntrinsicMethodSuffix(fromType)}To{GetIntrinsicMethodSuffix(toType)}";
-                var convertMethod = typeof(VectorUtility).GetStaticMethodStrict(convertMethodName);
-                ILGenerator.Emit(OpCodes.Call, convertMethod);
+                if (fromType.ElementType.Kind == LLVMTypeKind.LLVMPointerTypeKind || toType.ElementType.Kind == LLVMTypeKind.LLVMPointerTypeKind)
+                {
+                    // inttoptr and ptrtoint of vectors have a helper per shape.
+                    var convertMethodPrefix = opcode.ToString().Remove(0, 4);
+                    var convertMethodName = $"{convertMethodPrefix}{GetIntrinsicMethodSuffix(fromType)}To{GetIntrinsicMethodSuffix(toType)}";
+                    ILGenerator.Emit(OpCodes.Call, typeof(VectorUtility).GetStaticMethodStrict(convertMethodName));
+                }
+                else
+                {
+                    EmitVectorLaneConversion(opcode, fromType, toType);
+                }
                 break;
 
             default:
@@ -1679,7 +1686,12 @@ internal sealed class FunctionILEmitter : ILEmitter
 
                     case "SignedRemainder":
                     case "UnsignedRemainder":
-                        vectorMethod = typeof(VectorUtility).GetStaticMethodStrict($"{vectorMethodName}{GetIntrinsicMethodSuffix(instruction.TypeOf)}");
+                        // The lanes of an unsigned remainder are read as unsigned, though the vector is signed.
+                        var signedLaneType = TypeSystem.GetMsilVectorElementType(instruction.TypeOf.ElementType);
+                        var remainderLaneType = vectorMethodName == "UnsignedRemainder" ? GetUnsignedLaneType(signedLaneType) : signedLaneType;
+                        ILGenerator.Emit(OpCodes.Ldc_I4, (int)instruction.TypeOf.VectorSize);
+                        vectorMethod = typeof(VectorUtility).GetStaticMethodStrict(nameof(VectorUtility.Remainder))
+                            .MakeGenericMethod(TypeSystem.GetMsilVectorType(instruction.TypeOf), remainderLaneType);
                         break;
 
                     default:
@@ -2565,113 +2577,22 @@ internal sealed class FunctionILEmitter : ILEmitter
         var laneBits = fromLaneBits;
         while (laneBits != toLaneBits)
         {
-            var totalBits = laneBits * laneCount;
             var narrow = toLaneBits < laneBits;
-
-            // A narrow splits the vector in halves, so it needs a vector of at least 128 bits, unless it is
-            // in a Vector64 (which Narrow takes twice, and keeps the lower half of); a widen doubles the
-            // vector, so the result must fit in 512 bits.
-            var supported = laneBits is 8 or 16 or 32 or 64
-                && totalBits is >= 16 and <= 512
-                && (narrow ? laneBits > 8 : totalBits <= 256 && laneBits < 64);
-            if (!supported)
+            if (laneBits is not (8 or 16 or 32 or 64)
+                || !CanEmitLaneWidthStep(laneCount, GetIntegerLaneType(laneBits, signed: true), narrow))
             {
                 return false;
             }
 
             if (emit)
             {
-                if (narrow)
-                {
-                    EmitNarrowMaskStep(laneBits, totalBits);
-                }
-                else
-                {
-                    EmitWidenMaskStep(laneBits, totalBits);
-                }
+                EmitLaneWidthStep(laneCount, GetIntegerLaneType(laneBits, signed: true), narrow);
             }
 
             laneBits = narrow ? laneBits / 2 : laneBits * 2;
         }
 
         return true;
-    }
-
-    private static Type GetVectorClass(int totalBits) => totalBits switch
-    {
-        64 => typeof(Vector64),
-        128 => typeof(Vector128),
-        256 => typeof(Vector256),
-        512 => typeof(Vector512),
-        _ => throw new ArgumentOutOfRangeException(nameof(totalBits)),
-    };
-
-    private static Type GetMaskLaneType(int laneBits) => laneBits switch
-    {
-        8 => typeof(sbyte),
-        16 => typeof(short),
-        32 => typeof(int),
-        64 => typeof(long),
-        _ => throw new ArgumentOutOfRangeException(nameof(laneBits)),
-    };
-
-    private static Type GetVectorOf(int totalBits, int laneBits) =>
-        (totalBits switch
-        {
-            64 => typeof(Vector64<>),
-            128 => typeof(Vector128<>),
-            256 => typeof(Vector256<>),
-            512 => typeof(Vector512<>),
-            _ => throw new ArgumentOutOfRangeException(nameof(totalBits)),
-        }).MakeGenericType(GetMaskLaneType(laneBits));
-
-    private void EmitNarrowMaskStep(int laneBits, int totalBits)
-    {
-        if (totalBits <= 64)
-        {
-            // The lanes that count are in the lower half of the Vector64: narrow it with itself.
-            var vector64 = GetVectorOf(64, laneBits);
-            ILGenerator.Emit(OpCodes.Dup);
-            ILGenerator.Emit(OpCodes.Call, typeof(Vector64).GetMethodStrict(nameof(Vector128.Narrow), [vector64, vector64]));
-            return;
-        }
-
-        var vectorClass = GetVectorClass(totalBits);
-        var halfClass = GetVectorClass(totalBits / 2);
-        var laneType = GetMaskLaneType(laneBits);
-        var halfVector = GetVectorOf(totalBits / 2, laneBits);
-
-        // Both halves are needed, so keep the mask in a local.
-        var maskLocal = ILGenerator.DeclareLocal(GetVectorOf(totalBits, laneBits));
-        ILGenerator.Emit(OpCodes.Stloc, maskLocal);
-        ILGenerator.Emit(OpCodes.Ldloc, maskLocal);
-        ILGenerator.Emit(OpCodes.Call, vectorClass.GetStaticMethodStrict(nameof(Vector128.GetLower)).MakeGenericMethod(laneType));
-        ILGenerator.Emit(OpCodes.Ldloc, maskLocal);
-        ILGenerator.Emit(OpCodes.Call, vectorClass.GetStaticMethodStrict(nameof(Vector128.GetUpper)).MakeGenericMethod(laneType));
-        ILGenerator.Emit(OpCodes.Call, halfClass.GetMethodStrict(nameof(Vector128.Narrow), [halfVector, halfVector]));
-    }
-
-    private void EmitWidenMaskStep(int laneBits, int totalBits)
-    {
-        if (totalBits < 64)
-        {
-            // The mask is in a Vector64 with padding lanes, and widened it still fits in one.
-            ILGenerator.Emit(OpCodes.Call, typeof(Vector64).GetMethodStrict(nameof(Vector128.WidenLower), [GetVectorOf(64, laneBits)]));
-            return;
-        }
-
-        var vectorClass = GetVectorClass(totalBits);
-        var doubleClass = GetVectorClass(totalBits * 2);
-        var vector = GetVectorOf(totalBits, laneBits);
-        var widenedVector = GetVectorOf(totalBits, laneBits * 2);
-
-        var maskLocal = ILGenerator.DeclareLocal(vector);
-        ILGenerator.Emit(OpCodes.Stloc, maskLocal);
-        ILGenerator.Emit(OpCodes.Ldloc, maskLocal);
-        ILGenerator.Emit(OpCodes.Call, vectorClass.GetMethodStrict(nameof(Vector128.WidenLower), [vector]));
-        ILGenerator.Emit(OpCodes.Ldloc, maskLocal);
-        ILGenerator.Emit(OpCodes.Call, vectorClass.GetMethodStrict(nameof(Vector128.WidenUpper), [vector]));
-        ILGenerator.Emit(OpCodes.Call, doubleClass.GetMethodStrict(nameof(Vector128.Create), [widenedVector, widenedVector]));
     }
 
     /// <summary>
