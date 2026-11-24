@@ -95,33 +95,7 @@ public partial class CompilerTests
 
     [TestMethod]
     [DynamicData(nameof(TestDataArbitrary), DynamicDataDisplayName = nameof(TestDataDisplayName))]
-    public void Arbitrary(string testName, string optimizationLevel)
-    {
-        CompileAndExecuteManaged(
-            testName,
-            optimizationLevel,
-            out var managedExitCode,
-            out var managedStandardOutput,
-            out var managedStandardError);
-
-        // Compile to executable binary.
-        var binaryPath = GetOutputPath(testName, optimizationLevel) + "_native.exe";
-        RunClangCached(GetSourceFilePath(testName), binaryPath, $"-{optimizationLevel}");
-
-        RunProgram(
-            binaryPath,
-            [],
-            out var llvmExitCode,
-            out var llvmStandardOutput,
-            out var llvmStandardError);
-
-        Assert.AreEqual(NormalizeLineEndings(llvmStandardError), NormalizeLineEndings(managedStandardError));
-        Assert.AreEqual(NormalizeLineEndings(llvmStandardOutput), NormalizeLineEndings(managedStandardOutput));
-        Assert.AreEqual(llvmExitCode, managedExitCode);
-
-        Console.WriteLine($"ExitCode: {managedExitCode}");
-        Console.WriteLine($"Stdout: {managedStandardOutput}");
-    }
+    public void Arbitrary(string testName, string optimizationLevel) => AssertSameAsNative(testName, optimizationLevel);
 
     private static IEnumerable<object[]> TestDataCTestSuite() => TestFiles(
         Directory
@@ -313,41 +287,34 @@ public partial class CompilerTests
         .GetFiles(Path.Combine(TestProgramsPath, "benchmarks"), "*.c", SearchOption.AllDirectories));
 
     [TestMethod]
-    [TestCategory("Benchmark")]
     [DynamicData(nameof(TestDataBenchmarks), DynamicDataDisplayName = nameof(TestDataDisplayName))]
-    public void Benchmark(string testName, string optimizationLevel)
+    public void Benchmark(string testName, string optimizationLevel) => AssertSameAsNative(testName, optimizationLevel);
+
+    private void AssertSameAsNative(string testName, string optimizationLevel)
     {
-        var managedExePath = CompileManaged(testName, optimizationLevel);
-
-        // Compile to executable binary.
-        var binaryPath = GetOutputPath(testName, optimizationLevel) + "_native.exe";
-        RunClangCached(GetSourceFilePath(testName), binaryPath, $"-{optimizationLevel}");
-
-        var stopwatch = Stopwatch.StartNew();
-
-        RunProgram(
-            "dotnet",
-            [managedExePath],
+        CompileAndExecuteManaged(
+            testName,
+            optimizationLevel,
             out var managedExitCode,
             out var managedStandardOutput,
             out var managedStandardError);
 
-        Console.WriteLine($"Managed: {stopwatch.Elapsed}");
-
-        stopwatch.Restart();
+        // Compile to executable binary.
+        var binaryPath = GetOutputPath(testName, optimizationLevel) + "_native.exe";
+        RunClangCached(GetSourceFilePath(testName), binaryPath, $"-{optimizationLevel}");
 
         RunProgram(
             binaryPath,
             [],
             out var llvmExitCode,
             out var llvmStandardOutput,
-            out _);
+            out var llvmStandardError);
 
-        Console.WriteLine($"Native:  {stopwatch.Elapsed}");
-
-        Assert.AreEqual(llvmExitCode, managedExitCode, NormalizeLineEndings(managedStandardError));
+        Assert.AreEqual(NormalizeLineEndings(llvmStandardError), NormalizeLineEndings(managedStandardError));
         Assert.AreEqual(NormalizeLineEndings(llvmStandardOutput), NormalizeLineEndings(managedStandardOutput));
+        Assert.AreEqual(llvmExitCode, managedExitCode);
 
+        Console.WriteLine($"ExitCode: {managedExitCode}");
         Console.WriteLine($"Stdout: {managedStandardOutput}");
     }
 

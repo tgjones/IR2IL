@@ -19,7 +19,7 @@ dotnet test src --filter "Name~fibonacci"
 dotnet test src --filter "Name~Arbitrary"
 ```
 
-The `Benchmark` tests have `[TestCategory("Benchmark")]`, so they can be run alone (`--filter "TestCategory=Benchmark"`) or excluded (`--filter "TestCategory!=Benchmark"`). They run by default, and the timings they print are only indicative.
+The `Benchmark` tests (the programs in `tests/benchmarks`) only check that the output and exit code match the native binary. Their timings are measured by `src/IR2IL.Benchmarks` (BenchmarkDotNet).
 
 Processes started by the tests (`RunProgram`) are killed after 120 s (override with `IR2IL_TEST_TIMEOUT_SECONDS`), so a miscompiled infinite loop fails the test with a `TimeoutException` instead of hanging the run.
 
