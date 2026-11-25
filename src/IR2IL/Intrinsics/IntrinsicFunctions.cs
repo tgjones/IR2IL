@@ -35,6 +35,7 @@ internal static class IntrinsicFunctions
         { "llvm.atan2.v2f32", StandardIntrinsicFunction.Create(typeof(VectorUtility), nameof(VectorUtility.Atan2V2F32)) },
         { "llvm.atan2.v2f64", StandardIntrinsicFunction.Create(typeof(VectorUtility), nameof(VectorUtility.Atan2V2F64)) },
         { "llvm.atan2.v4f32", StandardIntrinsicFunction.Create(typeof(VectorUtility), nameof(VectorUtility.Atan2V4F32)) },
+        { "llvm.ceil.f32", StandardIntrinsicFunction.Create(typeof(MathF), nameof(MathF.Ceiling)) },
         { "llvm.ceil.f64", StandardIntrinsicFunction.Create(typeof(Math), nameof(Math.Ceiling), typeof(double)) },
         { "llvm.copysign.f32", StandardIntrinsicFunction.Create(typeof(MathF), nameof(MathF.CopySign)) },
         { "llvm.copysign.f64", StandardIntrinsicFunction.Create(typeof(Math), nameof(Math.CopySign)) },

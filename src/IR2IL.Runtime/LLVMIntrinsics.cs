@@ -1,3 +1,5 @@
+using System;
+using System.Numerics;
 using System.Runtime.CompilerServices;
 using System.Runtime.Intrinsics;
 using System.Runtime.Intrinsics.Arm;
@@ -64,58 +66,26 @@ public static unsafe class LLVMIntrinsics
         new Span<T>(destination, checked((int)count)).Fill(pattern);
     }
 
-    public static bool IsFPClassF32(float value, int mask)
-    {
-        // llvm.is.fpclass bitmask: sNaN=0, qNaN=1, -Inf=2, -normal=3, -subnormal=4, -zero=5, +zero=6, +subnormal=7, +normal=8, +Inf=9
-        if ((mask & 0x003) != 0 && float.IsNaN(value)) return true;
-        if ((mask & 0x004) != 0 && float.IsNegativeInfinity(value)) return true;
-        if ((mask & 0x200) != 0 && float.IsPositiveInfinity(value)) return true;
-        if ((mask & 0x060) != 0 && value == 0.0f)
-        {
-            bool isNeg = float.IsNegative(value);
-            if ((mask & 0x020) != 0 && isNeg) return true;
-            if ((mask & 0x040) != 0 && !isNeg) return true;
-        }
-        if ((mask & 0x090) != 0 && float.IsSubnormal(value))
-        {
-            bool isNeg = float.IsNegative(value);
-            if ((mask & 0x010) != 0 && isNeg) return true;
-            if ((mask & 0x080) != 0 && !isNeg) return true;
-        }
-        if ((mask & 0x108) != 0 && float.IsNormal(value))
-        {
-            bool isNeg = float.IsNegative(value);
-            if ((mask & 0x008) != 0 && isNeg) return true;
-            if ((mask & 0x100) != 0 && !isNeg) return true;
-        }
-        return false;
-    }
+    // llvm.is.fpclass test bits: sNaN=0x1, qNaN=0x2, -Inf=0x4, -normal=0x8, -subnormal=0x10, -zero=0x20,
+    // +zero=0x40, +subnormal=0x80, +normal=0x100, +Inf=0x200. A NaN is quiet when the top bit of its mantissa is set.
 
-    public static bool IsFPClassF64(double value, int mask)
+    public static bool IsFPClassF32(float value, int mask) =>
+        IsFPClass(value, mask, (BitConverter.SingleToInt32Bits(value) & 0x00400000) != 0);
+
+    public static bool IsFPClassF64(double value, int mask) =>
+        IsFPClass(value, mask, (BitConverter.DoubleToInt64Bits(value) & 0x0008000000000000) != 0);
+
+    private static bool IsFPClass<T>(T value, int mask, bool isQuietNaN)
+        where T : IFloatingPointIeee754<T>
     {
-        // llvm.is.fpclass bitmask: sNaN=0, qNaN=1, -Inf=2, -normal=3, -subnormal=4, -zero=5, +zero=6, +subnormal=7, +normal=8, +Inf=9
-        if ((mask & 0x003) != 0 && double.IsNaN(value)) return true;
-        if ((mask & 0x004) != 0 && double.IsNegativeInfinity(value)) return true;
-        if ((mask & 0x200) != 0 && double.IsPositiveInfinity(value)) return true;
-        if ((mask & 0x060) != 0 && value == 0.0)
-        {
-            bool isNeg = double.IsNegative(value);
-            if ((mask & 0x020) != 0 && isNeg) return true;
-            if ((mask & 0x040) != 0 && !isNeg) return true;
-        }
-        if ((mask & 0x090) != 0 && double.IsSubnormal(value))
-        {
-            bool isNeg = double.IsNegative(value);
-            if ((mask & 0x010) != 0 && isNeg) return true;
-            if ((mask & 0x080) != 0 && !isNeg) return true;
-        }
-        if ((mask & 0x108) != 0 && double.IsNormal(value))
-        {
-            bool isNeg = double.IsNegative(value);
-            if ((mask & 0x008) != 0 && isNeg) return true;
-            if ((mask & 0x100) != 0 && !isNeg) return true;
-        }
-        return false;
+        var negative = T.IsNegative(value);
+        int cls;
+        if (T.IsNaN(value)) cls = isQuietNaN ? 0x2 : 0x1;
+        else if (T.IsInfinity(value)) cls = negative ? 0x4 : 0x200;
+        else if (T.IsZero(value)) cls = negative ? 0x20 : 0x40;
+        else if (T.IsSubnormal(value)) cls = negative ? 0x10 : 0x80;
+        else cls = negative ? 0x8 : 0x100;
+        return (mask & cls) != 0;
     }
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]

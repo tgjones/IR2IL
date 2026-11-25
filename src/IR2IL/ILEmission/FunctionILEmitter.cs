@@ -2185,7 +2185,8 @@ internal sealed partial class FunctionILEmitter : ILEmitter
         if (instruction.IsAIntrinsicInst != null)
         {
             var functionName = functionToCall.Name;
-            if (IntrinsicFunctions.LLVMIntrinsics.TryGetValue(functionName, out var intrinsic))
+            if (IntrinsicFunctions.LLVMIntrinsics.TryGetValue(functionName, out var intrinsic)
+                || LLVMVectorMathIntrinsicFunction.TryCreate(functionName, instruction.TypeOf, TypeSystem, out intrinsic))
             {
                 var callContext = new IntrinsicFunctionCallContext(
                     _method,
@@ -2193,7 +2194,7 @@ internal sealed partial class FunctionILEmitter : ILEmitter
                     ILGenerator,
                     operands,
                     EmitValue);
-                intrinsic.BuildCall(callContext);
+                intrinsic!.BuildCall(callContext);
                 return;
             }
             else
