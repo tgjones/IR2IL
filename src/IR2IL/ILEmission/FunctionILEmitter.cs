@@ -444,35 +444,133 @@ internal sealed partial class FunctionILEmitter : ILEmitter
         }
     }
 
+    /// <summary>
+    /// <c>atomicrmw</c> on an 8, 16, 32 or 64-bit integer, or a <c>float</c> or <c>double</c>. Uses the <see cref="Interlocked"/>
+    /// method when there is one (<c>Exchange</c> and, on integers, <c>And</c> and <c>Or</c> on every width and <c>Add</c> on
+    /// 32 and 64 bits); everything else is a compare-exchange loop in <see cref="AtomicHelper"/>. The result is the old value.
+    /// </summary>
     private void EmitAtomicRMW(LLVMValueRef instruction)
     {
         var pointer = instruction.GetOperand(0);
         var value = instruction.GetOperand(1);
+        var operation = instruction.AtomicRMWBinOp;
 
-        switch (instruction.AtomicRMWBinOp)
+        if (value.TypeOf.Kind is LLVMTypeKind.LLVMFloatTypeKind or LLVMTypeKind.LLVMDoubleTypeKind)
         {
-            case LLVMAtomicRMWBinOp.LLVMAtomicRMWBinOpAdd:
-                switch (value.TypeOf.Kind)
-                {
-                    case LLVMTypeKind.LLVMIntegerTypeKind:
-                        // TODO: When amount to add is constant 1 or -1, call Increment or Decrement.
-
-                        EmitValue(pointer);
-                        EmitValue(value);
-
-                        var integerType = TypeSystem.GetMsilType(value.TypeOf);
-                        var addMethod = typeof(Interlocked).GetMethodStrict(nameof(Interlocked.Add), [integerType.MakeByRefType(), integerType]);
-                        ILGenerator.Emit(OpCodes.Call, addMethod);
-                        break;
-
-                    default:
-                        throw new NotImplementedException();
-                }
-                break;
-
-            default:
-                throw new NotImplementedException($"Atomic RMW operation {instruction.AtomicRMWBinOp} not implemented: {instruction}");
+            EmitFloatAtomicRMW(instruction);
+            return;
         }
+
+        if (value.TypeOf.Kind != LLVMTypeKind.LLVMIntegerTypeKind || value.TypeOf.IntWidth is not (8 or 16 or 32 or 64))
+        {
+            throw new NotImplementedException($"Atomic RMW on type {value.TypeOf} not implemented: {instruction}");
+        }
+
+        // LLVM's umax/umin are max/min on the unsigned type; the other operations don't care.
+        var unsigned = operation is LLVMAtomicRMWBinOp.LLVMAtomicRMWBinOpUMax or LLVMAtomicRMWBinOp.LLVMAtomicRMWBinOpUMin;
+        var bits = (int)value.TypeOf.IntWidth;
+        var integerType = bits switch
+        {
+            8 => unsigned ? typeof(byte) : typeof(sbyte),
+            16 => unsigned ? typeof(ushort) : typeof(short),
+            32 => unsigned ? typeof(uint) : typeof(int),
+            _ => unsigned ? typeof(ulong) : typeof(long),
+        };
+
+        EmitValue(pointer);
+        EmitValue(value);
+
+        // The methods take the operand as its exact type, so drop what the stack holds above the logical width.
+        if (bits < 32)
+        {
+            ILGenerator.Emit(integerType switch
+            {
+                _ when integerType == typeof(sbyte) => OpCodes.Conv_I1,
+                _ when integerType == typeof(byte) => OpCodes.Conv_U1,
+                _ when integerType == typeof(short) => OpCodes.Conv_I2,
+                _ => OpCodes.Conv_U2,
+            });
+        }
+
+        var byRef = integerType.MakeByRefType();
+        switch (operation)
+        {
+            case LLVMAtomicRMWBinOp.LLVMAtomicRMWBinOpXchg:
+                ILGenerator.Emit(OpCodes.Call, typeof(Interlocked).GetMethodStrict(nameof(Interlocked.Exchange), [byRef, integerType]));
+                return;
+
+            case LLVMAtomicRMWBinOp.LLVMAtomicRMWBinOpAnd:
+            case LLVMAtomicRMWBinOp.LLVMAtomicRMWBinOpOr:
+                var name = operation == LLVMAtomicRMWBinOp.LLVMAtomicRMWBinOpAnd ? nameof(Interlocked.And) : nameof(Interlocked.Or);
+                ILGenerator.Emit(OpCodes.Call, bits >= 32
+                    ? typeof(Interlocked).GetMethodStrict(name, [byRef, integerType])
+                    : typeof(Interlocked).GetGenericMethodDefinitionStrict(name).MakeGenericMethod(integerType));
+                return;
+
+            case LLVMAtomicRMWBinOp.LLVMAtomicRMWBinOpAdd when bits >= 32:
+            case LLVMAtomicRMWBinOp.LLVMAtomicRMWBinOpSub when bits >= 32:
+                // Interlocked.Add returns the new value; the old one is that minus the operand. Sub adds the negation.
+                var operand = ILGenerator.DeclareLocal(integerType);
+                var subtract = operation == LLVMAtomicRMWBinOp.LLVMAtomicRMWBinOpSub;
+                ILGenerator.Emit(OpCodes.Stloc, operand);
+                ILGenerator.Emit(OpCodes.Ldloc, operand);
+                if (subtract)
+                {
+                    ILGenerator.Emit(OpCodes.Neg);
+                }
+
+                ILGenerator.Emit(OpCodes.Call, typeof(Interlocked).GetMethodStrict(nameof(Interlocked.Add), [byRef, integerType]));
+                ILGenerator.Emit(OpCodes.Ldloc, operand);
+                ILGenerator.Emit(subtract ? OpCodes.Add : OpCodes.Sub);
+                return;
+        }
+
+        var operationDefinition = operation switch
+        {
+            LLVMAtomicRMWBinOp.LLVMAtomicRMWBinOpAdd => typeof(AtomicHelper.Add<>),
+            LLVMAtomicRMWBinOp.LLVMAtomicRMWBinOpSub => typeof(AtomicHelper.Subtract<>),
+            LLVMAtomicRMWBinOp.LLVMAtomicRMWBinOpNand => typeof(AtomicHelper.Nand<>),
+            LLVMAtomicRMWBinOp.LLVMAtomicRMWBinOpXor => typeof(AtomicHelper.Xor<>),
+            LLVMAtomicRMWBinOp.LLVMAtomicRMWBinOpMax or LLVMAtomicRMWBinOp.LLVMAtomicRMWBinOpUMax => typeof(AtomicHelper.Max<>),
+            LLVMAtomicRMWBinOp.LLVMAtomicRMWBinOpMin or LLVMAtomicRMWBinOp.LLVMAtomicRMWBinOpUMin => typeof(AtomicHelper.Min<>),
+            _ => throw new NotImplementedException($"Atomic RMW operation {operation} not implemented: {instruction}"),
+        };
+
+        ILGenerator.Emit(
+            OpCodes.Call,
+            typeof(AtomicHelper)
+                .GetMethodStrict(nameof(AtomicHelper.ReadModifyWrite))
+                .MakeGenericMethod(integerType, operationDefinition.MakeGenericType(integerType)));
+    }
+
+    private void EmitFloatAtomicRMW(LLVMValueRef instruction)
+    {
+        var operation = instruction.AtomicRMWBinOp;
+        var floatType = instruction.GetOperand(1).TypeOf.Kind == LLVMTypeKind.LLVMFloatTypeKind ? typeof(float) : typeof(double);
+
+        EmitValue(instruction.GetOperand(0));
+        EmitValue(instruction.GetOperand(1));
+
+        if (operation == LLVMAtomicRMWBinOp.LLVMAtomicRMWBinOpXchg)
+        {
+            ILGenerator.Emit(OpCodes.Call, typeof(Interlocked).GetMethodStrict(nameof(Interlocked.Exchange), [floatType.MakeByRefType(), floatType]));
+            return;
+        }
+
+        var operationDefinition = operation switch
+        {
+            LLVMAtomicRMWBinOp.LLVMAtomicRMWBinOpFAdd => typeof(AtomicHelper.FloatAdd<>),
+            LLVMAtomicRMWBinOp.LLVMAtomicRMWBinOpFSub => typeof(AtomicHelper.FloatSubtract<>),
+            LLVMAtomicRMWBinOp.LLVMAtomicRMWBinOpFMax => typeof(AtomicHelper.FloatMax<>),
+            LLVMAtomicRMWBinOp.LLVMAtomicRMWBinOpFMin => typeof(AtomicHelper.FloatMin<>),
+            _ => throw new NotImplementedException($"Atomic RMW operation {operation} not implemented: {instruction}"),
+        };
+
+        ILGenerator.Emit(
+            OpCodes.Call,
+            typeof(AtomicHelper)
+                .GetMethodStrict(nameof(AtomicHelper.ReadModifyWriteFloat))
+                .MakeGenericMethod(floatType, operationDefinition.MakeGenericType(floatType)));
     }
 
     private void EmitBitCast(LLVMValueRef instruction)
