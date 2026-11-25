@@ -1,6 +1,6 @@
 ﻿namespace IR2IL.Intrinsics;
 
-public abstract class IntrinsicFunction
+internal abstract class IntrinsicFunction
 {
     /// <summary>
     /// Whether the intrinsic neither reads nor writes memory and has no other side effects, so a call to it

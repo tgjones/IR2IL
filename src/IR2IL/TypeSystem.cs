@@ -366,6 +366,15 @@ internal sealed class TypeSystem
 
     public unsafe int GetSizeOfTypeInBytes(LLVMTypeRef type) => GetSizeOfTypeInBits(type) / 8;
 
+    /// <summary>The size of an object of the type in memory, including the padding at its end (LLVM's alloc size).</summary>
+    public unsafe long GetAllocSizeOfTypeInBytes(LLVMTypeRef type)
+    {
+        var targetData = LLVM.CreateTargetData(LLVM.GetDataLayout(_module));
+        var size = (long)LLVM.ABISizeOfType(targetData, type);
+        LLVM.DisposeTargetData(targetData);
+        return size;
+    }
+
     public unsafe int GetStructFieldOffset(LLVMTypeRef structType, uint fieldIndex)
     {
         var targetData = LLVM.CreateTargetData(LLVM.GetDataLayout(_module));
@@ -415,5 +424,55 @@ internal sealed class TypeSystem
 
             return result;
         });
+    }
+
+    /// <summary>The byte offset of a <c>getelementptr</c> (instruction or constant expression) whose indices are all constants.</summary>
+    public unsafe long GetConstantElementPtrOffset(LLVMValueRef constExpr)
+    {
+        var sourceElementType = (LLVMTypeRef)LLVM.GetGEPSourceElementType(constExpr);
+        var currentType = sourceElementType;
+
+        var result = 0L;
+
+        if (constExpr.GetOperand(1).Kind != LLVMValueKind.LLVMConstantIntValueKind)
+        {
+            throw new NotImplementedException();
+        }
+
+        var sizeInBytes = (long)GetSizeOfTypeInBytes(currentType);
+        result += constExpr.GetOperand(1).ConstIntSExt * sizeInBytes;
+
+        for (var i = 2u; i < constExpr.OperandCount; i++)
+        {
+            var index = constExpr.GetOperand(i);
+
+            if (index.Kind != LLVMValueKind.LLVMConstantIntValueKind)
+            {
+                throw new NotImplementedException();
+            }
+
+            switch (currentType.Kind)
+            {
+                case LLVMTypeKind.LLVMArrayTypeKind:
+                    result += index.ConstIntSExt * (long)GetSizeOfTypeInBytes(currentType.ElementType);
+                    currentType = currentType.ElementType;
+                    break;
+
+                case LLVMTypeKind.LLVMIntegerTypeKind:
+                    result += index.ConstIntSExt;
+                    break;
+
+                case LLVMTypeKind.LLVMStructTypeKind:
+                    var fieldIndex = (uint)index.ConstIntSExt;
+                    result += GetStructFieldOffset(currentType, fieldIndex);
+                    currentType = currentType.StructGetTypeAtIndex(fieldIndex);
+                    break;
+
+                default:
+                    throw new NotImplementedException();
+            }
+        }
+
+        return result;
     }
 }

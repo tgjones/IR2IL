@@ -144,10 +144,18 @@ internal static class IntrinsicFunctions
         { "llvm.experimental.memset.pattern.p0.f64.i64", new LLVMMemSetPatternIntrinsicFunction(typeof(double)) },
         { "llvm.stacksave", new LLVMStackSaveIntrinsicFunction() },
         { "llvm.stacksave.p0", new LLVMStackSaveIntrinsicFunction() },
+        { "llvm.stackrestore", new LLVMStackRestoreIntrinsicFunction() },
+        { "llvm.stackrestore.p0", new LLVMStackRestoreIntrinsicFunction() },
         { "llvm.threadlocal.address.p0", new LLVMThreadLocalAddressIntrinsicFunction() },
         { "llvm.va_start.p0", new LLVMVaStartIntrinsicFunction() },
 
-        { "llvm.objectsize.i64.p0", new LLVMObjectSizeIntrinsicFunction() },
+        { "llvm.expect.i1", new LLVMExpectIntrinsicFunction() },
+        { "llvm.expect.i8", new LLVMExpectIntrinsicFunction() },
+        { "llvm.expect.i16", new LLVMExpectIntrinsicFunction() },
+        { "llvm.expect.i32", new LLVMExpectIntrinsicFunction() },
+        { "llvm.expect.i64", new LLVMExpectIntrinsicFunction() },
+        { "llvm.objectsize.i64.p0", new LLVMObjectSizeIntrinsicFunction(64) },
+        { "llvm.objectsize.i32.p0", new LLVMObjectSizeIntrinsicFunction(32) },
 
         // No-op intrinsics.
         { "llvm.assume", NoOpIntrinsicFunction.Instance },
@@ -156,7 +164,5 @@ internal static class IntrinsicFunctions
         { "llvm.experimental.noalias.scope.decl", NoOpIntrinsicFunction.Instance },
         { "llvm.lifetime.start.p0", NoOpIntrinsicFunction.Instance },
         { "llvm.lifetime.end.p0", NoOpIntrinsicFunction.Instance },
-        { "llvm.stackrestore", NoOpIntrinsicFunction.Instance },
-        { "llvm.stackrestore.p0", NoOpIntrinsicFunction.Instance }
     };
 }

@@ -5,7 +5,7 @@ using IR2IL.Helpers;
 
 namespace IR2IL.Intrinsics;
 
-public sealed class StandardIntrinsicFunction(MethodInfo method) : IntrinsicFunction
+internal sealed class StandardIntrinsicFunction(MethodInfo method) : IntrinsicFunction
 {
     public static StandardIntrinsicFunction Create(Type type, string methodName, params Type[] parameterTypes)
     {

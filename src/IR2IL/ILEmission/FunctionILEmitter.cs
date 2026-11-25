@@ -18,6 +18,7 @@ internal sealed partial class FunctionILEmitter : ILEmitter
 {
     private readonly MethodInfo _method;
     private readonly LLVMValueRef _function;
+    private LocalBuilder? _dynamicStackTop;
 
     private readonly Dictionary<LLVMValueRef, bool> CanPushToStackLookup = [];
     private readonly Dictionary<LLVMValueRef, MemoryEffect> TreeMemoryEffects = [];
@@ -169,6 +170,7 @@ internal sealed partial class FunctionILEmitter : ILEmitter
     public void Compile()
     {
         EmitByValParameterCopies();
+        EmitDynamicStackTopSave();
 
         foreach (var basicBlock in _function.GetBasicBlocks())
         {
@@ -198,6 +200,25 @@ internal sealed partial class FunctionILEmitter : ILEmitter
                 }
             }
         }
+    }
+
+    /// <summary>
+    /// A function with a dynamic alloca allocates from <see cref="Runtime.DynamicStack"/> and releases what it
+    /// allocated when it returns, so it remembers the top of the arena on entry.
+    /// </summary>
+    private void EmitDynamicStackTopSave()
+    {
+        var hasDynamicAlloca = _function.GetBasicBlocks()
+            .SelectMany(block => block.GetInstructions())
+            .Any(x => x.InstructionOpcode == LLVMOpcode.LLVMAlloca && x.GetOperand(0).Kind != LLVMValueKind.LLVMConstantIntValueKind);
+        if (!hasDynamicAlloca)
+        {
+            return;
+        }
+
+        _dynamicStackTop = ILGenerator.DeclareLocal(typeof(void*));
+        ILGenerator.Emit(OpCodes.Call, typeof(Runtime.DynamicStack).GetMethod(nameof(Runtime.DynamicStack.Save))!);
+        ILGenerator.Emit(OpCodes.Stloc, _dynamicStackTop);
     }
 
     private Label GetOrCreateLabel(LLVMBasicBlockRef basicBlock)
@@ -395,6 +416,11 @@ internal sealed partial class FunctionILEmitter : ILEmitter
                     {
                         var returnOperand = instruction.GetOperand(0);
                         EmitValue(returnOperand);
+                    }
+                    if (_dynamicStackTop != null)
+                    {
+                        ILGenerator.Emit(OpCodes.Ldloc, _dynamicStackTop);
+                        ILGenerator.Emit(OpCodes.Call, typeof(Runtime.DynamicStack).GetMethod(nameof(Runtime.DynamicStack.Restore))!);
                     }
                     ILGenerator.Emit(OpCodes.Ret);
                     break;
@@ -751,21 +777,22 @@ internal sealed partial class FunctionILEmitter : ILEmitter
                 Locals.Add(instruction, local);
                 break;
 
-            case LLVMValueKind.LLVMInstructionValueKind:
+            default:
+                // A count known only at run time (an instruction, an argument, a constant expression):
+                // memory from the arena of dynamic allocas, released by stackrestore or when the function returns.
                 var elementSizeInBytes = TypeSystem.GetSizeOfTypeInBytes(instruction.GetAllocatedType());
-                EmitValue(numElements);
+                EmitIntegerOperand(numElements, Signedness.Unsigned);
+                ILGenerator.Emit(OpCodes.Conv_U8);
                 if (elementSizeInBytes != 1)
                 {
                     ILGenerator.Emit(OpCodes.Ldc_I8, (long)elementSizeInBytes);
                     ILGenerator.Emit(OpCodes.Mul);
                 }
                 ILGenerator.Emit(OpCodes.Conv_U);
-                ILGenerator.Emit(OpCodes.Localloc);
+                ILGenerator.Emit(OpCodes.Ldc_I4, (int)instruction.Alignment);
+                ILGenerator.Emit(OpCodes.Call, typeof(Runtime.DynamicStack).GetMethod(nameof(Runtime.DynamicStack.Allocate))!);
                 EmitStoreResult(instruction);
                 break;
-
-            default:
-                throw new NotImplementedException($"Alloca not implemented for kind {numElements.Kind}: {instruction}");
         }
     }
 
@@ -2197,7 +2224,8 @@ internal sealed partial class FunctionILEmitter : ILEmitter
                     operands,
                     EmitValue,
                     operand => EmitIntegerOperand(operand, Signedness.Signed),
-                    operand => EmitIntegerOperand(operand, Signedness.Unsigned));
+                    operand => EmitIntegerOperand(operand, Signedness.Unsigned),
+                    TypeSystem);
                 intrinsic!.BuildCall(callContext);
                 return;
             }

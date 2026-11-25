@@ -1,6 +1,6 @@
 ﻿namespace IR2IL.Intrinsics;
 
-public sealed class NoOpIntrinsicFunction : IntrinsicFunction
+internal sealed class NoOpIntrinsicFunction : IntrinsicFunction
 {
     public static readonly NoOpIntrinsicFunction Instance = new();
 

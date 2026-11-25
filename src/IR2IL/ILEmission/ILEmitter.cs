@@ -87,7 +87,7 @@ internal abstract class ILEmitter
                     case LLVMOpcode.LLVMGetElementPtr:
                         EmitConstantValue(valueRef.GetOperand(0), valueRef.GetOperand(0).TypeOf);
                         // The offset is signed: ldc.i8 + conv.i keeps a negative one negative on a 64-bit target.
-                        ILGenerator.Emit(OpCodes.Ldc_I8, GetElementPtrConst(valueRef));
+                        ILGenerator.Emit(OpCodes.Ldc_I8, TypeSystem.GetConstantElementPtrOffset(valueRef));
                         ILGenerator.Emit(OpCodes.Conv_I);
                         ILGenerator.Emit(OpCodes.Add);
                         break;
@@ -287,55 +287,6 @@ internal abstract class ILEmitter
             default:
                 throw new NotImplementedException($"Load constant integer width {sizeInBits} not implemented");
         }
-    }
-
-    private unsafe long GetElementPtrConst(LLVMValueRef constExpr)
-    {
-        var sourceElementType = (LLVMTypeRef)LLVM.GetGEPSourceElementType(constExpr);
-        var currentType = sourceElementType;
-
-        var result = 0L;
-
-        if (constExpr.GetOperand(1).Kind != LLVMValueKind.LLVMConstantIntValueKind)
-        {
-            throw new NotImplementedException();
-        }
-
-        var sizeInBytes = (long)TypeSystem.GetSizeOfTypeInBytes(currentType);
-        result += constExpr.GetOperand(1).ConstIntSExt * sizeInBytes;
-
-        for (var i = 2u; i < constExpr.OperandCount; i++)
-        {
-            var index = constExpr.GetOperand(i);
-
-            if (index.Kind != LLVMValueKind.LLVMConstantIntValueKind)
-            {
-                throw new NotImplementedException();
-            }
-
-            switch (currentType.Kind)
-            {
-                case LLVMTypeKind.LLVMArrayTypeKind:
-                    result += index.ConstIntSExt * (long)TypeSystem.GetSizeOfTypeInBytes(currentType.ElementType);
-                    currentType = currentType.ElementType;
-                    break;
-
-                case LLVMTypeKind.LLVMIntegerTypeKind:
-                    result += index.ConstIntSExt;
-                    break;
-
-                case LLVMTypeKind.LLVMStructTypeKind:
-                    var fieldIndex = (uint)index.ConstIntSExt;
-                    result += TypeSystem.GetStructFieldOffset(currentType, fieldIndex);
-                    currentType = currentType.StructGetTypeAtIndex(fieldIndex);
-                    break;
-
-                default:
-                    throw new NotImplementedException();
-            }
-        }
-
-        return result;
     }
 
     private void EmitLoadConstantVector(LLVMValueRef vectorValue, LLVMTypeRef vectorType)
