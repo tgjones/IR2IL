@@ -29,6 +29,7 @@ internal sealed class ModuleCompiler : IDisposable
         using var source = LLVMSourceCode.FromFile(inputPath);
 
         _module = _context.ParseIR(source.MemoryBuffer);
+        EnsureDataLayout(_module);
 
         _typeSystem = new TypeSystem(moduleBuilder, _module);
 
@@ -38,6 +39,35 @@ internal sealed class ModuleCompiler : IDisposable
             "Program",
             TypeAttributes.Public,
             typeof(ValueType));
+    }
+
+    /// <summary>
+    /// A module without a "target datalayout" gets LLVM's generic default (for example 4-byte alignment
+    /// for i64), which is neither what clang assumes for the target nor how the CLR lays structs out.
+    /// Hand-written IR often declares none, so use the layout of the host target (as clang does).
+    /// </summary>
+    private static unsafe void EnsureDataLayout(LLVMModuleRef module)
+    {
+        if (!string.IsNullOrEmpty(module.DataLayout))
+        {
+            return;
+        }
+
+        LLVM.InitializeNativeTarget();
+
+        var triple = string.IsNullOrEmpty(module.Target)
+            ? LLVMTargetRef.DefaultTriple
+            : module.Target;
+        var target = LLVMTargetRef.GetTargetFromTriple(triple);
+        var machine = target.CreateTargetMachine(
+            triple, "generic", "",
+            LLVMCodeGenOptLevel.LLVMCodeGenLevelDefault,
+            LLVMRelocMode.LLVMRelocDefault,
+            LLVMCodeModel.LLVMCodeModelDefault);
+        var layout = machine.CreateTargetDataLayout();
+        var text = Marshal.PtrToStringAnsi((IntPtr)LLVM.CopyStringRepOfTargetData(layout));
+        module.DataLayout = text ?? "";
+        LLVM.DisposeTargetMachine(machine);
     }
 
     public void CompileModule(out MethodInfo? mainMethod)

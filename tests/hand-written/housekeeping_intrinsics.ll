@@ -19,7 +19,7 @@ declare i1 @llvm.expect.i1(i1, i1)
 @buffer = private global [64 x i8] zeroinitializer
 @weak_buffer = weak global [32 x i8] zeroinitializer
 @odr_buffer = linkonce_odr global [24 x i8] zeroinitializer
-@pair = global { i8, i32, [3 x i32] } zeroinitializer
+@pair = global { i8, i64, [3 x i32] } zeroinitializer
 
 define void @emit(i64 %v) {
   call i32 (ptr, ...) @printf(ptr @fmt, i64 %v)
@@ -82,7 +82,7 @@ define void @objectsizes_more(ptr %arg, i64 %n) {
   %past = getelementptr [16 x i8], ptr %a, i64 0, i64 20
   %end = getelementptr [16 x i8], ptr %a, i64 0, i64 16
   %before = getelementptr [16 x i8], ptr %a, i64 0, i64 -4
-  %field = getelementptr { i8, i32, [3 x i32] }, ptr @pair, i32 0, i32 2, i32 1
+  %field = getelementptr { i8, i64, [3 x i32] }, ptr @pair, i32 0, i32 2, i32 1
   %dyn = alloca i8, i64 %n
   %r1 = call i64 @llvm.objectsize.i64.p0(ptr %past, i1 false, i1 false, i1 false)
   %r2 = call i64 @llvm.objectsize.i64.p0(ptr %end, i1 true, i1 false, i1 false)
