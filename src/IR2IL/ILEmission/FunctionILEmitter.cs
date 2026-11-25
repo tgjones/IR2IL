@@ -136,8 +136,40 @@ internal sealed partial class FunctionILEmitter : ILEmitter
         }
     }
 
+    private static readonly uint ByValAttributeKind = LLVMContextRef.GetEnumAttributeKindForName("byval");
+
+    /// <summary>
+    /// A <c>byval</c> parameter points to a copy of the caller's object, which the callee may change. The callee copies
+    /// the object into a local, as an alloca does, and replaces the argument with the address of the copy, so that
+    /// every use of the parameter sees the copy and the caller's object stays as it was.
+    /// </summary>
+    private void EmitByValParameterCopies()
+    {
+        for (var i = 0; i < _function.ParamsCount; i++)
+        {
+            var byVal = _function
+                .GetAttributesAtIndex((LLVMAttributeIndex)(i + 1))
+                .FirstOrDefault(x => x.IsTypeAttribute && x.KindAsEnum == ByValAttributeKind);
+            if (byVal.Handle == 0)
+            {
+                continue;
+            }
+
+            var copy = ILGenerator.DeclareLocal(TypeSystem.GetMsilType(byVal.ValueAsType));
+            ILGenerator.Emit(OpCodes.Ldloca, copy);
+            ILGenerator.Emit(OpCodes.Ldarg, i);
+            ILGenerator.Emit(OpCodes.Ldc_I4, (int)TypeSystem.GetSizeOfTypeInBytes(byVal.ValueAsType));
+            ILGenerator.Emit(OpCodes.Cpblk);
+            ILGenerator.Emit(OpCodes.Ldloca, copy);
+            ILGenerator.Emit(OpCodes.Conv_U);
+            ILGenerator.Emit(OpCodes.Starg, i);
+        }
+    }
+
     public void Compile()
     {
+        EmitByValParameterCopies();
+
         foreach (var basicBlock in _function.GetBasicBlocks())
         {
             foreach (var instruction in basicBlock.GetInstructions())
