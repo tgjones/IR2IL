@@ -56,7 +56,7 @@ Each test case currently:
   - [x] `vector_float_fcmp.ll`, `vector_float_arithmetic.ll` and `vector_float_conversions.ll` pass (all 16 `fcmp` predicates, `fadd`/`fsub`/`fmul`/`fdiv`/`frem`/`fneg`, every float/integer conversion, over 2 to 16 lanes of `float` and `double` including the padded `<3 x float>`)
   - [x] Scalar and vector `sitofp`/`uitofp` over their full ranges: from `i8`/`i16`/`i32`/`i64` to `float` and `double` (2 to 16 lanes, and `<3 x i32>`), over the limits, powers of two and the values around the ties that must round to even (`float_conversions.ll`, `vector_float_conversions.ll`; found the double rounding of vector `i64` to `float` once the pin moved to LLVM 21)
   - [x] Vector `shl`/`lshr`/`ashr` by a vector of different counts, over `i8` to `i64` lanes and 2 to 32 lanes: `vector_variable_shifts.ll` (ARM64 uses `USHL`/`SSHL`; the AVX2 and AVX-512 paths in `VectorUtility.TryShiftWithHardware` have never been run, as the machine they were written on is ARM64, so check that CI covers them)
-  - [ ] GEP and aggregates: struct and array GEPs, negative constant offsets, `extractvalue`/`insertvalue`, `ptrtoint`/`inttoptr`
+  - [x] GEP and aggregates: `gep_aggregates.ll` (struct, nested, multidimensional and variable-index GEPs, constant-expression GEPs, negative offsets, `ptrtoint`/`inttoptr`) and `aggregate_values.ll` (`extractvalue`/`insertvalue` on structs and arrays, nested, with several indices). Found and fixed: negative constant GEP offsets were zero-extended, `insertvalue` on structs and multi-index `extractvalue`/`insertvalue` threw, and `extractvalue` of an inlined or constant aggregate had no address
   - [ ] `atomicrmw` (every operation), `unreachable`, calls with mixed argument types, globals and constant expressions
   - [ ] Intrinsics, one generated test per family, across their overloads:
     - [ ] math (`sqrt`, `sin`, `cos`, `tan`, `asin`, `acos`, `atan`, `atan2`, `sinh`, `cosh`, `tanh`, `exp`, `log`, `log10`, `pow`, `fabs`, `ceil`, `copysign`, `fmuladd`, `is.fpclass`)
@@ -88,7 +88,7 @@ Each test case currently:
 - [x] **[bug] Loads and stores of non-power-of-two widths access too many bytes.** `EmitLoadIndirect`/`EmitStoreIndirect` rounded up to the container (`i24` → `ldind.i4`/`stind.i4`, `i40` → 8 bytes), so stores overwrote the bytes after the object and loads could read past the end of an allocation. Both now move exactly `ceil(N/8)` bytes: `EmitStoreIntegerIndirect` spills the value and `cpblk`s the low bytes; `EmitLoadPartialInteger` `cpblk`s them into a zeroed local (little-endian only). No masking is needed, because consumers normalise (see CLAUDE.md, "Normalisation"). Widths above 64 bits already loaded `ceil(N/8)` bytes through `LoadWideInt`. Tests: `tests/hand-written/store_exact_width.ll`, `load_exact_width.ll`.
 - [x] **[bug] Scalar `icmp ule` (outside a branch) threw `NotImplementedException`.** `EmitICmp` now emits it as `cgt.un` followed by a negation. Covered by `narrow_integers_i*.ll`.
 - [ ] **[bug] Unsigned vector comparisons use signed element types.** `GetMsilVectorElementType` maps integers to signed types (`sbyte`, `short`, …), and `UGT`/`ULT` call `Vector128.GreaterThan`/`LessThan` on them, which is wrong when the top bit is set. Reinterpret as the unsigned type (`AsByte`, `AsUInt32`, …) first. Vector `SLE`, `UGE`, `ULE` are missing entirely.
-- [ ] **[bug] Negative constant GEP offsets are zero-extended.** `ILEmitter.EmitConstantValue` (const-expr GEP) emits `ldc.i4 <offset>; conv.u`; `conv.u` zero-extends an `int32`, so `-8` becomes `0xFFFFFFF8`. Use `conv.i` (or `ldc.i8`). `GetElementPtrConst` also returns `int`, so offsets ≥ 2 GiB overflow.
+- [x] **[bug] Negative constant GEP offsets are zero-extended.** `ILEmitter.EmitConstantValue` (const-expr GEP) emits `ldc.i4 <offset>; conv.u`; `conv.u` zero-extends an `int32`, so `-8` becomes `0xFFFFFFF8`. Use `conv.i` (or `ldc.i8`). `GetElementPtrConst` also returns `int`, so offsets ≥ 2 GiB overflow.
 - [x] **[bug] `EmitIndexedPtr` threw for variable GEP indices that are not `i64`.** It now sign-extends the index (`EmitIntegerOperand`), whatever its width. Covered by `tests/hand-written/gep_narrow_index.ll`.
 - [ ] `sdiv`/`srem` with `INT_MIN / -1` and division by zero throw .NET exceptions. That's UB in C, so acceptable, but document it.
 
@@ -124,7 +124,7 @@ The varargs and stdio items below (`fprintf`, output ordering, `sprintf` family,
 - [ ] `va_arg` (and a portable `va_start`: the current one relies on CoreCLR's `arglist` layout and doesn't work on macOS ARM64)
 - [ ] `addrspacecast`, `indirectbr` / `blockaddress`, `callbr`
 - [ ] C++ exceptions: `invoke`, `landingpad`, `resume` (map to `try`/`catch` regions with a runtime exception type carrying the C++ exception pointer)
-- [ ] `extractvalue`/`insertvalue` with multiple indices; `insertvalue` on **structs** (currently arrays only)
+- [x] `extractvalue`/`insertvalue` with multiple indices; `insertvalue` on **structs** (`aggregate_values.ll`)
 - [ ] `switch` on conditions wider than 32 bits
 - [ ] General `shufflevector` lowering via `Vector128.Shuffle` for single-source in-register shuffles (currently anything that isn't a splat or a concatenation goes through memory element by element)
 

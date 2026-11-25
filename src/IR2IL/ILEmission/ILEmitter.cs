@@ -86,8 +86,9 @@ internal abstract class ILEmitter
                 {
                     case LLVMOpcode.LLVMGetElementPtr:
                         EmitConstantValue(valueRef.GetOperand(0), valueRef.GetOperand(0).TypeOf);
-                        ILGenerator.Emit(OpCodes.Ldc_I4, GetElementPtrConst(valueRef));
-                        ILGenerator.Emit(OpCodes.Conv_U);
+                        // The offset is signed: ldc.i8 + conv.i keeps a negative one negative on a 64-bit target.
+                        ILGenerator.Emit(OpCodes.Ldc_I8, GetElementPtrConst(valueRef));
+                        ILGenerator.Emit(OpCodes.Conv_I);
                         ILGenerator.Emit(OpCodes.Add);
                         break;
 
@@ -240,12 +241,12 @@ internal abstract class ILEmitter
         }
     }
 
-    private unsafe int GetElementPtrConst(LLVMValueRef constExpr)
+    private unsafe long GetElementPtrConst(LLVMValueRef constExpr)
     {
         var sourceElementType = (LLVMTypeRef)LLVM.GetGEPSourceElementType(constExpr);
         var currentType = sourceElementType;
 
-        var result = 0;
+        var result = 0L;
 
         if (constExpr.GetOperand(1).Kind != LLVMValueKind.LLVMConstantIntValueKind)
         {
@@ -253,7 +254,7 @@ internal abstract class ILEmitter
         }
 
         var sizeInBytes = (long)TypeSystem.GetSizeOfTypeInBytes(currentType);
-        result += (int)(constExpr.GetOperand(1).ConstIntSExt * sizeInBytes);
+        result += constExpr.GetOperand(1).ConstIntSExt * sizeInBytes;
 
         for (var i = 2u; i < constExpr.OperandCount; i++)
         {
@@ -267,12 +268,12 @@ internal abstract class ILEmitter
             switch (currentType.Kind)
             {
                 case LLVMTypeKind.LLVMArrayTypeKind:
-                    result += (int)index.ConstIntSExt * TypeSystem.GetSizeOfTypeInBytes(currentType.ElementType);
+                    result += index.ConstIntSExt * (long)TypeSystem.GetSizeOfTypeInBytes(currentType.ElementType);
                     currentType = currentType.ElementType;
                     break;
 
                 case LLVMTypeKind.LLVMIntegerTypeKind:
-                    result += (int)index.ConstIntSExt;
+                    result += index.ConstIntSExt;
                     break;
 
                 case LLVMTypeKind.LLVMStructTypeKind:

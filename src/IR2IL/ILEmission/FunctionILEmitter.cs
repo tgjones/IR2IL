@@ -564,51 +564,44 @@ internal sealed partial class FunctionILEmitter : ILEmitter
     private void EmitExtractValue(LLVMValueRef instruction)
     {
         var aggregateOperand = instruction.GetOperand(0);
-        var aggregateType = aggregateOperand.TypeOf;
-        
-        var indices = instruction.GetIndices();
-
-        if (indices.Length != 1)
-        {
-            throw new NotSupportedException($"Only single index extractvalue is supported: {instruction}");
-        }
 
         EmitValueAddress(aggregateOperand);
+        var elementType = EmitAggregateElementAddress(aggregateOperand.TypeOf, instruction.GetIndices());
+        EmitLoadIndirect(elementType);
+    }
 
-        switch (aggregateType.Kind)
+    /// <summary>
+    /// With the address of an aggregate on the stack, replaces it with the address of the member that the
+    /// index path leads to (an array element or a struct field, at any depth), and returns that member's type.
+    /// </summary>
+    private LLVMTypeRef EmitAggregateElementAddress(LLVMTypeRef aggregateType, ReadOnlySpan<uint> indices)
+    {
+        var currentType = aggregateType;
+
+        foreach (var index in indices)
         {
-            case LLVMTypeKind.LLVMArrayTypeKind:
-                var bufferType = TypeSystem.GetMsilType(aggregateType);
-                var elementType = TypeSystem.GetMsilMemoryType(aggregateType.ElementType);
+            switch (currentType.Kind)
+            {
+                case LLVMTypeKind.LLVMArrayTypeKind:
+                    // Get a ref to the element via the InlineArrayElementRef helper.
+                    var bufferType = TypeSystem.GetMsilType(currentType);
+                    var elementMemoryType = TypeSystem.GetMsilMemoryType(currentType.ElementType);
+                    ILGenerator.Emit(OpCodes.Ldc_I4, (int)index);
+                    ILGenerator.Emit(OpCodes.Call, CompiledModule.GetOrCreateInlineArrayElementRef().MakeGenericMethod(bufferType, elementMemoryType));
+                    currentType = currentType.ElementType;
+                    break;
 
-                // Get a ref to the target element via the InlineArrayElementRef helper.
-                ILGenerator.Emit(OpCodes.Ldc_I4, (int)indices[0]);
-                ILGenerator.Emit(OpCodes.Call, CompiledModule.GetOrCreateInlineArrayElementRef().MakeGenericMethod(bufferType, elementType));
+                case LLVMTypeKind.LLVMStructTypeKind:
+                    ILGenerator.Emit(OpCodes.Ldflda, TypeSystem.GetMsilType(currentType).GetFields()[index]);
+                    currentType = currentType.StructGetTypeAtIndex(index);
+                    break;
 
-                // Load the value through the ref, then leave the modified aggregate as the result.
-                EmitLoadIndirect(aggregateType.ElementType);
-                break;
-
-            case LLVMTypeKind.LLVMStructTypeKind:
-                var structType = TypeSystem.GetMsilType(aggregateType);
-                var fieldIndex = indices[0];
-                var field = structType.GetFields()[fieldIndex];
-                var fieldType = aggregateType.StructGetTypeAtIndex(fieldIndex);
-                if (TypeSystem.IsPaddedVector(fieldType))
-                {
-                    // The field holds only the bytes of the vector.
-                    ILGenerator.Emit(OpCodes.Ldflda, field);
-                    EmitLoadIndirect(fieldType);
-                }
-                else
-                {
-                    ILGenerator.Emit(OpCodes.Ldfld, field);
-                }
-                break;
-            
-            default:
-                throw new NotSupportedException($"Unsupported aggregate type for extractvalue: {aggregateType}");
+                default:
+                    throw new NotSupportedException($"Unsupported aggregate type for extractvalue/insertvalue: {currentType}");
+            }
         }
+
+        return currentType;
     }
 
     private void EmitAlloca(LLVMValueRef instruction)
@@ -838,34 +831,16 @@ internal sealed partial class FunctionILEmitter : ILEmitter
         var aggregateOperand = instruction.GetOperand(0);
         var aggregateType = aggregateOperand.TypeOf;
 
-        if (aggregateType.Kind != LLVMTypeKind.LLVMArrayTypeKind)
-        {
-            throw new NotSupportedException();
-        }
-
-        var indices = instruction.GetIndices();
-
-        if (indices.Length != 1)
-        {
-            throw new NotSupportedException($"Only single index insertvalue is supported: {instruction}");
-        }
-
-        var bufferType = TypeSystem.GetMsilType(aggregateType);
-        var elementType = TypeSystem.GetMsilMemoryType(aggregateType.ElementType);
-
         // Store the aggregate to a local so we can take its address.
-        var aggregateLocal = ILGenerator.DeclareLocal(bufferType);
+        var aggregateLocal = ILGenerator.DeclareLocal(TypeSystem.GetMsilType(aggregateType));
         EmitValue(aggregateOperand);
         ILGenerator.Emit(OpCodes.Stloc, aggregateLocal);
 
-        // Get a ref to the target element via the InlineArrayElementRef helper.
+        // Store the value through the address of the member, then leave the modified aggregate as the result.
         ILGenerator.Emit(OpCodes.Ldloca, aggregateLocal);
-        ILGenerator.Emit(OpCodes.Ldc_I4, (int)indices[0]);
-        ILGenerator.Emit(OpCodes.Call, CompiledModule.GetOrCreateInlineArrayElementRef().MakeGenericMethod(bufferType, elementType));
-
-        // Store the value through the ref, then leave the modified aggregate as the result.
+        var elementType = EmitAggregateElementAddress(aggregateType, instruction.GetIndices());
         EmitValue(instruction.GetOperand(1));
-        EmitStoreIndirect(aggregateType.ElementType);
+        EmitStoreIndirect(elementType);
         ILGenerator.Emit(OpCodes.Ldloc, aggregateLocal);
     }
 
@@ -2773,7 +2748,12 @@ internal sealed partial class FunctionILEmitter : ILEmitter
         }
         else
         {
-            throw new InvalidOperationException($"Unexpected value for address: {valueRef}");
+            // A constant, or an instruction inlined into its user: it only exists on the stack, so spill
+            // it to a temporary to have an address.
+            var temporary = ILGenerator.DeclareLocal(TypeSystem.GetMsilType(valueRef.TypeOf));
+            EmitValue(valueRef);
+            ILGenerator.Emit(OpCodes.Stloc, temporary);
+            ILGenerator.Emit(OpCodes.Ldloca, temporary);
         }
     }
 
