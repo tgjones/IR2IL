@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using System.Reflection;
 using System.Reflection.Emit;
 using IR2IL.Helpers;
@@ -71,7 +72,7 @@ internal sealed class LLVMIntegerIntrinsicFunction(MethodInfo method, int operan
         var scalar = operandType.IntWidth <= 32 ? (isSigned ? typeof(int) : typeof(uint)) : (isSigned ? typeof(long) : typeof(ulong));
         var scalarMethod = operation == null
             ? typeof(VectorMath).GetStaticMethodStrict(nameof(VectorMath.Compare)).MakeGenericMethod(scalar)
-            : operation.MakeGenericType(scalar).GetStaticMethodStrict("Apply");
+            : operation.MakeGenericType(scalar).GetMethod("Apply", BindingFlags.Public | BindingFlags.Static, Enumerable.Repeat(scalar, arity).ToArray())!;
         intrinsic = new LLVMIntegerIntrinsicFunction(scalarMethod, arity, isSigned, 0, operation == null ? (int)resultType.IntWidth : 0);
         return true;
     }
