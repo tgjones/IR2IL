@@ -94,12 +94,51 @@ internal abstract class ILEmitter
 
                     case LLVMOpcode.LLVMIntToPtr:
                         EmitConstantValue(valueRef.GetOperand(0), valueRef.GetOperand(0).TypeOf);
+                        // inttoptr zero-extends a narrower integer, and a constant is pushed sign-extended.
+                        var sourceWidth = valueRef.GetOperand(0).TypeOf.IntWidth;
+                        if (sourceWidth < 32)
+                        {
+                            ILGenerator.Emit(OpCodes.Ldc_I4, (1 << (int)sourceWidth) - 1);
+                            ILGenerator.Emit(OpCodes.And);
+                        }
+                        else if (sourceWidth > 32 && sourceWidth < 64)
+                        {
+                            ILGenerator.Emit(OpCodes.Ldc_I8, (1L << (int)sourceWidth) - 1);
+                            ILGenerator.Emit(OpCodes.And);
+                        }
                         ILGenerator.Emit(OpCodes.Conv_U);
                         break;
 
                     case LLVMOpcode.LLVMPtrToInt:
                         EmitConstantValue(valueRef.GetOperand(0), valueRef.GetOperand(0).TypeOf);
                         EmitConvertToInt(valueRef.TypeOf.IntWidth);
+                        break;
+
+                    // The result is only defined in its low N bits, like any other producer of an iN: consumers
+                    // extend it themselves (see FunctionILEmitter.EmitIntegerOperand), so nothing is masked here.
+                    case LLVMOpcode.LLVMAdd:
+                    case LLVMOpcode.LLVMSub:
+                        if (valueRef.TypeOf.IntWidth > 64)
+                        {
+                            throw new NotImplementedException($"Const opcode {valueRef.ConstOpcode} on integers wider than 64 bits not implemented: {valueRef}");
+                        }
+                        EmitConstantValue(valueRef.GetOperand(0), valueRef.GetOperand(0).TypeOf);
+                        EmitConstantValue(valueRef.GetOperand(1), valueRef.GetOperand(1).TypeOf);
+                        ILGenerator.Emit(valueRef.ConstOpcode == LLVMOpcode.LLVMAdd ? OpCodes.Add : OpCodes.Sub);
+                        break;
+
+                    case LLVMOpcode.LLVMTrunc:
+                        if (valueRef.GetOperand(0).TypeOf.IntWidth > 64)
+                        {
+                            throw new NotImplementedException($"Const opcode {valueRef.ConstOpcode} from integers wider than 64 bits not implemented: {valueRef}");
+                        }
+                        EmitConstantValue(valueRef.GetOperand(0), valueRef.GetOperand(0).TypeOf);
+                        // Only the stack type changes: a 64-bit operand becomes an int32 for a destination of 32 bits or less.
+                        if (TypeSystem.RoundUpToTypeSize((int)valueRef.TypeOf.IntWidth) <= 32
+                            && TypeSystem.RoundUpToTypeSize((int)valueRef.GetOperand(0).TypeOf.IntWidth) == 64)
+                        {
+                            ILGenerator.Emit(OpCodes.Conv_I4);
+                        }
                         break;
 
                     default:
@@ -184,12 +223,21 @@ internal abstract class ILEmitter
     {
         switch (TypeSystem.RoundUpToTypeSize((int)sizeInBits))
         {
+            // Narrower than 32 bits: an int32 whose upper bits consumers ignore or replace.
+            case 8:
+            case 16:
             case 32:
                 ILGenerator.Emit(OpCodes.Conv_I4);
                 break;
 
             case 64:
                 ILGenerator.Emit(OpCodes.Conv_I8);
+                break;
+
+            case 128:
+                // ptrtoint zero-extends an address that is narrower than the integer.
+                ILGenerator.Emit(OpCodes.Conv_U8);
+                ILGenerator.Emit(OpCodes.Call, typeof(Int128).GetMethod("op_Implicit", [typeof(ulong)])!);
                 break;
 
             default:
