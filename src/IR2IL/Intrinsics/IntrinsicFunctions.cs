@@ -10,8 +10,6 @@ internal static class IntrinsicFunctions
     public static readonly Dictionary<string, IntrinsicFunction> LLVMIntrinsics = new()
     {
         // Standard intrinsics using Base Class Library methods.
-        { "llvm.abs.i32", LLVMAbsIntIntrinsicFunction.Create(typeof(Math), typeof(int)) },
-        { "llvm.abs.i64", LLVMAbsIntIntrinsicFunction.Create(typeof(Math), typeof(long)) },
         { "llvm.acos.f32", StandardIntrinsicFunction.Create(typeof(MathF), nameof(MathF.Acos)) },
         { "llvm.acos.f64", StandardIntrinsicFunction.Create(typeof(Math), nameof(Math.Acos)) },
         { "llvm.asin.f32", StandardIntrinsicFunction.Create(typeof(MathF), nameof(MathF.Asin)) },
@@ -114,8 +112,6 @@ internal static class IntrinsicFunctions
         { "llvm.tanh.f64", StandardIntrinsicFunction.Create(typeof(Math), nameof(Math.Tanh)) },
         { "llvm.tanh.v2f32", StandardIntrinsicFunction.Create(typeof(VectorUtility), nameof(VectorUtility.TanhV2F32)) },
         { "llvm.tanh.v2f64", StandardIntrinsicFunction.Create(typeof(VectorUtility), nameof(VectorUtility.TanhV2F64)) },
-        { "llvm.umin.i32", StandardIntrinsicFunction.Create(typeof(Math), nameof(Math.Min), typeof(uint), typeof(uint)) },
-        { "llvm.umax.i64", StandardIntrinsicFunction.Create(typeof(Math), nameof(Math.Max), typeof(ulong), typeof(ulong)) },
         { "llvm.vector.reduce.add.v4i64", StandardIntrinsicFunction.CreateGeneric(typeof(Vector256), nameof(Vector256.Sum), typeof(long)) },
         { "llvm.vector.reduce.add.v8i32", StandardIntrinsicFunction.CreateGeneric(typeof(Vector256), nameof(Vector256.Sum), typeof(int)) },
         { "llvm.vector.reduce.add.v8i64", StandardIntrinsicFunction.CreateGeneric(typeof(Vector512), nameof(Vector512.Sum), typeof(long)) },
@@ -152,7 +148,6 @@ internal static class IntrinsicFunctions
         { "llvm.stacksave", new LLVMStackSaveIntrinsicFunction() },
         { "llvm.stacksave.p0", new LLVMStackSaveIntrinsicFunction() },
         { "llvm.threadlocal.address.p0", new LLVMThreadLocalAddressIntrinsicFunction() },
-        { "llvm.usub.sat.i32", new LLVMUSubSatI32IntrinsicFunction() },
         { "llvm.va_start.p0", new LLVMVaStartIntrinsicFunction() },
 
         { "llvm.objectsize.i64.p0", new LLVMObjectSizeIntrinsicFunction() },

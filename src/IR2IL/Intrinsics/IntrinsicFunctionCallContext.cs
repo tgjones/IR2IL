@@ -11,11 +11,19 @@ public readonly ref struct IntrinsicFunctionCallContext(
     IReadOnlyDictionary<LLVMValueRef, LocalBuilder> locals,
     ILGenerator ilGenerator,
     LLVMValueRef[] operands,
-    Action<LLVMValueRef> emitValue)
+    Action<LLVMValueRef> emitValue,
+    Action<LLVMValueRef> emitSignedInteger,
+    Action<LLVMValueRef> emitUnsignedInteger)
 {
     public MethodInfo Callee { get; } = callee;
     public IReadOnlyDictionary<LLVMValueRef, LocalBuilder> Locals { get; } = locals;
     public ILGenerator ILGenerator { get; } = ilGenerator;
     public LLVMValueRef[] Operands { get; } = operands;
     public Action<LLVMValueRef> EmitValue { get; } = emitValue;
+
+    /// <summary>Pushes an integer operand sign-extended from its logical width (see CLAUDE.md, "Normalisation").</summary>
+    public Action<LLVMValueRef> EmitSignedInteger { get; } = emitSignedInteger;
+
+    /// <summary>Pushes an integer operand zero-extended from its logical width.</summary>
+    public Action<LLVMValueRef> EmitUnsignedInteger { get; } = emitUnsignedInteger;
 }
