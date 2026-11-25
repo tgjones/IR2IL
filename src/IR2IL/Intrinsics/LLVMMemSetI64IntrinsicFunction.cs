@@ -23,6 +23,7 @@ internal sealed class LLVMMemSetI64IntrinsicFunction : IntrinsicFunction
 
         // value
         context.EmitValue(context.Operands[1]);
+        context.ILGenerator.Emit(OpCodes.Conv_U1);
 
         context.ILGenerator.Emit(OpCodes.Call, Method);
 
