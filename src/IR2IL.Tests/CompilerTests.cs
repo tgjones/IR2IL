@@ -213,9 +213,9 @@ public partial class CompilerTests
         // These tests are not supported on Windows because they use `extern int printf(...)`
         // which isn't compatible with Microsoft's C runtime.
         .Where(x => !Path.GetFileNameWithoutExtension(x).StartsWith("0021_"))
-        // These tests cover Half, which .NET does have, but not yet for Vector128 etc.
-        // We could implement the O0 versions, but not the O3 versions.
-        .Where(x => !Path.GetFileNameWithoutExtension(x).StartsWith("0022_"))
+        // This test's reference output was made where `char` is unsigned (`b[i] = i` for i >= 128 is 128), but it
+        // is signed on macOS ARM64 and on Windows, so clang gives -128 there as well.
+        .Where(x => Path.GetFileNameWithoutExtension(x) != "0022_0010")
         // These tests cover bitfields which have different alignment on MSVC / Windows.
         .Where(x => !Path.GetFileNameWithoutExtension(x).StartsWith("0014_"))
         // These tests don't compile correctly on MSVC because of _Complex type differences.
@@ -225,7 +225,10 @@ public partial class CompilerTests
         .Where(x => !Path.GetFileNameWithoutExtension(x).StartsWith("0020_"))
 
         // TODO: Support more tests.
-        .Where(x => int.Parse(Path.GetFileNameWithoutExtension(x).Substring(0, 4)) <= 0020));
+        .Where(x => int.Parse(Path.GetFileNameWithoutExtension(x).Substring(0, 4)) <= 0022))
+        // The 0022 tests cover `_Float16`. At -O3 clang vectorises them into vectors of half, which are not
+        // supported (.NET has no SIMD type for Half); at -O0 they use scalar half.
+        .Where(x => !(Path.GetFileNameWithoutExtension((string)x[0]).StartsWith("0022_") && (string)x[1] == "O3"));
 
     [GeneratedRegex(@"exit (\d+)")]
     private static partial Regex FujitsuCompilerTestSuiteExitCodeRegex();
