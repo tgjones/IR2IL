@@ -95,7 +95,7 @@ LLVM IR allows integers of any bit width (e.g. `i40` from a struct with 3+29+3-b
 
 ### `half`
 
-A scalar `half` is a `System.Half` everywhere (stack, locals, fields, arrays, globals), because it must be two bytes in memory. IL has no arithmetic on it, so each operation converts to `float` and back: the operators of `Half` for `fadd`/`fsub`/`fmul`/`fdiv`/`frem`/`fneg`, `EmitFloatOperand` (which pushes the operand as a `float`) for `fcmp`, and `EmitHalfToFloat`/`EmitFloatToHalf` in conversions and constants. Integers convert to `half` through `double`, never through `float` (two roundings). Not supported: vectors of `half` (`Vector128<Half>` doesn't work in .NET), intrinsics and `atomicrmw` on `half`, `bfloat`, `fp128`, `x86_fp80`.
+A scalar `half` is a `System.Half` everywhere (stack, locals, fields, arrays, globals), because it must be two bytes in memory. IL opcodes don't work on a struct, so each operation calls `Half`'s own operators or converts to `float` and back: the operators of `Half` for `fadd`/`fsub`/`fmul`/`fdiv`/`frem`/`fneg`, `EmitFloatOperand` (which pushes the operand as a `float`) for `fcmp`, and `EmitHalfToFloat`/`EmitFloatToHalf` in conversions and constants. Integers convert to `half` through `double`, never through `float` (two roundings). `Half` has no SIMD type (`Vector128<Half>.IsSupported` is false), so vectors of `half` are not supported; nor are `bfloat`, `fp128`, `x86_fp80` and `atomicrmw` on `half`. Intrinsics on `half` are not done yet, but `Half` has `Sqrt`, `Abs`, `Floor`, `FusedMultiplyAdd` and the rest, so each is a direct call.
 
 ### Small vectors (16 and 32 bits)
 
