@@ -54,7 +54,9 @@ dotnet test src --filter "FullyQualifiedName~Arbitrary" --list-tests
 
 ### Adding LLVM intrinsics
 
-New intrinsics are registered in `src/IR2IL/Intrinsics/IntrinsicFunctions.cs`. Use `StandardIntrinsicFunction`:
+The floating point math (`LLVMFloatMathIntrinsicFunction`), integer (`LLVMIntegerIntrinsicFunction`) and vector reduction (`LLVMVectorReduceIntrinsicFunction`) intrinsics are resolved by name for every scalar and vector shape, after the table of `IntrinsicFunctions.cs` has been tried. A new operation of those families is a row in the resolver's table, not a table entry per shape. Each is emitted, in order of preference, as a direct call to the cross-platform BCL method of the container (`Vector128.Max`, `MathF.Sin`), then a call to an `AggressiveInlining` helper with ISA branches and a fallback (`VectorUtility.PopCount`, `VectorReduction`), then an unrolled per-lane `GetElement`/scalar call/`WithElement` sequence in IL (`VectorIntrinsicEmitter.EmitPerLane`). Helpers take concrete `Vector64<T>`…`Vector512<T>` parameters and never reinterpret a vector through a reference (`Unsafe.As`), as that keeps it in memory instead of registers; `Vector1024` gets BCL-named methods so the same lookup works.
+
+Other intrinsics are registered in `src/IR2IL/Intrinsics/IntrinsicFunctions.cs`. Use `StandardIntrinsicFunction`:
 
 - **Scalar BCL methods** (unambiguous): `StandardIntrinsicFunction.Create(typeof(MathF), nameof(MathF.Sqrt))`
 - **Scalar BCL methods** (ambiguous overloads, e.g. `MathF.Log`): pass explicit parameter types — `StandardIntrinsicFunction.Create(typeof(MathF), nameof(MathF.Log), typeof(float))`
@@ -92,6 +94,7 @@ LLVM IR allows integers of any bit width (e.g. `i40` from a struct with 3+29+3-b
 - **`bitcast`** from or to a padded vector goes through a local, as `Unsafe.BitCast` needs equal sizes.
 - **Creating a vector from lane values** (`select` on a mask) has to pass `GetVectorContainerLaneCount` arguments: zeros after the real lanes.
 - **Shuffles** that join two vectors with `Create(v0, v1)` only apply when the sources have no padding; otherwise the software path is used.
+- **Reductions** overwrite the padding lanes with the identity of the operation (`VectorIntrinsicEmitter.EmitFillPaddingLanes`) before reading all the lanes.
 - **Mask resizing** (`TryResizeVectorMask`) uses `Vector64.Narrow(m, m)` and `Vector64.WidenLower(m)` for masks of 64 bits or less.
 - `Vector1024` is a custom type of two `Vector512`s, with few operations.
 

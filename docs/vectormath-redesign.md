@@ -1,6 +1,6 @@
 # Replacing `VectorMath`: direct calls to .NET vector APIs
 
-Status: planned (2026-11-25). Covers two items of [TODO.md](TODO.md) §3: "Resolve intrinsics by pattern instead of exact name" (for the math, integer and reduction intrinsics) and part of "Audit the intrinsics and vector code for `System.Runtime.Intrinsics` coverage".
+Status: done (2026-11-26). Covers two items of [TODO.md](TODO.md) §3: "Resolve intrinsics by pattern instead of exact name" (for the math, integer and reduction intrinsics) and part of "Audit the intrinsics and vector code for `System.Runtime.Intrinsics` coverage".
 
 This plan is written to be executed step by step without further design work. Every API it names was checked against .NET 11 (SDK 11.0.100) on ARM64 by reflection, and every codegen claim was measured with `DOTNET_JitDisasm`. If something here turns out to be wrong, stop and record it rather than improvising a different design.
 
@@ -372,7 +372,7 @@ Each step builds and passes its tests on its own, which makes it a natural commi
   - Add `VectorReduction` (§5.2) and rewrite `LLVMVectorReduceIntrinsicFunction` (§4.4, §4.5).
   - Delete the `reduce.add` table entries and `VectorReduceAddV12I32`.
   - Run `dotnet test src --filter "Name~vector_reductions"`.
-- [ ] **Step 5: clean-up and full verification.**
+- [x] **Step 5: clean-up and full verification.**
   - Delete `VectorMath.cs`. `grep -rn "VectorMath" src docs CLAUDE.md` must find only this plan and the history lines of `TODO.md`.
   - Update the docs (§7).
   - Run the whole suite, `dotnet test src` (about 6–7 minutes). It must stay all-passing, including the Fujitsu tests: the cached clang IR has 211 `reduce.add`, 66 `smax`, 42 `reduce.fadd`, 6 `reduce.mul` and 4 `reduce.smax` calls.
