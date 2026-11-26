@@ -4,6 +4,10 @@
 
 IR2IL is a proof-of-concept LLVM IR to MSIL (CIL) translator. It compiles LLVM IR (`.ll` files produced by clang) into .NET assemblies using `System.Reflection.Emit`, then runs them on the CLR.
 
+## Git
+
+Work and commit on `main`. Only create a branch when the user explicitly says to work on one.
+
 ## Running tests
 
 The solution file is at `src/IR2IL.sln`. Always run tests from the repo root:
