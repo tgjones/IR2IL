@@ -853,6 +853,7 @@ internal sealed partial class FunctionILEmitter : ILEmitter
             case LLVMTypeKind.LLVMIntegerTypeKind:
             case LLVMTypeKind.LLVMFloatTypeKind:
             case LLVMTypeKind.LLVMDoubleTypeKind:
+            case LLVMTypeKind.LLVMHalfTypeKind:
                 var bitCastMethod = typeof(Unsafe).GetStaticMethodStrict(nameof(Unsafe.BitCast)).MakeGenericMethod(
                     fromTypeMsil,
                     toTypeMsil);
@@ -1643,13 +1644,14 @@ internal sealed partial class FunctionILEmitter : ILEmitter
             return;
         }
 
-        EmitValue(operand0);
-        EmitValue(instruction.GetOperand(1));
+        EmitFloatOperand(operand0);
+        EmitFloatOperand(instruction.GetOperand(1));
 
         switch (operand0.TypeOf.Kind)
         {
             case LLVMTypeKind.LLVMDoubleTypeKind:
             case LLVMTypeKind.LLVMFloatTypeKind:
+            case LLVMTypeKind.LLVMHalfTypeKind:
                 EmitFloatComparison(instruction.FCmpPredicate, operand0.TypeOf);
                 break;
 
@@ -1686,8 +1688,37 @@ internal sealed partial class FunctionILEmitter : ILEmitter
         var fromType = operand.TypeOf;
         EmitValue(operand);
 
+        if (fromType.Kind == LLVMTypeKind.LLVMHalfTypeKind && toType.Kind != LLVMTypeKind.LLVMHalfTypeKind)
+        {
+            // Every half is exact as a float, which the conversions below take from there.
+            EmitHalfToFloat();
+        }
+
         switch (toType.Kind)
         {
+            case LLVMTypeKind.LLVMHalfTypeKind:
+                // From an integer, through double: exact up to 2^53, and beyond 65520 the result is infinity anyway.
+                // From a float or double, rounded once.
+                if (fromType.Kind == LLVMTypeKind.LLVMIntegerTypeKind)
+                {
+                    if (opcode == LLVMOpcode.LLVMSIToFP)
+                    {
+                        EmitNormalizedInteger((int)fromType.IntWidth, Signedness.Signed);
+                    }
+                    else
+                    {
+                        EmitNormalizedInteger((int)fromType.IntWidth, Signedness.Unsigned);
+                        ILGenerator.Emit(OpCodes.Conv_R_Un);
+                    }
+                    ILGenerator.Emit(OpCodes.Conv_R8);
+                    EmitFloatToHalf(typeof(double));
+                }
+                else
+                {
+                    EmitFloatToHalf(TypeSystem.GetMsilType(fromType));
+                }
+                break;
+
             case LLVMTypeKind.LLVMDoubleTypeKind:
                 // Ensure source type is treated as signed.
                 if (opcode == LLVMOpcode.LLVMSIToFP)
@@ -1969,6 +2000,21 @@ internal sealed partial class FunctionILEmitter : ILEmitter
             case LLVMTypeKind.LLVMDoubleTypeKind:
             case LLVMTypeKind.LLVMFloatTypeKind:
                 ILGenerator.Emit(scalarOpCode);
+                break;
+
+            case LLVMTypeKind.LLVMHalfTypeKind:
+                // Half's own operators compute in float and round once; `-` only flips the sign bit.
+                var halfOperatorName = scalarOpCode.Name switch
+                {
+                    "add" => "op_Addition",
+                    "sub" => "op_Subtraction",
+                    "mul" => "op_Multiply",
+                    "div" => "op_Division",
+                    "rem" => "op_Modulus",
+                    "neg" => "op_UnaryNegation",
+                    _ => throw new NotImplementedException($"Half operation {scalarOpCode.Name} not implemented: {instruction}"),
+                };
+                ILGenerator.Emit(OpCodes.Call, typeof(Half).GetMethodStrict(halfOperatorName, operandCount == 1 ? [typeof(Half)] : [typeof(Half), typeof(Half)]));
                 break;
 
             case LLVMTypeKind.LLVMIntegerTypeKind:
@@ -2275,8 +2321,8 @@ internal sealed partial class FunctionILEmitter : ILEmitter
             && condition.TypeOf.Kind == LLVMTypeKind.LLVMIntegerTypeKind)
         {
             var op0 = condition.GetOperand(0);
-            EmitValue(op0);
-            EmitValue(condition.GetOperand(1));
+            EmitFloatOperand(op0);
+            EmitFloatOperand(condition.GetOperand(1));
 
             // A predicate with a single branch opcode is fused. The others compute the i1 and branch on it,
             // so every predicate that `EmitFloatComparison` handles can be a branch condition.
@@ -2324,6 +2370,16 @@ internal sealed partial class FunctionILEmitter : ILEmitter
     /// NaN and `cgt.un` and `clt.un` are true, so each comparison that has to be true or false for NaN is the
     /// opposite comparison negated: `a >= b` (ordered) is `!(a &lt; b unordered)`, `a >= b` (unordered) is `!(a &lt; b)`.
     /// </summary>
+    /// <summary>Pushes a floating point operand to compare or convert: a <c>half</c> as the <c>float</c> with the same value.</summary>
+    private void EmitFloatOperand(LLVMValueRef operand)
+    {
+        EmitValue(operand);
+        if (operand.TypeOf.Kind == LLVMTypeKind.LLVMHalfTypeKind)
+        {
+            EmitHalfToFloat();
+        }
+    }
+
     private void EmitFloatComparison(LLVMRealPredicate predicate, LLVMTypeRef operandType)
     {
         switch (predicate)
@@ -2348,7 +2404,8 @@ internal sealed partial class FunctionILEmitter : ILEmitter
             case LLVMRealPredicate.LLVMRealUNE: EmitNegatedComparison(OpCodes.Ceq); return;
         }
 
-        var floatType = TypeSystem.GetMsilType(operandType);
+        // A half operand is on the stack as a float (EmitFloatOperand).
+        var floatType = operandType.Kind == LLVMTypeKind.LLVMHalfTypeKind ? typeof(float) : TypeSystem.GetMsilType(operandType);
         var helperName = predicate switch
         {
             LLVMRealPredicate.LLVMRealONE or LLVMRealPredicate.LLVMRealUEQ => nameof(LLVMIntrinsics.AreOrderedAndNotEqual),
@@ -3136,6 +3193,10 @@ internal sealed partial class FunctionILEmitter : ILEmitter
 
             case LLVMTypeKind.LLVMFloatTypeKind:
                 ILGenerator.Emit(OpCodes.Ldind_R4);
+                break;
+
+            case LLVMTypeKind.LLVMHalfTypeKind:
+                ILGenerator.Emit(OpCodes.Ldobj, typeof(Half));
                 break;
 
             case LLVMTypeKind.LLVMIntegerTypeKind:

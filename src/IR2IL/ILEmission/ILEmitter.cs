@@ -1,4 +1,5 @@
 using System;
+using System.Linq;
 using System.Reflection.Emit;
 using System.Runtime.Intrinsics;
 using IR2IL.Helpers;
@@ -67,6 +68,12 @@ internal abstract class ILEmitter
 
                     case LLVMTypeKind.LLVMFloatTypeKind:
                         ILGenerator.Emit(OpCodes.Ldc_R4, (float)constRealDouble);
+                        break;
+
+                    case LLVMTypeKind.LLVMHalfTypeKind:
+                        // A half constant is exact as a float, and so is the conversion back.
+                        ILGenerator.Emit(OpCodes.Ldc_R4, (float)constRealDouble);
+                        EmitFloatToHalf(typeof(float));
                         break;
 
                     default:
@@ -180,6 +187,11 @@ internal abstract class ILEmitter
 
                     case LLVMTypeKind.LLVMDoubleTypeKind:
                         ILGenerator.Emit(OpCodes.Ldc_R8, 0.0);
+                        break;
+
+                    case LLVMTypeKind.LLVMHalfTypeKind:
+                        ILGenerator.Emit(OpCodes.Ldc_R4, 0.0f);
+                        EmitFloatToHalf(typeof(float));
                         break;
 
                     case LLVMTypeKind.LLVMIntegerTypeKind:
@@ -411,6 +423,23 @@ internal abstract class ILEmitter
         ILGenerator.Emit(OpCodes.Ldloc, local);
     }
 
+    /// <summary>
+    /// <c>half</c> is a <see cref="Half"/> (two bytes, in memory and on the stack), which IL can't compute with.
+    /// An operation converts its operands to <c>float</c> and the result back. For <c>+ - * /</c> and the
+    /// remainder that is exactly rounded, because a <c>float</c> has more than twice the 11 bits of a half
+    /// plus two (and the remainder is exact), and every half is exact as a <c>float</c> or <c>double</c>.
+    /// </summary>
+    protected void EmitHalfToFloat() => EmitHalfConversion(typeof(Half), typeof(float));
+
+    /// <summary>Converts the <c>float</c>, <c>double</c> (rounded once) or integer-as-<c>double</c> on the stack to a <see cref="Half"/>.</summary>
+    protected void EmitFloatToHalf(Type fromType) => EmitHalfConversion(fromType, typeof(Half));
+
+    // The explicit conversion operators of Half differ only by their return type.
+    private void EmitHalfConversion(Type from, Type to) =>
+        ILGenerator.Emit(OpCodes.Call, typeof(Half)
+            .GetMethods(System.Reflection.BindingFlags.Public | System.Reflection.BindingFlags.Static)
+            .Single(m => m.Name == "op_Explicit" && m.ReturnType == to && m.GetParameters()[0].ParameterType == from));
+
     protected void EmitStoreIndirect(LLVMTypeRef type)
     {
         switch (type.Kind)
@@ -444,6 +473,10 @@ internal abstract class ILEmitter
 
             case LLVMTypeKind.LLVMFloatTypeKind:
                 ILGenerator.Emit(OpCodes.Stind_R4);
+                break;
+
+            case LLVMTypeKind.LLVMHalfTypeKind:
+                ILGenerator.Emit(OpCodes.Stobj, typeof(Half));
                 break;
 
             case LLVMTypeKind.LLVMIntegerTypeKind:

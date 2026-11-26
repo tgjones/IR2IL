@@ -93,6 +93,10 @@ LLVM IR allows integers of any bit width (e.g. `i40` from a struct with 3+29+3-b
 
 `sdiv`, `udiv`, `srem` and `urem` use the IL `div`/`rem` opcodes, so a zero divisor throws `DivideByZeroException` and `INT_MIN / -1` (or `INT_MIN % -1`) throws `OverflowException`. Both are undefined behaviour in C and in LLVM, so IR2IL doesn't try to match any particular result; tests must avoid them. Vector `srem`/`urem` (`VectorUtility.Remainder`) do the same per real lane.
 
+### `half`
+
+A scalar `half` is a `System.Half` everywhere (stack, locals, fields, arrays, globals), because it must be two bytes in memory. IL has no arithmetic on it, so each operation converts to `float` and back: the operators of `Half` for `fadd`/`fsub`/`fmul`/`fdiv`/`frem`/`fneg`, `EmitFloatOperand` (which pushes the operand as a `float`) for `fcmp`, and `EmitHalfToFloat`/`EmitFloatToHalf` in conversions and constants. Integers convert to `half` through `double`, never through `float` (two roundings). Not supported: vectors of `half` (`Vector128<Half>` doesn't work in .NET), intrinsics and `atomicrmw` on `half`, `bfloat`, `fp128`, `x86_fp80`.
+
 ### Small vectors (16 and 32 bits)
 
 .NET has no vector smaller than `Vector64`, so `<2 x i8>`, `<4 x i8>` and `<2 x i16>` (and the `<N x i1>` masks of 2 and 4 lanes, whose lanes are bytes) are held in a `Vector64<T>` with padding lanes (`TypeSystem.GetVectorContainerSizeInBits`). `<3 x float>` in a `Vector128<float>` is the same situation. The padding lanes follow the rule of the bits above an `iN`: they may contain anything, and whatever reads all the lanes ignores them.
