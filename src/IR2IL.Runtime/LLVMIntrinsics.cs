@@ -105,11 +105,4 @@ public static unsafe class LLVMIntrinsics
         else cls = negative ? 0x8 : 0x100;
         return (mask & cls) != 0;
     }
-
-    [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static int VectorReduceAddV12I32(Vector512<int> vector)
-    {
-        // v12i32 is stored in a Vector512<int>; only elements 0-11 are valid.
-        return Vector256.Sum(vector.GetLower()) + Vector128.Sum(vector.GetUpper().GetLower());
-    }
 }

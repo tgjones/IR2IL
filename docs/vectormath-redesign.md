@@ -368,7 +368,7 @@ Each step builds and passes its tests on its own, which makes it a natural commi
   - Delete the integer table entries and `VectorUtility.Scmp`.
   - Cover `Vector1024` integer lanes: in `tests/generators/generate_integer_intrinsic_tests.py` line ~123, change the limit from `bits * lanes > 512` to `> 1024`, which adds `<16 x i64>`. Regenerate with `python3 tests/generators/generate_integer_intrinsic_tests.py` and check that the `.ll` diff only adds functions. If the new shapes fail for a reason outside the intrinsics (loads or `extractelement` of `Vector1024<long>`), revert the generator change and record it here.
   - Run `dotnet test src --filter "Name~integer_intrinsics"`.
-- [ ] **Step 4: reductions.**
+- [x] **Step 4: reductions.**
   - Add `VectorReduction` (§5.2) and rewrite `LLVMVectorReduceIntrinsicFunction` (§4.4, §4.5).
   - Delete the `reduce.add` table entries and `VectorReduceAddV12I32`.
   - Run `dotnet test src --filter "Name~vector_reductions"`.

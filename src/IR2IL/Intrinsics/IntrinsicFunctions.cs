@@ -12,18 +12,6 @@ internal static class IntrinsicFunctions
         // Standard intrinsics using Base Class Library methods.
         { "llvm.is.fpclass.f32", new LLVMIsFPClassIntrinsicFunction(isDouble: false) },
         { "llvm.is.fpclass.f64", new LLVMIsFPClassIntrinsicFunction(isDouble: true) },
-        { "llvm.vector.reduce.add.v4i64", StandardIntrinsicFunction.CreateGeneric(typeof(Vector256), nameof(Vector256.Sum), typeof(long)) },
-        { "llvm.vector.reduce.add.v8i32", StandardIntrinsicFunction.CreateGeneric(typeof(Vector256), nameof(Vector256.Sum), typeof(int)) },
-        { "llvm.vector.reduce.add.v8i64", StandardIntrinsicFunction.CreateGeneric(typeof(Vector512), nameof(Vector512.Sum), typeof(long)) },
-        { "llvm.vector.reduce.add.v2i64", StandardIntrinsicFunction.CreateGeneric(typeof(Vector128), nameof(Vector128.Sum), typeof(long)) },
-        { "llvm.vector.reduce.add.v4i16", StandardIntrinsicFunction.CreateGeneric(typeof(Vector64), nameof(Vector64.Sum), typeof(short)) },
-        { "llvm.vector.reduce.add.v4i32", StandardIntrinsicFunction.CreateGeneric(typeof(Vector128), nameof(Vector128.Sum), typeof(int)) },
-        { "llvm.vector.reduce.add.v8i16", StandardIntrinsicFunction.CreateGeneric(typeof(Vector128), nameof(Vector128.Sum), typeof(short)) },
-        { "llvm.vector.reduce.add.v16i8", StandardIntrinsicFunction.CreateGeneric(typeof(Vector128), nameof(Vector128.Sum), typeof(sbyte)) },
-        { "llvm.vector.reduce.add.v16i16", StandardIntrinsicFunction.CreateGeneric(typeof(Vector256), nameof(Vector256.Sum), typeof(short)) },
-        { "llvm.vector.reduce.add.v12i32", StandardIntrinsicFunction.Create(typeof(LLVMIntrinsics), nameof(Runtime.LLVMIntrinsics.VectorReduceAddV12I32)) },
-        { "llvm.vector.reduce.add.v16i32", StandardIntrinsicFunction.CreateGeneric(typeof(Vector512), nameof(Vector512.Sum), typeof(int)) },
-        { "llvm.vector.reduce.add.v16i64", StandardIntrinsicFunction.CreateGeneric(typeof(Vector1024), nameof(Vector1024.Sum), typeof(long)) },
 
         // Standard intrinsics using custom methods.
         { "llvm.experimental.vector.partial.reduce.add.v4i32.v16i32", StandardIntrinsicFunction.Create(typeof(LLVMIntrinsics), nameof(Runtime.LLVMIntrinsics.VectorPartialReduceAddV4I32V16I32)) },
