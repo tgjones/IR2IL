@@ -208,10 +208,6 @@ internal sealed class ModuleCompiler : IDisposable
         {
             // TODO: More math library functions.
             // TODO: Validate parameter types are expected.
-            case "puts":
-                return typeof(PrintfHelper).GetMethodStrict(nameof(PrintfHelper.Puts), [typeof(void*)]);
-            case "putchar":
-                return typeof(PrintfHelper).GetMethodStrict(nameof(PrintfHelper.PutChar), [typeof(int)]);
             case "exp10":
                 return typeof(double).GetMethodStrict(nameof(double.Exp10));
             case "exp10f":
@@ -223,12 +219,40 @@ internal sealed class ModuleCompiler : IDisposable
 
                 var functionType = (LLVMTypeRef)LLVM.GlobalGetValueType(function);
 
+                if (functionType.IsFunctionVarArg)
+                {
+                    return GetVariadicShim(function.Name, functionType);
+                }
+
                 return CreateExternMethod(
                     function.Name,
-                    functionType.IsFunctionVarArg ? CallingConventions.VarArgs : CallingConventions.Standard,
                     _typeSystem.GetMsilType(functionType.ReturnType),
                     [.. functionType.GetParamTypes().Select(x => _typeSystem.GetMsilType(x))]);
         }
+    }
+
+    /// <summary>
+    /// A variadic function of the C library is called through a shim of <see cref="VariadicShims"/> that takes the
+    /// fixed arguments and the buffer of extra arguments, as every variadic function does (see <c>VaListLayout</c>).
+    /// </summary>
+    private MethodInfo GetVariadicShim(string name, LLVMTypeRef functionType)
+    {
+        var shimName = name.StartsWith("\x01_", StringComparison.Ordinal) ? name[2..] : name;
+
+        var shim = typeof(VariadicShims).GetMethod(shimName, BindingFlags.Public | BindingFlags.Static);
+        if (shim == null)
+        {
+            throw new NotSupportedException($"The variadic function '{name}' is not supported.");
+        }
+
+        var expectedParameterTypes = functionType.GetParamTypes().Select(x => _typeSystem.GetMsilType(x)).Append(typeof(void*));
+        if (!shim.GetParameters().Select(x => x.ParameterType).SequenceEqual(expectedParameterTypes)
+            || shim.ReturnType != _typeSystem.GetMsilType(functionType.ReturnType))
+        {
+            throw new NotSupportedException($"The declaration of the variadic function '{name}' doesn't match the C library's.");
+        }
+
+        return shim;
     }
 
     private unsafe MethodBuilder CompileMethod(LLVMValueRef function)
@@ -242,10 +266,16 @@ internal sealed class ModuleCompiler : IDisposable
             parameterTypes[i] = _typeSystem.GetMsilType(parameters[i].TypeOf);
         }
 
+        // A variadic function has a hidden last parameter: the buffer of its extra arguments.
+        if (functionType.IsFunctionVarArg)
+        {
+            parameterTypes = [.. parameterTypes, typeof(void*)];
+        }
+
         var result = _typeBuilder.DefineMethod(
             function.Name,
             MethodAttributes.Static | MethodAttributes.Public, // TODO
-            functionType.IsFunctionVarArg ? CallingConventions.VarArgs : CallingConventions.Standard,
+            CallingConventions.Standard,
             _typeSystem.GetMsilType(functionType.ReturnType),
             parameterTypes);
 
@@ -259,7 +289,6 @@ internal sealed class ModuleCompiler : IDisposable
 
     private MethodBuilder CreateExternMethod(
         string name,
-        CallingConventions callingConventions,
         Type returnType,
         Type[] parameterTypes)
     {
@@ -294,7 +323,7 @@ internal sealed class ModuleCompiler : IDisposable
             name,
             libraryName,
             MethodAttributes.Private | MethodAttributes.HideBySig | MethodAttributes.Static,
-            callingConventions,
+            CallingConventions.Standard,
             returnType,
             parameterTypes,
             callingConvention,

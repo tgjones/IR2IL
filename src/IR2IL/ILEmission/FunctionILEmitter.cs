@@ -19,6 +19,7 @@ internal sealed partial class FunctionILEmitter : ILEmitter
     private readonly MethodInfo _method;
     private readonly LLVMValueRef _function;
     private LocalBuilder? _dynamicStackTop;
+    private LocalBuilder? _vaScratch;
 
     private readonly Dictionary<LLVMValueRef, bool> CanPushToStackLookup = [];
     private readonly Dictionary<LLVMValueRef, MemoryEffect> TreeMemoryEffects = [];
@@ -169,6 +170,7 @@ internal sealed partial class FunctionILEmitter : ILEmitter
 
     public void Compile()
     {
+        EmitVaScratchSetup();
         EmitByValParameterCopies();
         EmitDynamicStackTopSave();
 
@@ -200,6 +202,178 @@ internal sealed partial class FunctionILEmitter : ILEmitter
                 }
             }
         }
+    }
+
+    /// <summary>
+    /// A call to a variadic function passes its extra arguments in a buffer of 8-byte slots. The function has one
+    /// such buffer for all its calls, allocated once on entry (never per call, as a call in a loop would grow the
+    /// stack) with the size of its largest call. One is enough: the callee is done with the buffer when it returns.
+    /// </summary>
+    private unsafe void EmitVaScratchSetup()
+    {
+        var size = 0;
+        foreach (var instruction in _function.GetBasicBlocks().SelectMany(block => block.GetInstructions()))
+        {
+            if (instruction.InstructionOpcode != LLVMOpcode.LLVMCall || instruction.IsAIntrinsicInst != null)
+            {
+                continue;
+            }
+
+            var functionType = (LLVMTypeRef)LLVM.GetCalledFunctionType(instruction);
+            if (functionType.IsFunctionVarArg)
+            {
+                var operands = instruction.GetOperands().ToArray();
+                LayoutVaArguments(operands[(int)functionType.ParamTypesCount..^1], out var callSize);
+                size = Math.Max(size, callSize);
+            }
+        }
+
+        if (size == 0)
+        {
+            return;
+        }
+
+        // The extra 16 bytes let the buffer start on a 16-byte boundary, which arguments of 16 bytes require.
+        var raw = ILGenerator.DeclareLocal(typeof(void*));
+        ILGenerator.Emit(OpCodes.Ldc_I4, size + 16);
+        ILGenerator.Emit(OpCodes.Conv_U);
+        ILGenerator.Emit(OpCodes.Localloc);
+        ILGenerator.Emit(OpCodes.Stloc, raw);
+
+        _vaScratch = ILGenerator.DeclareLocal(typeof(void*));
+        ILGenerator.Emit(OpCodes.Ldloc, raw);
+        ILGenerator.Emit(OpCodes.Ldc_I4, 15);
+        ILGenerator.Emit(OpCodes.Conv_I);
+        ILGenerator.Emit(OpCodes.Add);
+        ILGenerator.Emit(OpCodes.Ldc_I4, -16);
+        ILGenerator.Emit(OpCodes.Conv_I);
+        ILGenerator.Emit(OpCodes.And);
+        ILGenerator.Emit(OpCodes.Stloc, _vaScratch);
+    }
+
+    private bool IsAlign16Argument(LLVMTypeRef type)
+        => TypeSystem.VaListLayout.Align16ByteArguments
+        && (type.Kind == LLVMTypeKind.LLVMFP128TypeKind
+            || (type.Kind == LLVMTypeKind.LLVMIntegerTypeKind && type.IntWidth == 128));
+
+    private int GetVaSlotCount(LLVMTypeRef type)
+        => Math.Max(1, (int)((TypeSystem.GetAllocSizeOfTypeInBytes(type) + 7) / 8));
+
+    /// <summary>The offset of each extra argument in the buffer: <c>ceil(size / 8)</c> slots each.</summary>
+    private int[] LayoutVaArguments(ReadOnlySpan<LLVMValueRef> arguments, out int size)
+    {
+        var offsets = new int[arguments.Length];
+        size = 0;
+        for (var i = 0; i < arguments.Length; i++)
+        {
+            var type = arguments[i].TypeOf;
+            if (IsAlign16Argument(type))
+            {
+                size = (size + 15) & ~15;
+            }
+            offsets[i] = size;
+            size += GetVaSlotCount(type) * 8;
+        }
+        return offsets;
+    }
+
+    /// <summary>
+    /// Writes the extra arguments of a call into the buffer and pushes its address. Every argument is evaluated
+    /// before any is written, because evaluating one can be a call that uses the buffer itself.
+    /// </summary>
+    private void EmitVaBuffer(ReadOnlySpan<LLVMValueRef> arguments)
+    {
+        if (arguments.Length == 0)
+        {
+            ILGenerator.Emit(OpCodes.Ldc_I4_0);
+            ILGenerator.Emit(OpCodes.Conv_U);
+            return;
+        }
+
+        var offsets = LayoutVaArguments(arguments, out _);
+
+        var temporaries = new LocalBuilder[arguments.Length];
+        for (var i = 0; i < arguments.Length; i++)
+        {
+            var type = arguments[i].TypeOf;
+            if (type.Kind == LLVMTypeKind.LLVMIntegerTypeKind && type.IntWidth <= 64)
+            {
+                // Integers narrower than 64 bits are written sign-extended.
+                EmitIntegerOperand(arguments[i], Signedness.Signed);
+                ILGenerator.Emit(OpCodes.Conv_I8);
+                temporaries[i] = ILGenerator.DeclareLocal(typeof(long));
+            }
+            else
+            {
+                EmitValue(arguments[i]);
+                temporaries[i] = ILGenerator.DeclareLocal(TypeSystem.GetMsilType(type));
+            }
+            ILGenerator.Emit(OpCodes.Stloc, temporaries[i]);
+        }
+
+        for (var i = 0; i < arguments.Length; i++)
+        {
+            ILGenerator.Emit(OpCodes.Ldloc, _vaScratch!);
+            ILGenerator.Emit(OpCodes.Ldc_I4, offsets[i]);
+            ILGenerator.Emit(OpCodes.Add);
+            ILGenerator.Emit(OpCodes.Ldloc, temporaries[i]);
+
+            var type = arguments[i].TypeOf;
+            if (type.Kind == LLVMTypeKind.LLVMIntegerTypeKind && type.IntWidth <= 64)
+            {
+                ILGenerator.Emit(OpCodes.Stind_I8);
+            }
+            else
+            {
+                EmitStoreIndirect(type);
+            }
+        }
+
+        ILGenerator.Emit(OpCodes.Ldloc, _vaScratch!);
+    }
+
+    /// <summary>
+    /// The <c>va_arg</c> instruction, which clang only emits for targets whose <c>va_list</c> is a pointer to the
+    /// next slot (Darwin ARM64): read the argument and advance the pointer past its slots.
+    /// </summary>
+    private void EmitVaArg(LLVMValueRef instruction)
+    {
+        if (!TypeSystem.VaListLayout.IsPointer)
+        {
+            throw new NotSupportedException("The va_arg instruction is only supported for targets whose va_list is a pointer.");
+        }
+
+        var type = instruction.TypeOf;
+
+        var list = ILGenerator.DeclareLocal(typeof(void*));
+        EmitValue(instruction.GetOperand(0));
+        ILGenerator.Emit(OpCodes.Stloc, list);
+
+        var next = ILGenerator.DeclareLocal(typeof(void*));
+        ILGenerator.Emit(OpCodes.Ldloc, list);
+        ILGenerator.Emit(OpCodes.Ldind_I);
+        ILGenerator.Emit(OpCodes.Stloc, next);
+
+        if (IsAlign16Argument(type))
+        {
+            ILGenerator.Emit(OpCodes.Ldloc, next);
+            ILGenerator.Emit(OpCodes.Ldc_I4, 15);
+            ILGenerator.Emit(OpCodes.Conv_I);
+            ILGenerator.Emit(OpCodes.Add);
+            ILGenerator.Emit(OpCodes.Ldc_I4, -16);
+            ILGenerator.Emit(OpCodes.Conv_I);
+            ILGenerator.Emit(OpCodes.And);
+            ILGenerator.Emit(OpCodes.Stloc, next);
+        }
+
+        ILGenerator.Emit(OpCodes.Ldloc, list);
+        ILGenerator.Emit(OpCodes.Ldloc, next);
+        ILGenerator.Emit(OpCodes.Ldc_I4, GetVaSlotCount(type) * 8);
+        ILGenerator.Emit(OpCodes.Add);
+        ILGenerator.Emit(OpCodes.Stind_I);
+
+        ILGenerator.Emit(OpCodes.Ldloc, next);
+        EmitLoadIndirect(type);
     }
 
     /// <summary>
@@ -352,6 +526,10 @@ internal sealed partial class FunctionILEmitter : ILEmitter
 
             case LLVMOpcode.LLVMLoad:
                 EmitLoad(instruction);
+                break;
+
+            case LLVMOpcode.LLVMVAArg:
+                EmitVaArg(instruction);
                 break;
 
             case LLVMOpcode.LLVMFDiv:
@@ -2225,7 +2403,8 @@ internal sealed partial class FunctionILEmitter : ILEmitter
                     EmitValue,
                     operand => EmitIntegerOperand(operand, Signedness.Signed),
                     operand => EmitIntegerOperand(operand, Signedness.Unsigned),
-                    TypeSystem);
+                    TypeSystem,
+                    (int)_function.ParamsCount);
                 intrinsic!.BuildCall(callContext);
                 return;
             }
@@ -2235,26 +2414,21 @@ internal sealed partial class FunctionILEmitter : ILEmitter
             }
         }
 
-        for (var i = 0; i < operands.Length - 1; i++)
+        var functionType = (LLVMTypeRef)LLVM.GetCalledFunctionType(instruction);
+
+        var numParameters = (int)functionType.ParamTypesCount;
+        var isVarArg = functionType.IsFunctionVarArg;
+
+        // The extra arguments of a variadic call go in a buffer, passed as a hidden last argument.
+        for (var i = 0; i < numParameters; i++)
         {
             EmitValue(operands[i]);
         }
 
-        var functionType = (LLVMTypeRef)LLVM.GetCalledFunctionType(instruction);
-
-        var varArgsParameterTypes = Array.Empty<Type>();
-        var isVarArg = functionType.IsFunctionVarArg;
         if (isVarArg)
         {
-            var parameters = functionType.GetParamTypes();
-            varArgsParameterTypes = new Type[operands.Length - 1 - parameters.Length];
-            for (var i = 0; i < varArgsParameterTypes.Length; i++)
-            {
-                varArgsParameterTypes[i] = TypeSystem.GetMsilType(operands[i + parameters.Length].TypeOf);
-            }
+            EmitVaBuffer(operands.AsSpan(numParameters, operands.Length - 1 - numParameters));
         }
-
-        var numParameters = (int)functionType.ParamTypesCount;
 
         if (functionToCall.Kind != LLVMValueKind.LLVMFunctionValueKind)
         {
@@ -2264,55 +2438,28 @@ internal sealed partial class FunctionILEmitter : ILEmitter
 
             var returnType = TypeSystem.GetMsilType(instruction.TypeOf);
 
-            var parameterTypes = new Type[numParameters];
-            for (var i = 0; i < parameterTypes.Length; i++)
+            var parameterTypes = new Type[numParameters + (isVarArg ? 1 : 0)];
+            for (var i = 0; i < numParameters; i++)
             {
                 parameterTypes[i] = TypeSystem.GetMsilType(operands[i].TypeOf);
             }
-
             if (isVarArg)
             {
-                ILGenerator.EmitCalli(
-                    OpCodes.Calli,
-                    CallingConventions.VarArgs,
-                    returnType,
-                    parameterTypes,
-                    varArgsParameterTypes);
+                parameterTypes[numParameters] = typeof(void*);
             }
-            else
-            {
-                ILGenerator.EmitCalli(
-                    OpCodes.Calli,
-                    System.Runtime.InteropServices.CallingConvention.Cdecl,
-                    returnType,
-                    parameterTypes);
-            }
+
+            ILGenerator.EmitCalli(
+                OpCodes.Calli,
+                System.Runtime.InteropServices.CallingConvention.Cdecl,
+                returnType,
+                parameterTypes);
 
             return;
         }
 
         var method = CompiledModule.GetFunction(functionToCall);
 
-        // Special handling for printf/fprintf/__sprintf_chk: variadic calling convention doesn't work on non-Windows.
-        // We implement them in managed code by parsing the format string + a call to Console.Write / Marshal.Copy.
-        if (isVarArg && functionToCall.Name is "printf" or "fprintf" or "__sprintf_chk")
-        {
-            var fixedParamTypes = functionType.GetParamTypes().Select(t => TypeSystem.GetMsilType(t)).ToArray();
-            var allParamTypes = fixedParamTypes.Concat(varArgsParameterTypes).ToArray();
-            var overload = functionToCall.Name switch
-            {
-                "fprintf" => CompiledModule.GetOrCreateFprintfOverload(allParamTypes),
-                "__sprintf_chk" => CompiledModule.GetOrCreateSprintfChkOverload(allParamTypes),
-                _ => CompiledModule.GetOrCreatePrintfOverload(allParamTypes),
-            };
-            ILGenerator.Emit(OpCodes.Call, overload);
-            return;
-        }
-
-        ILGenerator.EmitCall(
-            OpCodes.Call,
-            method,
-            varArgsParameterTypes);
+        ILGenerator.Emit(OpCodes.Call, method);
     }
 
     private unsafe void HandleDebugDeclare(LLVMValueRef instruction)

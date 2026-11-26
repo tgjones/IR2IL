@@ -14,7 +14,8 @@ internal readonly ref struct IntrinsicFunctionCallContext(
     Action<LLVMValueRef> emitValue,
     Action<LLVMValueRef> emitSignedInteger,
     Action<LLVMValueRef> emitUnsignedInteger,
-    TypeSystem typeSystem)
+    TypeSystem typeSystem,
+    int vaBufferArgumentIndex)
 {
     public MethodInfo Callee { get; } = callee;
     public IReadOnlyDictionary<LLVMValueRef, LocalBuilder> Locals { get; } = locals;
@@ -22,6 +23,9 @@ internal readonly ref struct IntrinsicFunctionCallContext(
     public LLVMValueRef[] Operands { get; } = operands;
     public Action<LLVMValueRef> EmitValue { get; } = emitValue;
     public TypeSystem TypeSystem { get; } = typeSystem;
+
+    /// <summary>The index of the hidden parameter of a variadic function that holds the buffer of its extra arguments.</summary>
+    public int VaBufferArgumentIndex { get; } = vaBufferArgumentIndex;
 
     /// <summary>Pushes an integer operand sign-extended from its logical width (see CLAUDE.md, "Normalisation").</summary>
     public Action<LLVMValueRef> EmitSignedInteger { get; } = emitSignedInteger;

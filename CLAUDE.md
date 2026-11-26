@@ -98,18 +98,12 @@ LLVM IR allows integers of any bit width (e.g. `i40` from a struct with 3+29+3-b
 - **Mask resizing** (`TryResizeVectorMask`) uses `Vector64.Narrow(m, m)` and `Vector64.WidenLower(m)` for masks of 64 bits or less.
 - `Vector1024` is a custom type of two `Vector512`s, with few operations.
 
-### Handling varargs on macOS ARM64
+### Variadic functions and stdio
 
-CoreCLR on macOS ARM64 does **not** support the managed vararg calling convention (`CallingConventions.VarArgs`). P/Invoke of native vararg functions (e.g. `printf`) also does not work reliably on this platform.
+CoreCLR's managed vararg convention (`CallingConventions.VarArgs`, `arglist`) only works on Windows x64 and P/Invoke of native variadic functions doesn't work on macOS ARM64, so IR2IL doesn't use either. Every variadic call, on every platform, passes the extra arguments in a **buffer of 8-byte slots** as a hidden last `void*` argument (design: `docs/varargs-and-stdio.md`).
 
-**Solution for known functions**: intercept calls to known vararg C functions in `FunctionILEmitter.EmitCall` and route them to generated managed implementations instead.
-
-**Tests using varargs** that cannot be handled this way are skipped on non-Windows by adding them to the ignored list (the exact list depends on which test suite it is) in `CompilerTests.cs`.
-
-For `printf` specifically:
-- `FunctionILEmitter.EmitCall` detects `functionToCall.Name == "printf"` when `isVarArg` is true
-- It calls `CompiledModule.GetOrCreatePrintfOverload(allParamTypes)` to get (or lazily generate) a concrete typed wrapper method
-- The generated `__printf(void* fmt, T arg, ...)` method boxes its arguments into an `object[]` and calls `PrintfHelper.PrintfCore(IntPtr, object[])` in `IR2IL.Runtime`
-- `PrintfHelper.PrintfCore` parses the C format string and writes to `Console.Write`
-
-The typed `__printf` overloads are generated as `MethodBuilder` instances during compilation (before `TypeBuilder.CreateType()` is called), so they live in the emitted assembly rather than the runtime library.
+- **Callee**: a variadic LLVM function compiles to an ordinary method with a hidden last parameter `void* va` (`ModuleCompiler.CompileMethod`).
+- **Caller** (`FunctionILEmitter.EmitCall`, direct calls and `calli`): `EmitVaBuffer` evaluates the extra arguments into temporaries (an argument can itself be a variadic call that uses the buffer), then writes each to its slot (`ceil(size / 8)` slots, `i128`/`fp128` on a 16-byte boundary except on Windows; integers up to 64 bits sign-extended) and pushes the buffer's address. The buffer is one `localloc` per function, made in the prologue (`EmitVaScratchSetup`) with the size of its largest variadic call, never per call.
+- **`va_start`/`va_copy`/`va_arg`**: the layout of the `va_list` comes from the module's target triple (`VaListLayout`, via `TypeSystem.VaListLayout`). Darwin ARM64 and Windows x64 use a pointer to the next slot; Linux AArch64 and x86-64 (and Darwin x86-64) use clang's structures, which `va_start` initialises with all register arguments marked as used up, so the code clang writes out reads everything from the buffer. The `va_arg` instruction (clang emits it on Darwin ARM64) is `EmitVaArg`.
+- **External variadic functions** are resolved when the declaration is compiled (`ModuleCompiler.GetVariadicShim`): a public method of `IR2IL.Runtime.VariadicShims` with the same name as the C function (`printf`, `fprintf`, `sprintf`, `snprintf`, `__sprintf_chk`, `__snprintf_chk`, `scanf`, `fscanf`, `sscanf`) takes the fixed arguments and the buffer, builds a native `va_list` and calls the `v`-version in libc (on Windows, `__stdio_common_v*` of the UCRT). Any other external variadic function throws `NotSupportedException` at compile time; add a shim for it when a program needs it.
+- **All stdio goes through libc** (`puts`, `putchar`, `fwrite`, ... are plain P/Invokes), so output keeps its order; nothing writes to `Console`.

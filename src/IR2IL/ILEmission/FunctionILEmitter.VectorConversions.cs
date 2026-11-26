@@ -99,12 +99,12 @@ internal sealed partial class FunctionILEmitter
         var bits = LaneTypes.GetLaneBits(laneType);
         if (narrow)
         {
-            // The BCL narrows integers and double, and the vector must not be a Vector1024, which has no Narrow.
-            return LaneTypes.GetNarrowerLaneType(laneType) != null && GetContainerBits(laneCount, bits) <= 512;
+            // The BCL narrows integers and double. A Vector1024 is narrowed through its two halves.
+            return LaneTypes.GetNarrowerLaneType(laneType) != null && GetContainerBits(laneCount, bits) <= 1024;
         }
 
-        // A widened vector must still fit in 512 bits, as Vector1024 has no WidenLower/WidenUpper.
-        return LaneTypes.GetWiderLaneType(laneType) != null && GetContainerBits(laneCount, bits * 2) <= 512;
+        // A Vector1024 is made of two Vector512, so widening stops at 1024 bits.
+        return LaneTypes.GetWiderLaneType(laneType) != null && GetContainerBits(laneCount, bits * 2) <= 1024;
     }
 
     private void EmitLaneWidthStep(int laneCount, Type laneType, bool narrow)
@@ -151,7 +151,10 @@ internal sealed partial class FunctionILEmitter
         ILGenerator.Emit(OpCodes.Call, vectorClass.GetMethodStrict(nameof(Vector128.WidenUpper), [vector]));
 
         var widened = GetVectorOf(container, LaneTypes.GetWiderLaneType(laneType)!);
-        ILGenerator.Emit(OpCodes.Call, GetVectorClass(widerContainer).GetMethodStrict(nameof(Vector128.Create), [widened, widened]));
+        var wideLane = LaneTypes.GetWiderLaneType(laneType)!;
+        ILGenerator.Emit(OpCodes.Call, widerContainer == 1024
+            ? typeof(Vector1024).GetStaticMethodStrict(nameof(Vector1024.Create)).MakeGenericMethod(wideLane)
+            : GetVectorClass(widerContainer).GetMethodStrict(nameof(Vector128.Create), [widened, widened]));
     }
 
     /// <summary>
@@ -229,6 +232,7 @@ internal sealed partial class FunctionILEmitter
         128 => typeof(Vector128),
         256 => typeof(Vector256),
         512 => typeof(Vector512),
+        1024 => typeof(Vector1024),
         _ => throw new NotImplementedException($"Vectors of {containerBits} bits."),
     };
 
@@ -239,6 +243,7 @@ internal sealed partial class FunctionILEmitter
             128 => typeof(Vector128<>),
             256 => typeof(Vector256<>),
             512 => typeof(Vector512<>),
+            1024 => typeof(Vector1024<>),
             _ => throw new NotImplementedException($"Vectors of {containerBits} bits."),
         }).MakeGenericType(laneType);
 }

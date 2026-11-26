@@ -28,6 +28,11 @@ internal sealed class TypeSystem
         _module = module;
     }
 
+    public VaListLayout VaListLayout => _vaListLayout ??= VaListLayout.FromTriple(
+        string.IsNullOrEmpty(_module.Target) ? LLVMTargetRef.DefaultTriple : _module.Target);
+
+    private VaListLayout? _vaListLayout;
+
     public Type GetMsilType(LLVMTypeRef typeRef)
     {
         switch (typeRef.Kind)

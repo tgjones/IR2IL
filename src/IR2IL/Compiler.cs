@@ -120,7 +120,7 @@ public sealed partial class Compiler
             }
             """);
 
-        var runtimeAssemblyPath = typeof(IR2IL.Runtime.PrintfHelper).Assembly.Location;
+        var runtimeAssemblyPath = typeof(IR2IL.Runtime.VariadicShims).Assembly.Location;
         File.Copy(
             runtimeAssemblyPath,
             Path.Combine(Path.GetDirectoryName(_outputPath) ?? "", Path.GetFileName(runtimeAssemblyPath)),

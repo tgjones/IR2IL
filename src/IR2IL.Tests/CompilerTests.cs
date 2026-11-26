@@ -102,9 +102,6 @@ public partial class CompilerTests
         .GetFiles(Path.Combine(TestProgramsPath, "c-testsuite"), "*.c", SearchOption.AllDirectories)
         .Where(x => Path.GetFileNameWithoutExtension(x) switch
         {
-            // These tests are not supported on non-Windows because they use varargs.
-            "00140" or "00186" or "00189" or "00204" when !RuntimeInformation.IsOSPlatform(OSPlatform.Windows) => false,
-
             // These tests are not supported on Windows because they use `extern int printf(...)`
             // which isn't compatible with Microsoft's C runtime.
             "00210" or "00211" or "00213" or "00214" or "00215" or "00217" or "00218" => false,
@@ -204,9 +201,6 @@ public partial class CompilerTests
 
             // These tests don't execute correctly on MSVC because of __intptr_t / intptr_t differences.
             "0011_0247" => false,
-
-            // These tests are not supported on non-Windows because they use varargs.
-            "0011_0178" or "0011_0251" when !RuntimeInformation.IsOSPlatform(OSPlatform.Windows) => false,
 
             // These tests don't execute correctly on MSVC because of __STDC_VERSION__ differences.
             "0017_0031" or "0017_0032" or "0017_0033" or "0017_0034" or "0017_0035" => false,

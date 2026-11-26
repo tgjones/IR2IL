@@ -36,6 +36,8 @@ internal static class IntrinsicFunctions
         { "llvm.stackrestore.p0", new LLVMStackRestoreIntrinsicFunction() },
         { "llvm.threadlocal.address.p0", new LLVMThreadLocalAddressIntrinsicFunction() },
         { "llvm.va_start.p0", new LLVMVaStartIntrinsicFunction() },
+        { "llvm.va_copy.p0", new LLVMVaCopyIntrinsicFunction() },
+        { "llvm.va_end.p0", NoOpIntrinsicFunction.Instance },
 
         { "llvm.expect.i1", new LLVMExpectIntrinsicFunction() },
         { "llvm.expect.i8", new LLVMExpectIntrinsicFunction() },
