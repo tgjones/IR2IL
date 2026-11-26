@@ -413,9 +413,29 @@ internal sealed class TypeSystem
 
             var result = _moduleBuilder.DefineDocument(fullPath, language);
 
-            // The document has no checksum. The DIFile's checksum operand is optional (reading it crashed
-            // on a file without one), and SetCheckSum is blocked by https://github.com/dotnet/runtime/issues/110096.
-            // When that is fixed, read it from the DIFile's operands (kind CSK_MD5 is assumed: the C API has no getter).
+            // The checksum operand of a DIFile is optional: a file without one has a null operand.
+            var diFileValue = (LLVMValueRef)LLVM.MetadataAsValue(_module.Context, diFile);
+            var checksumOperand = diFileValue.GetOperand(2);
+            if (checksumOperand.Handle != IntPtr.Zero)
+            {
+                var checksum = checksumOperand.GetMDString(out var _);
+                var checksumBytes = Convert.FromHexString(checksum);
+
+                // I can't find a way to get the checksumKind using the LLVM C API,
+                // so it comes from the length of the checksum (MD5, SHA-1 or SHA-256).
+                var checksumAlgorithm = checksumBytes.Length switch
+                {
+                    16 => new Guid("406EA660-64CF-4C82-B6F0-42D48172A799"),
+                    20 => new Guid("FF1816EC-AA5E-4D10-87F7-6F4963833460"),
+                    32 => new Guid("8829D00F-11B8-4213-878B-770E8597AC16"),
+                    _ => Guid.Empty,
+                };
+
+                if (checksumAlgorithm != Guid.Empty)
+                {
+                    result.SetCheckSum(checksumAlgorithm, checksumBytes);
+                }
+            }
 
             return result;
         });

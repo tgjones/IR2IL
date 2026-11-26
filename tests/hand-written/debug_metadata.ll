@@ -1,6 +1,6 @@
 ; Debug metadata as debug records (#dbg_declare, #dbg_value, #dbg_label; see debug_intrinsic_calls.ll for the old
-; intrinsic calls), instruction locations in several scopes and files (inlined
-; scopes included), and a debug-info-carrying function that is variadic. None of it may change the result.
+; intrinsic calls), instruction locations in several scopes and files, a DIFile with a checksum (the other file's has
+; none), and a debug-info-carrying function that is variadic. None of it may change the result.
 
 declare i32 @printf(ptr, ...)
 
@@ -63,7 +63,7 @@ define i32 @main() !dbg !30 {
 !llvm.module.flags = !{!5, !6}
 
 !0 = distinct !DICompileUnit(language: DW_LANG_C11, file: !1, producer: "hand written", isOptimized: false, runtimeVersion: 0, emissionKind: FullDebug)
-!1 = !DIFile(filename: "debug_metadata.c", directory: "/tmp")
+!1 = !DIFile(filename: "debug_metadata.c", directory: "/tmp", checksumkind: CSK_MD5, checksum: "d41d8cd98f00b204e9800998ecf8427e")
 !2 = !DIFile(filename: "other.h", directory: "/tmp")
 !5 = !{i32 2, !"Debug Info Version", i32 3}
 !6 = !{i32 7, !"Dwarf Version", i32 5}
