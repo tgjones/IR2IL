@@ -85,6 +85,10 @@ LLVM IR allows integers of any bit width (e.g. `i40` from a struct with 3+29+3-b
 
 **Loads and stores** move exactly ceil(N/8) bytes (`EmitStoreIntegerIndirect`, `EmitLoadPartialInteger`; wide loads use `LoadWideInt`): a non-power-of-2 width that is narrower than its container (`i24`, `i40`, `i72`) goes through a local and `cpblk`, so neighbouring bytes are untouched and nothing past the object is read. A partial load zero-fills the rest of the container.
 
+### Division by zero and overflow
+
+`sdiv`, `udiv`, `srem` and `urem` use the IL `div`/`rem` opcodes, so a zero divisor throws `DivideByZeroException` and `INT_MIN / -1` (or `INT_MIN % -1`) throws `OverflowException`. Both are undefined behaviour in C and in LLVM, so IR2IL doesn't try to match any particular result; tests must avoid them. Vector `srem`/`urem` (`VectorUtility.Remainder`) do the same per real lane.
+
 ### Small vectors (16 and 32 bits)
 
 .NET has no vector smaller than `Vector64`, so `<2 x i8>`, `<4 x i8>` and `<2 x i16>` (and the `<N x i1>` masks of 2 and 4 lanes, whose lanes are bytes) are held in a `Vector64<T>` with padding lanes (`TypeSystem.GetVectorContainerSizeInBits`). `<3 x float>` in a `Vector128<float>` is the same situation. The padding lanes follow the rule of the bits above an `iN`: they may contain anything, and whatever reads all the lanes ignores them.
