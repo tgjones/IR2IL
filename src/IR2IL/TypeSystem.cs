@@ -403,10 +403,6 @@ internal sealed class TypeSystem
 
             var fullPath = Path.Combine(directory, filename);
 
-            var diFileValue = (LLVMValueRef)LLVM.MetadataAsValue(_module.Context, diFile);
-
-            var checksum = diFileValue.GetOperand(2).GetMDString(out var _);
-
             var language = Path.GetExtension(filename) switch
             {
                 ".c" or ".h" => SymLanguageType.C,
@@ -417,15 +413,9 @@ internal sealed class TypeSystem
 
             var result = _moduleBuilder.DefineDocument(fullPath, language);
 
-            var checksumBytes = Convert.FromHexString(checksum);
-
-            // I can't find a way to get the checksumKind using the LLVM C API.
-            // So we assume it's CSK_MD5 for now.
-            var checksumAlgorithm = new Guid("406EA660-64CF-4C82-B6F0-42D48172A799");
-
-            // TODO: Uncomment when this issue is fixed:
-            // https://github.com/dotnet/runtime/issues/110096
-            //result.SetCheckSum(checksumAlgorithm, checksumBytes);
+            // The document has no checksum. The DIFile's checksum operand is optional (reading it crashed
+            // on a file without one), and SetCheckSum is blocked by https://github.com/dotnet/runtime/issues/110096.
+            // When that is fixed, read it from the DIFile's operands (kind CSK_MD5 is assumed: the C API has no getter).
 
             return result;
         });
