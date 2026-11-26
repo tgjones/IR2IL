@@ -178,6 +178,10 @@ internal abstract class ILEmitter
                         ILGenerator.Emit(OpCodes.Ldc_R4, 0.0f);
                         break;
 
+                    case LLVMTypeKind.LLVMDoubleTypeKind:
+                        ILGenerator.Emit(OpCodes.Ldc_R8, 0.0);
+                        break;
+
                     case LLVMTypeKind.LLVMIntegerTypeKind:
                         switch (TypeSystem.RoundUpToTypeSize((int)valueTypeRef.IntWidth))
                         {
@@ -189,6 +193,10 @@ internal abstract class ILEmitter
 
                             case 64:
                                 ILGenerator.Emit(OpCodes.Ldc_I8, 0L);
+                                break;
+
+                            case 128:
+                                ILGenerator.Emit(OpCodes.Call, typeof(Int128).GetMethodStrict("get_Zero"));
                                 break;
 
                             default:
