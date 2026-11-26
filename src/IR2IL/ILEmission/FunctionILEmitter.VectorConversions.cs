@@ -40,9 +40,9 @@ internal sealed partial class FunctionILEmitter
         var laneCount = (int)fromType.VectorSize;
         var sourceLane = TypeSystem.GetMsilVectorElementType(fromType.ElementType);
         var destinationLane = TypeSystem.GetMsilVectorElementType(toType.ElementType);
-        var destinationBits = GetLaneBits(destinationLane);
+        var destinationBits = LaneTypes.GetLaneBits(destinationLane);
 
-        if (opcode is LLVMOpcode.LLVMSIToFP or LLVMOpcode.LLVMUIToFP && GetLaneBits(sourceLane) == 64 && destinationLane == typeof(float))
+        if (opcode is LLVMOpcode.LLVMSIToFP or LLVMOpcode.LLVMUIToFP && LaneTypes.GetLaneBits(sourceLane) == 64 && destinationLane == typeof(float))
         {
             ILGenerator.Emit(OpCodes.Ldc_I4, laneCount);
             ILGenerator.Emit(OpCodes.Call, typeof(VectorUtility)
@@ -53,21 +53,21 @@ internal sealed partial class FunctionILEmitter
 
         // The lanes are signed (or floating point) in our representation; zero extension and unsigned
         // conversions work on the unsigned type of the same width.
-        var current = opcode is LLVMOpcode.LLVMZExt or LLVMOpcode.LLVMUIToFP ? GetUnsignedLaneType(sourceLane) : sourceLane;
+        var current = opcode is LLVMOpcode.LLVMZExt or LLVMOpcode.LLVMUIToFP ? LaneTypes.GetUnsignedLaneType(sourceLane) : sourceLane;
         EmitLaneReinterpretation(laneCount, sourceLane, current);
 
-        if (IsFloatingPointLane(sourceLane) == IsFloatingPointLane(destinationLane))
+        if (LaneTypes.IsFloatingPointLane(sourceLane) == LaneTypes.IsFloatingPointLane(destinationLane))
         {
             current = EmitLaneWidthSteps(laneCount, current, destinationBits);
         }
         else
         {
-            var convertBits = Math.Max(GetLaneBits(current), destinationBits);
+            var convertBits = Math.Max(LaneTypes.GetLaneBits(current), destinationBits);
             current = EmitLaneWidthSteps(laneCount, current, convertBits);
 
-            var converted = IsFloatingPointLane(destinationLane)
+            var converted = LaneTypes.IsFloatingPointLane(destinationLane)
                 ? (convertBits == 32 ? typeof(float) : typeof(double))
-                : GetIntegerLaneType(convertBits, signed: opcode != LLVMOpcode.LLVMFPToUI);
+                : LaneTypes.GetIntegerLaneType(convertBits, signed: opcode != LLVMOpcode.LLVMFPToUI);
             EmitLaneKindConversion(laneCount, current, converted);
 
             current = EmitLaneWidthSteps(laneCount, converted, destinationBits);
@@ -79,16 +79,16 @@ internal sealed partial class FunctionILEmitter
     /// <summary>Widens or narrows the lanes of the vector on the stack until they are <paramref name="targetBits"/> wide.</summary>
     private Type EmitLaneWidthSteps(int laneCount, Type laneType, int targetBits)
     {
-        while (GetLaneBits(laneType) != targetBits)
+        while (LaneTypes.GetLaneBits(laneType) != targetBits)
         {
-            var narrow = targetBits < GetLaneBits(laneType);
+            var narrow = targetBits < LaneTypes.GetLaneBits(laneType);
             if (!CanEmitLaneWidthStep(laneCount, laneType, narrow))
             {
                 throw new NotImplementedException($"Vector conversion of {laneCount} lanes of {laneType.Name} to {targetBits} bits.");
             }
 
             EmitLaneWidthStep(laneCount, laneType, narrow);
-            laneType = narrow ? GetNarrowerLaneType(laneType)! : GetWiderLaneType(laneType)!;
+            laneType = narrow ? LaneTypes.GetNarrowerLaneType(laneType)! : LaneTypes.GetWiderLaneType(laneType)!;
         }
 
         return laneType;
@@ -96,15 +96,15 @@ internal sealed partial class FunctionILEmitter
 
     private bool CanEmitLaneWidthStep(int laneCount, Type laneType, bool narrow)
     {
-        var bits = GetLaneBits(laneType);
+        var bits = LaneTypes.GetLaneBits(laneType);
         if (narrow)
         {
             // The BCL narrows integers and double, and the vector must not be a Vector1024, which has no Narrow.
-            return GetNarrowerLaneType(laneType) != null && GetContainerBits(laneCount, bits) <= 512;
+            return LaneTypes.GetNarrowerLaneType(laneType) != null && GetContainerBits(laneCount, bits) <= 512;
         }
 
         // A widened vector must still fit in 512 bits, as Vector1024 has no WidenLower/WidenUpper.
-        return GetWiderLaneType(laneType) != null && GetContainerBits(laneCount, bits * 2) <= 512;
+        return LaneTypes.GetWiderLaneType(laneType) != null && GetContainerBits(laneCount, bits * 2) <= 512;
     }
 
     private void EmitLaneWidthStep(int laneCount, Type laneType, bool narrow)
@@ -126,7 +126,7 @@ internal sealed partial class FunctionILEmitter
     /// </summary>
     private void EmitLaneWidenStep(int laneCount, Type laneType)
     {
-        var bits = GetLaneBits(laneType);
+        var bits = LaneTypes.GetLaneBits(laneType);
         var container = GetContainerBits(laneCount, bits);
         var widerContainer = GetContainerBits(laneCount, bits * 2);
         var vectorClass = GetVectorClass(container);
@@ -150,7 +150,7 @@ internal sealed partial class FunctionILEmitter
         ILGenerator.Emit(OpCodes.Ldloc, local);
         ILGenerator.Emit(OpCodes.Call, vectorClass.GetMethodStrict(nameof(Vector128.WidenUpper), [vector]));
 
-        var widened = GetVectorOf(container, GetWiderLaneType(laneType)!);
+        var widened = GetVectorOf(container, LaneTypes.GetWiderLaneType(laneType)!);
         ILGenerator.Emit(OpCodes.Call, GetVectorClass(widerContainer).GetMethodStrict(nameof(Vector128.Create), [widened, widened]));
     }
 
@@ -160,7 +160,7 @@ internal sealed partial class FunctionILEmitter
     /// </summary>
     private void EmitLaneNarrowStep(int laneCount, Type laneType)
     {
-        var bits = GetLaneBits(laneType);
+        var bits = LaneTypes.GetLaneBits(laneType);
         var container = GetContainerBits(laneCount, bits);
         var vector = GetVectorOf(container, laneType);
 
@@ -190,7 +190,7 @@ internal sealed partial class FunctionILEmitter
     /// <summary>Converts the lanes between floating point and integer of one width, e.g. <c>Vector128.ConvertToInt32(Vector128&lt;float&gt;)</c>.</summary>
     private void EmitLaneKindConversion(int laneCount, Type fromLane, Type toLane)
     {
-        var container = GetContainerBits(laneCount, GetLaneBits(fromLane));
+        var container = GetContainerBits(laneCount, LaneTypes.GetLaneBits(fromLane));
         var methodName = Type.GetTypeCode(toLane) switch
         {
             TypeCode.Single => nameof(Vector128.ConvertToSingle),
@@ -212,7 +212,7 @@ internal sealed partial class FunctionILEmitter
             return;
         }
 
-        var container = GetContainerBits(laneCount, GetLaneBits(fromLane));
+        var container = GetContainerBits(laneCount, LaneTypes.GetLaneBits(fromLane));
         ILGenerator.Emit(OpCodes.Call, GetVectorClass(container).GetStaticMethodStrict(nameof(Vector128.As)).MakeGenericMethod(fromLane, toLane));
     }
 
@@ -241,57 +241,5 @@ internal sealed partial class FunctionILEmitter
             512 => typeof(Vector512<>),
             _ => throw new NotImplementedException($"Vectors of {containerBits} bits."),
         }).MakeGenericType(laneType);
-
-    private static int GetLaneBits(Type laneType) => Type.GetTypeCode(laneType) switch
-    {
-        TypeCode.SByte or TypeCode.Byte => 8,
-        TypeCode.Int16 or TypeCode.UInt16 => 16,
-        TypeCode.Int32 or TypeCode.UInt32 or TypeCode.Single => 32,
-        TypeCode.Int64 or TypeCode.UInt64 or TypeCode.Double => 64,
-        _ => throw new NotImplementedException($"Vector lanes of type {laneType.Name}."),
-    };
-
-    private static bool IsFloatingPointLane(Type laneType) => laneType == typeof(float) || laneType == typeof(double);
-
-    private static Type GetIntegerLaneType(int bits, bool signed) => (bits, signed) switch
-    {
-        (8, true) => typeof(sbyte),
-        (8, false) => typeof(byte),
-        (16, true) => typeof(short),
-        (16, false) => typeof(ushort),
-        (32, true) => typeof(int),
-        (32, false) => typeof(uint),
-        (64, true) => typeof(long),
-        (64, false) => typeof(ulong),
-        _ => throw new NotImplementedException($"Vector lanes of {bits} bits."),
-    };
-
-    private static Type GetUnsignedLaneType(Type laneType) =>
-        IsFloatingPointLane(laneType) ? laneType : GetIntegerLaneType(GetLaneBits(laneType), signed: false);
-
-    /// <summary>The lane type of twice the width and the same kind, or null when there is none.</summary>
-    private static Type? GetWiderLaneType(Type laneType) => Type.GetTypeCode(laneType) switch
-    {
-        TypeCode.SByte => typeof(short),
-        TypeCode.Byte => typeof(ushort),
-        TypeCode.Int16 => typeof(int),
-        TypeCode.UInt16 => typeof(uint),
-        TypeCode.Int32 => typeof(long),
-        TypeCode.UInt32 => typeof(ulong),
-        TypeCode.Single => typeof(double),
-        _ => null,
-    };
-
-    /// <summary>The lane type of half the width and the same kind, or null when there is none.</summary>
-    private static Type? GetNarrowerLaneType(Type laneType) => Type.GetTypeCode(laneType) switch
-    {
-        TypeCode.Int16 => typeof(sbyte),
-        TypeCode.UInt16 => typeof(byte),
-        TypeCode.Int32 => typeof(short),
-        TypeCode.UInt32 => typeof(ushort),
-        TypeCode.Int64 => typeof(int),
-        TypeCode.UInt64 => typeof(uint),
-        TypeCode.Double => typeof(float),
-        _ => null,
-    };
 }
+

@@ -85,4 +85,138 @@ public static class Vector1024
         ref T address = ref Unsafe.As<Vector1024<T>, T>(ref Unsafe.AsRef(in vector));
         Unsafe.Add(ref address, index) = value;
     }
+
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    public static Vector1024<float> Sin(Vector1024<float> x)
+    {
+        return Create(Vector512.Sin(x.GetLower()), Vector512.Sin(x.GetUpper()));
+    }
+
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    public static Vector1024<float> Cos(Vector1024<float> x)
+    {
+        return Create(Vector512.Cos(x.GetLower()), Vector512.Cos(x.GetUpper()));
+    }
+
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    public static Vector1024<float> Asin(Vector1024<float> x)
+    {
+        return Create(Vector512.Asin(x.GetLower()), Vector512.Asin(x.GetUpper()));
+    }
+
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    public static Vector1024<float> Exp(Vector1024<float> x)
+    {
+        return Create(Vector512.Exp(x.GetLower()), Vector512.Exp(x.GetUpper()));
+    }
+
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    public static Vector1024<float> Log(Vector1024<float> x)
+    {
+        return Create(Vector512.Log(x.GetLower()), Vector512.Log(x.GetUpper()));
+    }
+
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    public static Vector1024<float> Ceiling(Vector1024<float> x)
+    {
+        return Create(Vector512.Ceiling(x.GetLower()), Vector512.Ceiling(x.GetUpper()));
+    }
+
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    public static Vector1024<float> FusedMultiplyAdd(Vector1024<float> left, Vector1024<float> right, Vector1024<float> addend)
+    {
+        return Create(Vector512.FusedMultiplyAdd(left.GetLower(), right.GetLower(), addend.GetLower()), Vector512.FusedMultiplyAdd(left.GetUpper(), right.GetUpper(), addend.GetUpper()));
+    }
+
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    public static Vector1024<double> Sin(Vector1024<double> x)
+    {
+        return Create(Vector512.Sin(x.GetLower()), Vector512.Sin(x.GetUpper()));
+    }
+
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    public static Vector1024<double> Cos(Vector1024<double> x)
+    {
+        return Create(Vector512.Cos(x.GetLower()), Vector512.Cos(x.GetUpper()));
+    }
+
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    public static Vector1024<double> Asin(Vector1024<double> x)
+    {
+        return Create(Vector512.Asin(x.GetLower()), Vector512.Asin(x.GetUpper()));
+    }
+
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    public static Vector1024<double> Exp(Vector1024<double> x)
+    {
+        return Create(Vector512.Exp(x.GetLower()), Vector512.Exp(x.GetUpper()));
+    }
+
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    public static Vector1024<double> Log(Vector1024<double> x)
+    {
+        return Create(Vector512.Log(x.GetLower()), Vector512.Log(x.GetUpper()));
+    }
+
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    public static Vector1024<double> Ceiling(Vector1024<double> x)
+    {
+        return Create(Vector512.Ceiling(x.GetLower()), Vector512.Ceiling(x.GetUpper()));
+    }
+
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    public static Vector1024<double> FusedMultiplyAdd(Vector1024<double> left, Vector1024<double> right, Vector1024<double> addend)
+    {
+        return Create(Vector512.FusedMultiplyAdd(left.GetLower(), right.GetLower(), addend.GetLower()), Vector512.FusedMultiplyAdd(left.GetUpper(), right.GetUpper(), addend.GetUpper()));
+    }
+
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    public static Vector1024<T> Sqrt<T>(Vector1024<T> vector)
+        where T : unmanaged
+    {
+        return Create(Vector512.Sqrt(vector.GetLower()), Vector512.Sqrt(vector.GetUpper()));
+    }
+
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    public static Vector1024<T> Abs<T>(Vector1024<T> vector)
+        where T : unmanaged
+    {
+        return Create(Vector512.Abs(vector.GetLower()), Vector512.Abs(vector.GetUpper()));
+    }
+
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    public static Vector1024<T> CopySign<T>(Vector1024<T> value, Vector1024<T> sign)
+        where T : unmanaged
+    {
+        return Create(Vector512.CopySign(value.GetLower(), sign.GetLower()), Vector512.CopySign(value.GetUpper(), sign.GetUpper()));
+    }
+
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    public static Vector1024<T> Min<T>(Vector1024<T> left, Vector1024<T> right)
+        where T : unmanaged
+    {
+        return Create(Vector512.Min(left.GetLower(), right.GetLower()), Vector512.Min(left.GetUpper(), right.GetUpper()));
+    }
+
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    public static Vector1024<T> Max<T>(Vector1024<T> left, Vector1024<T> right)
+        where T : unmanaged
+    {
+        return Create(Vector512.Max(left.GetLower(), right.GetLower()), Vector512.Max(left.GetUpper(), right.GetUpper()));
+    }
+
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    public static Vector1024<T> SubtractSaturate<T>(Vector1024<T> left, Vector1024<T> right)
+        where T : unmanaged
+    {
+        return Create(Vector512.SubtractSaturate(left.GetLower(), right.GetLower()), Vector512.SubtractSaturate(left.GetUpper(), right.GetUpper()));
+    }
+
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    public static Vector1024<TTo> As<TFrom, TTo>(this Vector1024<TFrom> vector)
+        where TFrom : unmanaged
+        where TTo : unmanaged
+    {
+        return Unsafe.BitCast<Vector1024<TFrom>, Vector1024<TTo>>(vector);
+    }
 }

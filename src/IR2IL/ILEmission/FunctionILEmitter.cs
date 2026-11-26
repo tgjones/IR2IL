@@ -1826,7 +1826,7 @@ internal sealed partial class FunctionILEmitter : ILEmitter
                     case "UnsignedRemainder":
                         // The lanes of an unsigned remainder are read as unsigned, though the vector is signed.
                         var signedLaneType = TypeSystem.GetMsilVectorElementType(instruction.TypeOf.ElementType);
-                        var remainderLaneType = vectorMethodName == "UnsignedRemainder" ? GetUnsignedLaneType(signedLaneType) : signedLaneType;
+                        var remainderLaneType = vectorMethodName == "UnsignedRemainder" ? LaneTypes.GetUnsignedLaneType(signedLaneType) : signedLaneType;
                         ILGenerator.Emit(OpCodes.Ldc_I4, (int)instruction.TypeOf.VectorSize);
                         vectorMethod = typeof(VectorUtility).GetStaticMethodStrict(nameof(VectorUtility.Remainder))
                             .MakeGenericMethod(TypeSystem.GetMsilVectorType(instruction.TypeOf), remainderLaneType);
@@ -2723,14 +2723,14 @@ internal sealed partial class FunctionILEmitter : ILEmitter
         {
             var narrow = toLaneBits < laneBits;
             if (laneBits is not (8 or 16 or 32 or 64)
-                || !CanEmitLaneWidthStep(laneCount, GetIntegerLaneType(laneBits, signed: true), narrow))
+                || !CanEmitLaneWidthStep(laneCount, LaneTypes.GetIntegerLaneType(laneBits, signed: true), narrow))
             {
                 return false;
             }
 
             if (emit)
             {
-                EmitLaneWidthStep(laneCount, GetIntegerLaneType(laneBits, signed: true), narrow);
+                EmitLaneWidthStep(laneCount, LaneTypes.GetIntegerLaneType(laneBits, signed: true), narrow);
             }
 
             laneBits = narrow ? laneBits / 2 : laneBits * 2;

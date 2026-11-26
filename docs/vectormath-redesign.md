@@ -353,7 +353,7 @@ Leave `VectorUtility.Remainder`, `VariableShift*` and `ConvertInt64ToSingle` alo
 
 Each step builds and passes its tests on its own, which makes it a natural commit boundary. Run tests from the repo root.
 
-- [ ] **Step 1: shared helpers, no behaviour change.**
+- [x] **Step 1: shared helpers, no behaviour change.**
   - Add `LaneTypes` (§4.1) and switch `FunctionILEmitter` to it.
   - Add `VectorIntrinsicEmitter` (§4.1) and the `Vector1024` methods (§5.3).
   - Run `dotnet build src` and `dotnet test src --filter "Name~vector"`.
