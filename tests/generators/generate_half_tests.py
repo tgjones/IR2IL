@@ -1,12 +1,14 @@
 #!/usr/bin/env python3
-"""Generates tests/hand-written/half_arithmetic.ll, half_fcmp.ll, half_conversions.ll and half_memory.ll.
+"""Generates tests/hand-written/half_arithmetic.ll, half_fcmp.ll, half_conversions.ll, half_memory.ll and half_intrinsics.ll.
 
 Scalar `half`: `fadd`, `fsub`, `fmul`, `fdiv`, `frem` and `fneg` over every pair of a table of half values (zeros of
 both signs, the smallest denormal, the largest denormal and normal, 65504, infinities, NaN); all 16 `fcmp`
 predicates over every pair, stored as an `i1`, as a `br` condition and as a `select` condition; `fpext`,
 `fptrunc` (ties, overflow, underflow, and a double that rounds the wrong way when it is rounded to float first),
 `fptosi`, `fptoui`, `sitofp`, `uitofp` and `bitcast`; and loads, stores, allocas, globals, constant arrays and
-structs, calls, `select`, `phi` and `undef`/`poison`. A NaN result is printed as one canonical value, because its
+structs, calls, `select`, `phi` and `undef`/`poison`; and the math intrinsics on `half` (`sqrt`, `fabs`, `ceil`, `floor`,
+`trunc`, `round`, `roundeven`, `rint`, `nearbyint`, `copysign`, `fma`, `fmuladd`, `minnum`, `maxnum`, `pow`, `atan2`,
+`exp`, `exp2`, `log`, `log2`, `log10` and the trigonometric ones) over the table, with constant operands. A NaN result is printed as one canonical value, because its
 payload is not defined. Inputs of `fptosi`/`fptoui` and `sitofp`/`uitofp` stay where the result is defined.
 
 There is no expected value here: the tests compare IR2IL's output with that of the same IR built by clang.
@@ -413,7 +415,55 @@ def memory():
     write("half_memory.ll", "loads, stores, alloca, globals, constant arrays, structs, calls, select, phi and undef of half.", [MEMORY])
 
 
+UNARY = ["sqrt", "fabs", "ceil", "floor", "trunc", "round", "roundeven", "rint", "nearbyint", "exp", "exp2", "log",
+         "log2", "log10", "sin", "cos", "tan", "asin", "acos", "atan", "sinh", "cosh", "tanh"]
+BINARY = ["copysign", "minnum", "maxnum", "pow", "atan2"]
+TERNARY = ["fma", "fmuladd"]
+# Values for rounding: ties, halves, and values around the largest where half has no fraction.
+ROUNDING_BITS = HALF_BITS + [0x4100, 0xC100, 0x4900, 0xC900, 0xB800, 0x3400, 0x6800, 0x6BFF, 0x5BFF]
+FMA_BITS = [0x0000, 0x3C00, 0xBC00, 0x4300, 0x2E66, 0x7BFF, 0x0001, 0x7C00, 0x7E00, 0x5640]
+
+
+def intrinsics():
+    declarations = []
+    body = []
+    n = [0]
+
+    def call(name, args):
+        n[0] += 1
+        declarations.append(f"declare half @llvm.{name}.f16({', '.join(['half'] * len(args))})")
+        body.append(f"  %r{n[0]} = call half @llvm.{name}.f16({', '.join('half ' + half_const(a) for a in args)})")
+        body.append(f"  call void @emit_half(half %r{n[0]})")
+
+    def is_zero(b):
+        return b & 0x7FFF == 0
+
+    for name in UNARY:
+        for b in ROUNDING_BITS if name in ("ceil", "floor", "trunc", "round", "roundeven", "rint", "nearbyint", "fabs") else HALF_BITS:
+            call(name, [b])
+    for name in BINARY:
+        for a in HALF_BITS:
+            for b in HALF_BITS:
+                # minnum/maxnum may return either zero for +0.0 against -0.0, and copysign of a NaN keeps its payload.
+                if name in ("minnum", "maxnum") and is_zero(a) and is_zero(b) and a != b:
+                    continue
+                call(name, [a, b])
+    for name in TERNARY:
+        for a in FMA_BITS:
+            for b in FMA_BITS:
+                for c in FMA_BITS:
+                    call(name, [a, b, c])
+
+    # A call whose result is unused, and the result used as an operand of another intrinsic.
+    body.append("  %chain = call half @llvm.sqrt.f16(half 0xH4400)\n  %chain2 = call half @llvm.fabs.f16(half %chain)")
+    body.append("  call void @emit_half(half %chain2)")
+    declared = sorted(set(declarations))
+    write("half_intrinsics.ll", "the math intrinsics on half, over a table of values with constant operands.",
+          [PRELUDE, "\n".join(declared) + "\n", "define i32 @main() {\n" + "\n".join(body) + "\n  ret i32 0\n}\n"])
+
+
 if __name__ == "__main__":
+    intrinsics()
     arithmetic()
     fcmp()
     conversions()
