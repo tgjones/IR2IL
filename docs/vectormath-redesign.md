@@ -357,7 +357,7 @@ Each step builds and passes its tests on its own, which makes it a natural commi
   - Add `LaneTypes` (§4.1) and switch `FunctionILEmitter` to it.
   - Add `VectorIntrinsicEmitter` (§4.1) and the `Vector1024` methods (§5.3).
   - Run `dotnet build src` and `dotnet test src --filter "Name~vector"`.
-- [ ] **Step 2: floating point math.**
+- [x] **Step 2: floating point math.**
   - Add `LLVMFloatMathIntrinsicFunction` (§4.2) and delete `LLVMVectorMathIntrinsicFunction`.
   - Update the `EmitCall` call site.
   - Delete the math table entries (§4.6) and the `VectorUtility` math helpers (§5.5).
