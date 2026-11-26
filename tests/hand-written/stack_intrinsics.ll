@@ -162,7 +162,7 @@ inner:
   ret i64 0
 }
 
-; Recursion with a VLA in every frame: 1000 frames of 8 KiB, and 200 such calls in a row.
+; Recursion with a VLA in every frame: 50 frames of 8 KiB (a Windows main thread has a 1 MiB stack), and 200 such calls in a row.
 define i64 @recurse(i64 %depth) {
 entry:
   %a = alloca i8, i64 8192
@@ -187,7 +187,7 @@ entry:
 loop:
   %i = phi i64 [ 0, %entry ], [ %i1, %loop ]
   %acc = phi i64 [ 0, %entry ], [ %acc1, %loop ]
-  %r = call i64 @recurse(i64 1000)
+  %r = call i64 @recurse(i64 50)
   %acc1 = add i64 %acc, %r
   %i1 = add i64 %i, 1
   %c = icmp ult i64 %i1, 200

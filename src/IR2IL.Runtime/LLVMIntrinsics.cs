@@ -64,14 +64,31 @@ public static unsafe class LLVMIntrinsics
     }
 
     /// <summary>
-    /// <c>llvm.experimental.cttz.elts.i64.v2i1</c>: the number of lanes before the first one that is true, or 2 when none
-    /// is. The mask is a <c>Vector64&lt;sbyte&gt;</c> whose lanes after the real two are undefined, and a lane is true when
-    /// its low bit is set. When <paramref name="isZeroPoison"/> is set, a mask with no true lane is poison, so 2 is fine.
+    /// <c>llvm.experimental.cttz.elts</c> on an <c>&lt;N x i1&gt;</c> mask: the number of lanes before the first one that
+    /// is true, or <paramref name="laneCount"/> when none is (which is also what a poison-on-zero call may return). The
+    /// mask is a vector of <c>sbyte</c> lanes, a lane is true when its low bit is set, and the lanes after the real
+    /// <paramref name="laneCount"/> (padding) are undefined.
     /// </summary>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static long CttzElemsV2I1(Vector64<sbyte> mask, bool isZeroPoison)
+    public static int CttzElems(Vector64<sbyte> mask, int laneCount) => CttzElems(Vector64.ExtractMostSignificantBits(mask << 7), laneCount);
+
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    public static int CttzElems(Vector128<sbyte> mask, int laneCount) => CttzElems(Vector128.ExtractMostSignificantBits(mask << 7), laneCount);
+
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    public static int CttzElems(Vector256<sbyte> mask, int laneCount) => CttzElems(Vector256.ExtractMostSignificantBits(mask << 7), laneCount);
+
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    public static int CttzElems(Vector512<sbyte> mask, int laneCount) => CttzElems(Vector512.ExtractMostSignificantBits(mask << 7), laneCount);
+
+    private static int CttzElems(ulong bits, int laneCount)
     {
-        return (mask[0] & 1) != 0 ? 0 : (mask[1] & 1) != 0 ? 1 : 2;
+        if (laneCount < 64)
+        {
+            bits &= (1UL << laneCount) - 1;
+        }
+
+        return bits == 0 ? laneCount : BitOperations.TrailingZeroCount(bits);
     }
 
     /// <summary>

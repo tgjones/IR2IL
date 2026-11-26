@@ -48,7 +48,9 @@ define void @emit_float_approx(float %v) {
 }
 
 @values_double = private constant [42 x double] [double 0x0000000000000000, double 0x8000000000000000, double 0x3FE0000000000000, double 0xBFE0000000000000, double 0x3FF0000000000000, double 0xBFF0000000000000, double 0x4000000000000000, double 0x400C000000000000, double 0xC006000000000000, double 0x3FB999999999999A, double 0x4024000000000000, double 0xC059000000000000, double 0x40C81CD6C8B43958, double 0x3F50624DD2F1A9FC, double 0x4085E00000000000, double 0xC085E00000000000, double 0x46293E5939A08CEA, double 0x0000000000000001, double 0x7FF0000000000000, double 0xFFF0000000000000, double 0x7FF8000000000000, double 0x0000000000000000, double 0x8000000000000000, double 0x3FE0000000000000, double 0xBFE0000000000000, double 0x3FF0000000000000, double 0xBFF0000000000000, double 0x4000000000000000, double 0x400C000000000000, double 0xC006000000000000, double 0x3FB999999999999A, double 0x4024000000000000, double 0xC059000000000000, double 0x40C81CD6C8B43958, double 0x3F50624DD2F1A9FC, double 0x4085E00000000000, double 0xC085E00000000000, double 0x46293E5939A08CEA, double 0x0000000000000001, double 0x7FF0000000000000, double 0xFFF0000000000000, double 0x7FF8000000000000]
+@fma_values_double = private constant [48 x double] [double 0x0000000000000000, double 0x8000000000000000, double 0x3FE0000000000000, double 0xBFE0000000000000, double 0x3FF0000000000000, double 0xBFF0000000000000, double 0x4000000000000000, double 0x400C000000000000, double 0xC006000000000000, double 0x4024000000000000, double 0xC059000000000000, double 0x4085E00000000000, double 0xC085E00000000000, double 0x7FF0000000000000, double 0xFFF0000000000000, double 0x7FF8000000000000, double 0x0000000000000000, double 0x8000000000000000, double 0x3FE0000000000000, double 0xBFE0000000000000, double 0x3FF0000000000000, double 0xBFF0000000000000, double 0x4000000000000000, double 0x400C000000000000, double 0xC006000000000000, double 0x4024000000000000, double 0xC059000000000000, double 0x4085E00000000000, double 0xC085E00000000000, double 0x7FF0000000000000, double 0xFFF0000000000000, double 0x7FF8000000000000, double 0x0000000000000000, double 0x8000000000000000, double 0x3FE0000000000000, double 0xBFE0000000000000, double 0x3FF0000000000000, double 0xBFF0000000000000, double 0x4000000000000000, double 0x400C000000000000, double 0xC006000000000000, double 0x4024000000000000, double 0xC059000000000000, double 0x4085E00000000000, double 0xC085E00000000000, double 0x7FF0000000000000, double 0xFFF0000000000000, double 0x7FF8000000000000]
 @values_float = private constant [42 x float] [float 0x0000000000000000, float 0x8000000000000000, float 0x3FE0000000000000, float 0xBFE0000000000000, float 0x3FF0000000000000, float 0xBFF0000000000000, float 0x4000000000000000, float 0x400C000000000000, float 0xC006000000000000, float 0x3FB99999A0000000, float 0x4024000000000000, float 0xC059000000000000, float 0x40C81CD6C0000000, float 0x3F50624DE0000000, float 0x4085E00000000000, float 0xC085E00000000000, float 0x46293E5940000000, float 0x0000000000000000, float 0x7FF0000000000000, float 0xFFF0000000000000, float 0x7FF0000000000000, float 0x0000000000000000, float 0x8000000000000000, float 0x3FE0000000000000, float 0xBFE0000000000000, float 0x3FF0000000000000, float 0xBFF0000000000000, float 0x4000000000000000, float 0x400C000000000000, float 0xC006000000000000, float 0x3FB99999A0000000, float 0x4024000000000000, float 0xC059000000000000, float 0x40C81CD6C0000000, float 0x3F50624DE0000000, float 0x4085E00000000000, float 0xC085E00000000000, float 0x46293E5940000000, float 0x0000000000000000, float 0x7FF0000000000000, float 0xFFF0000000000000, float 0x7FF0000000000000]
+@fma_values_float = private constant [48 x float] [float 0x0000000000000000, float 0x8000000000000000, float 0x3FE0000000000000, float 0xBFE0000000000000, float 0x3FF0000000000000, float 0xBFF0000000000000, float 0x4000000000000000, float 0x400C000000000000, float 0xC006000000000000, float 0x4024000000000000, float 0xC059000000000000, float 0x4085E00000000000, float 0xC085E00000000000, float 0x7FF0000000000000, float 0xFFF0000000000000, float 0x7FF0000000000000, float 0x0000000000000000, float 0x8000000000000000, float 0x3FE0000000000000, float 0xBFE0000000000000, float 0x3FF0000000000000, float 0xBFF0000000000000, float 0x4000000000000000, float 0x400C000000000000, float 0xC006000000000000, float 0x4024000000000000, float 0xC059000000000000, float 0x4085E00000000000, float 0xC085E00000000000, float 0x7FF0000000000000, float 0xFFF0000000000000, float 0x7FF0000000000000, float 0x0000000000000000, float 0x8000000000000000, float 0x3FE0000000000000, float 0xBFE0000000000000, float 0x3FF0000000000000, float 0xBFF0000000000000, float 0x4000000000000000, float 0x400C000000000000, float 0xC006000000000000, float 0x4024000000000000, float 0xC059000000000000, float 0x4085E00000000000, float 0xC085E00000000000, float 0x7FF0000000000000, float 0xFFF0000000000000, float 0x7FF0000000000000]
 
 declare double @llvm.sqrt.f64(double)
 declare double @llvm.fabs.f64(double)
@@ -825,19 +827,19 @@ entry:
   br label %outer
 outer:
   %i = load i64, ptr %pi
-  %oc = icmp slt i64 %i, 21
+  %oc = icmp slt i64 %i, 16
   br i1 %oc, label %inner.init, label %done
 inner.init:
   store i64 0, ptr %pj
   br label %inner
 inner:
   %j = load i64, ptr %pj
-  %ic = icmp slt i64 %j, 21
+  %ic = icmp slt i64 %j, 16
   br i1 %ic, label %body, label %outer.next
 body:
-  %pa = getelementptr double, ptr @values_double, i64 %i
+  %pa = getelementptr double, ptr @fma_values_double, i64 %i
   %a = load double, ptr %pa, align 8
-  %pb = getelementptr double, ptr @values_double, i64 %j
+  %pb = getelementptr double, ptr @fma_values_double, i64 %j
   %b = load double, ptr %pb, align 8
   %pc = getelementptr double, ptr @values_double, i64 0
   %c = load double, ptr %pc, align 8
@@ -862,19 +864,19 @@ entry:
   br label %outer
 outer:
   %i = load i64, ptr %pi
-  %oc = icmp slt i64 %i, 21
+  %oc = icmp slt i64 %i, 16
   br i1 %oc, label %inner.init, label %done
 inner.init:
   store i64 0, ptr %pj
   br label %inner
 inner:
   %j = load i64, ptr %pj
-  %ic = icmp slt i64 %j, 21
+  %ic = icmp slt i64 %j, 16
   br i1 %ic, label %body, label %outer.next
 body:
-  %pa = getelementptr double, ptr @values_double, i64 %i
+  %pa = getelementptr double, ptr @fma_values_double, i64 %i
   %a = load double, ptr %pa, align 8
-  %pb = getelementptr double, ptr @values_double, i64 %j
+  %pb = getelementptr double, ptr @fma_values_double, i64 %j
   %b = load double, ptr %pb, align 8
   %pc = getelementptr double, ptr @values_double, i64 7
   %c = load double, ptr %pc, align 8
@@ -899,19 +901,19 @@ entry:
   br label %outer
 outer:
   %i = load i64, ptr %pi
-  %oc = icmp slt i64 %i, 21
+  %oc = icmp slt i64 %i, 16
   br i1 %oc, label %inner.init, label %done
 inner.init:
   store i64 0, ptr %pj
   br label %inner
 inner:
   %j = load i64, ptr %pj
-  %ic = icmp slt i64 %j, 21
+  %ic = icmp slt i64 %j, 16
   br i1 %ic, label %body, label %outer.next
 body:
-  %pa = getelementptr double, ptr @values_double, i64 %i
+  %pa = getelementptr double, ptr @fma_values_double, i64 %i
   %a = load double, ptr %pa, align 8
-  %pb = getelementptr double, ptr @values_double, i64 %j
+  %pb = getelementptr double, ptr @fma_values_double, i64 %j
   %b = load double, ptr %pb, align 8
   %pc = getelementptr double, ptr @values_double, i64 12
   %c = load double, ptr %pc, align 8
@@ -1545,19 +1547,19 @@ entry:
   br label %outer
 outer:
   %i = load i64, ptr %pi
-  %oc = icmp slt i64 %i, 21
+  %oc = icmp slt i64 %i, 16
   br i1 %oc, label %inner.init, label %done
 inner.init:
   store i64 0, ptr %pj
   br label %inner
 inner:
   %j = load i64, ptr %pj
-  %ic = icmp slt i64 %j, 21
+  %ic = icmp slt i64 %j, 16
   br i1 %ic, label %body, label %outer.next
 body:
-  %pa = getelementptr double, ptr @values_double, i64 %i
+  %pa = getelementptr double, ptr @fma_values_double, i64 %i
   %a = load <2 x double>, ptr %pa, align 8
-  %pb = getelementptr double, ptr @values_double, i64 %j
+  %pb = getelementptr double, ptr @fma_values_double, i64 %j
   %b = load <2 x double>, ptr %pb, align 8
   %pc = getelementptr double, ptr @values_double, i64 0
   %c = load <2 x double>, ptr %pc, align 8
@@ -1585,19 +1587,19 @@ entry:
   br label %outer
 outer:
   %i = load i64, ptr %pi
-  %oc = icmp slt i64 %i, 21
+  %oc = icmp slt i64 %i, 16
   br i1 %oc, label %inner.init, label %done
 inner.init:
   store i64 0, ptr %pj
   br label %inner
 inner:
   %j = load i64, ptr %pj
-  %ic = icmp slt i64 %j, 21
+  %ic = icmp slt i64 %j, 16
   br i1 %ic, label %body, label %outer.next
 body:
-  %pa = getelementptr double, ptr @values_double, i64 %i
+  %pa = getelementptr double, ptr @fma_values_double, i64 %i
   %a = load <2 x double>, ptr %pa, align 8
-  %pb = getelementptr double, ptr @values_double, i64 %j
+  %pb = getelementptr double, ptr @fma_values_double, i64 %j
   %b = load <2 x double>, ptr %pb, align 8
   %pc = getelementptr double, ptr @values_double, i64 7
   %c = load <2 x double>, ptr %pc, align 8
@@ -1625,19 +1627,19 @@ entry:
   br label %outer
 outer:
   %i = load i64, ptr %pi
-  %oc = icmp slt i64 %i, 21
+  %oc = icmp slt i64 %i, 16
   br i1 %oc, label %inner.init, label %done
 inner.init:
   store i64 0, ptr %pj
   br label %inner
 inner:
   %j = load i64, ptr %pj
-  %ic = icmp slt i64 %j, 21
+  %ic = icmp slt i64 %j, 16
   br i1 %ic, label %body, label %outer.next
 body:
-  %pa = getelementptr double, ptr @values_double, i64 %i
+  %pa = getelementptr double, ptr @fma_values_double, i64 %i
   %a = load <2 x double>, ptr %pa, align 8
-  %pb = getelementptr double, ptr @values_double, i64 %j
+  %pb = getelementptr double, ptr @fma_values_double, i64 %j
   %b = load <2 x double>, ptr %pb, align 8
   %pc = getelementptr double, ptr @values_double, i64 12
   %c = load <2 x double>, ptr %pc, align 8
@@ -2346,19 +2348,19 @@ entry:
   br label %outer
 outer:
   %i = load i64, ptr %pi
-  %oc = icmp slt i64 %i, 21
+  %oc = icmp slt i64 %i, 16
   br i1 %oc, label %inner.init, label %done
 inner.init:
   store i64 0, ptr %pj
   br label %inner
 inner:
   %j = load i64, ptr %pj
-  %ic = icmp slt i64 %j, 21
+  %ic = icmp slt i64 %j, 16
   br i1 %ic, label %body, label %outer.next
 body:
-  %pa = getelementptr double, ptr @values_double, i64 %i
+  %pa = getelementptr double, ptr @fma_values_double, i64 %i
   %a = load <4 x double>, ptr %pa, align 8
-  %pb = getelementptr double, ptr @values_double, i64 %j
+  %pb = getelementptr double, ptr @fma_values_double, i64 %j
   %b = load <4 x double>, ptr %pb, align 8
   %pc = getelementptr double, ptr @values_double, i64 0
   %c = load <4 x double>, ptr %pc, align 8
@@ -2390,19 +2392,19 @@ entry:
   br label %outer
 outer:
   %i = load i64, ptr %pi
-  %oc = icmp slt i64 %i, 21
+  %oc = icmp slt i64 %i, 16
   br i1 %oc, label %inner.init, label %done
 inner.init:
   store i64 0, ptr %pj
   br label %inner
 inner:
   %j = load i64, ptr %pj
-  %ic = icmp slt i64 %j, 21
+  %ic = icmp slt i64 %j, 16
   br i1 %ic, label %body, label %outer.next
 body:
-  %pa = getelementptr double, ptr @values_double, i64 %i
+  %pa = getelementptr double, ptr @fma_values_double, i64 %i
   %a = load <4 x double>, ptr %pa, align 8
-  %pb = getelementptr double, ptr @values_double, i64 %j
+  %pb = getelementptr double, ptr @fma_values_double, i64 %j
   %b = load <4 x double>, ptr %pb, align 8
   %pc = getelementptr double, ptr @values_double, i64 7
   %c = load <4 x double>, ptr %pc, align 8
@@ -2434,19 +2436,19 @@ entry:
   br label %outer
 outer:
   %i = load i64, ptr %pi
-  %oc = icmp slt i64 %i, 21
+  %oc = icmp slt i64 %i, 16
   br i1 %oc, label %inner.init, label %done
 inner.init:
   store i64 0, ptr %pj
   br label %inner
 inner:
   %j = load i64, ptr %pj
-  %ic = icmp slt i64 %j, 21
+  %ic = icmp slt i64 %j, 16
   br i1 %ic, label %body, label %outer.next
 body:
-  %pa = getelementptr double, ptr @values_double, i64 %i
+  %pa = getelementptr double, ptr @fma_values_double, i64 %i
   %a = load <4 x double>, ptr %pa, align 8
-  %pb = getelementptr double, ptr @values_double, i64 %j
+  %pb = getelementptr double, ptr @fma_values_double, i64 %j
   %b = load <4 x double>, ptr %pb, align 8
   %pc = getelementptr double, ptr @values_double, i64 12
   %c = load <4 x double>, ptr %pc, align 8
@@ -3303,19 +3305,19 @@ entry:
   br label %outer
 outer:
   %i = load i64, ptr %pi
-  %oc = icmp slt i64 %i, 21
+  %oc = icmp slt i64 %i, 16
   br i1 %oc, label %inner.init, label %done
 inner.init:
   store i64 0, ptr %pj
   br label %inner
 inner:
   %j = load i64, ptr %pj
-  %ic = icmp slt i64 %j, 21
+  %ic = icmp slt i64 %j, 16
   br i1 %ic, label %body, label %outer.next
 body:
-  %pa = getelementptr double, ptr @values_double, i64 %i
+  %pa = getelementptr double, ptr @fma_values_double, i64 %i
   %a = load <8 x double>, ptr %pa, align 8
-  %pb = getelementptr double, ptr @values_double, i64 %j
+  %pb = getelementptr double, ptr @fma_values_double, i64 %j
   %b = load <8 x double>, ptr %pb, align 8
   %pc = getelementptr double, ptr @values_double, i64 0
   %c = load <8 x double>, ptr %pc, align 8
@@ -3355,19 +3357,19 @@ entry:
   br label %outer
 outer:
   %i = load i64, ptr %pi
-  %oc = icmp slt i64 %i, 21
+  %oc = icmp slt i64 %i, 16
   br i1 %oc, label %inner.init, label %done
 inner.init:
   store i64 0, ptr %pj
   br label %inner
 inner:
   %j = load i64, ptr %pj
-  %ic = icmp slt i64 %j, 21
+  %ic = icmp slt i64 %j, 16
   br i1 %ic, label %body, label %outer.next
 body:
-  %pa = getelementptr double, ptr @values_double, i64 %i
+  %pa = getelementptr double, ptr @fma_values_double, i64 %i
   %a = load <8 x double>, ptr %pa, align 8
-  %pb = getelementptr double, ptr @values_double, i64 %j
+  %pb = getelementptr double, ptr @fma_values_double, i64 %j
   %b = load <8 x double>, ptr %pb, align 8
   %pc = getelementptr double, ptr @values_double, i64 7
   %c = load <8 x double>, ptr %pc, align 8
@@ -3407,19 +3409,19 @@ entry:
   br label %outer
 outer:
   %i = load i64, ptr %pi
-  %oc = icmp slt i64 %i, 21
+  %oc = icmp slt i64 %i, 16
   br i1 %oc, label %inner.init, label %done
 inner.init:
   store i64 0, ptr %pj
   br label %inner
 inner:
   %j = load i64, ptr %pj
-  %ic = icmp slt i64 %j, 21
+  %ic = icmp slt i64 %j, 16
   br i1 %ic, label %body, label %outer.next
 body:
-  %pa = getelementptr double, ptr @values_double, i64 %i
+  %pa = getelementptr double, ptr @fma_values_double, i64 %i
   %a = load <8 x double>, ptr %pa, align 8
-  %pb = getelementptr double, ptr @values_double, i64 %j
+  %pb = getelementptr double, ptr @fma_values_double, i64 %j
   %b = load <8 x double>, ptr %pb, align 8
   %pc = getelementptr double, ptr @values_double, i64 12
   %c = load <8 x double>, ptr %pc, align 8
@@ -4572,19 +4574,19 @@ entry:
   br label %outer
 outer:
   %i = load i64, ptr %pi
-  %oc = icmp slt i64 %i, 21
+  %oc = icmp slt i64 %i, 16
   br i1 %oc, label %inner.init, label %done
 inner.init:
   store i64 0, ptr %pj
   br label %inner
 inner:
   %j = load i64, ptr %pj
-  %ic = icmp slt i64 %j, 21
+  %ic = icmp slt i64 %j, 16
   br i1 %ic, label %body, label %outer.next
 body:
-  %pa = getelementptr double, ptr @values_double, i64 %i
+  %pa = getelementptr double, ptr @fma_values_double, i64 %i
   %a = load <16 x double>, ptr %pa, align 8
-  %pb = getelementptr double, ptr @values_double, i64 %j
+  %pb = getelementptr double, ptr @fma_values_double, i64 %j
   %b = load <16 x double>, ptr %pb, align 8
   %pc = getelementptr double, ptr @values_double, i64 0
   %c = load <16 x double>, ptr %pc, align 8
@@ -4640,19 +4642,19 @@ entry:
   br label %outer
 outer:
   %i = load i64, ptr %pi
-  %oc = icmp slt i64 %i, 21
+  %oc = icmp slt i64 %i, 16
   br i1 %oc, label %inner.init, label %done
 inner.init:
   store i64 0, ptr %pj
   br label %inner
 inner:
   %j = load i64, ptr %pj
-  %ic = icmp slt i64 %j, 21
+  %ic = icmp slt i64 %j, 16
   br i1 %ic, label %body, label %outer.next
 body:
-  %pa = getelementptr double, ptr @values_double, i64 %i
+  %pa = getelementptr double, ptr @fma_values_double, i64 %i
   %a = load <16 x double>, ptr %pa, align 8
-  %pb = getelementptr double, ptr @values_double, i64 %j
+  %pb = getelementptr double, ptr @fma_values_double, i64 %j
   %b = load <16 x double>, ptr %pb, align 8
   %pc = getelementptr double, ptr @values_double, i64 7
   %c = load <16 x double>, ptr %pc, align 8
@@ -4708,19 +4710,19 @@ entry:
   br label %outer
 outer:
   %i = load i64, ptr %pi
-  %oc = icmp slt i64 %i, 21
+  %oc = icmp slt i64 %i, 16
   br i1 %oc, label %inner.init, label %done
 inner.init:
   store i64 0, ptr %pj
   br label %inner
 inner:
   %j = load i64, ptr %pj
-  %ic = icmp slt i64 %j, 21
+  %ic = icmp slt i64 %j, 16
   br i1 %ic, label %body, label %outer.next
 body:
-  %pa = getelementptr double, ptr @values_double, i64 %i
+  %pa = getelementptr double, ptr @fma_values_double, i64 %i
   %a = load <16 x double>, ptr %pa, align 8
-  %pb = getelementptr double, ptr @values_double, i64 %j
+  %pb = getelementptr double, ptr @fma_values_double, i64 %j
   %b = load <16 x double>, ptr %pb, align 8
   %pc = getelementptr double, ptr @values_double, i64 12
   %c = load <16 x double>, ptr %pc, align 8
@@ -5331,19 +5333,19 @@ entry:
   br label %outer
 outer:
   %i = load i64, ptr %pi
-  %oc = icmp slt i64 %i, 21
+  %oc = icmp slt i64 %i, 16
   br i1 %oc, label %inner.init, label %done
 inner.init:
   store i64 0, ptr %pj
   br label %inner
 inner:
   %j = load i64, ptr %pj
-  %ic = icmp slt i64 %j, 21
+  %ic = icmp slt i64 %j, 16
   br i1 %ic, label %body, label %outer.next
 body:
-  %pa = getelementptr float, ptr @values_float, i64 %i
+  %pa = getelementptr float, ptr @fma_values_float, i64 %i
   %a = load float, ptr %pa, align 4
-  %pb = getelementptr float, ptr @values_float, i64 %j
+  %pb = getelementptr float, ptr @fma_values_float, i64 %j
   %b = load float, ptr %pb, align 4
   %pc = getelementptr float, ptr @values_float, i64 0
   %c = load float, ptr %pc, align 4
@@ -5368,19 +5370,19 @@ entry:
   br label %outer
 outer:
   %i = load i64, ptr %pi
-  %oc = icmp slt i64 %i, 21
+  %oc = icmp slt i64 %i, 16
   br i1 %oc, label %inner.init, label %done
 inner.init:
   store i64 0, ptr %pj
   br label %inner
 inner:
   %j = load i64, ptr %pj
-  %ic = icmp slt i64 %j, 21
+  %ic = icmp slt i64 %j, 16
   br i1 %ic, label %body, label %outer.next
 body:
-  %pa = getelementptr float, ptr @values_float, i64 %i
+  %pa = getelementptr float, ptr @fma_values_float, i64 %i
   %a = load float, ptr %pa, align 4
-  %pb = getelementptr float, ptr @values_float, i64 %j
+  %pb = getelementptr float, ptr @fma_values_float, i64 %j
   %b = load float, ptr %pb, align 4
   %pc = getelementptr float, ptr @values_float, i64 7
   %c = load float, ptr %pc, align 4
@@ -5405,19 +5407,19 @@ entry:
   br label %outer
 outer:
   %i = load i64, ptr %pi
-  %oc = icmp slt i64 %i, 21
+  %oc = icmp slt i64 %i, 16
   br i1 %oc, label %inner.init, label %done
 inner.init:
   store i64 0, ptr %pj
   br label %inner
 inner:
   %j = load i64, ptr %pj
-  %ic = icmp slt i64 %j, 21
+  %ic = icmp slt i64 %j, 16
   br i1 %ic, label %body, label %outer.next
 body:
-  %pa = getelementptr float, ptr @values_float, i64 %i
+  %pa = getelementptr float, ptr @fma_values_float, i64 %i
   %a = load float, ptr %pa, align 4
-  %pb = getelementptr float, ptr @values_float, i64 %j
+  %pb = getelementptr float, ptr @fma_values_float, i64 %j
   %b = load float, ptr %pb, align 4
   %pc = getelementptr float, ptr @values_float, i64 12
   %c = load float, ptr %pc, align 4
@@ -6051,19 +6053,19 @@ entry:
   br label %outer
 outer:
   %i = load i64, ptr %pi
-  %oc = icmp slt i64 %i, 21
+  %oc = icmp slt i64 %i, 16
   br i1 %oc, label %inner.init, label %done
 inner.init:
   store i64 0, ptr %pj
   br label %inner
 inner:
   %j = load i64, ptr %pj
-  %ic = icmp slt i64 %j, 21
+  %ic = icmp slt i64 %j, 16
   br i1 %ic, label %body, label %outer.next
 body:
-  %pa = getelementptr float, ptr @values_float, i64 %i
+  %pa = getelementptr float, ptr @fma_values_float, i64 %i
   %a = load <2 x float>, ptr %pa, align 4
-  %pb = getelementptr float, ptr @values_float, i64 %j
+  %pb = getelementptr float, ptr @fma_values_float, i64 %j
   %b = load <2 x float>, ptr %pb, align 4
   %pc = getelementptr float, ptr @values_float, i64 0
   %c = load <2 x float>, ptr %pc, align 4
@@ -6091,19 +6093,19 @@ entry:
   br label %outer
 outer:
   %i = load i64, ptr %pi
-  %oc = icmp slt i64 %i, 21
+  %oc = icmp slt i64 %i, 16
   br i1 %oc, label %inner.init, label %done
 inner.init:
   store i64 0, ptr %pj
   br label %inner
 inner:
   %j = load i64, ptr %pj
-  %ic = icmp slt i64 %j, 21
+  %ic = icmp slt i64 %j, 16
   br i1 %ic, label %body, label %outer.next
 body:
-  %pa = getelementptr float, ptr @values_float, i64 %i
+  %pa = getelementptr float, ptr @fma_values_float, i64 %i
   %a = load <2 x float>, ptr %pa, align 4
-  %pb = getelementptr float, ptr @values_float, i64 %j
+  %pb = getelementptr float, ptr @fma_values_float, i64 %j
   %b = load <2 x float>, ptr %pb, align 4
   %pc = getelementptr float, ptr @values_float, i64 7
   %c = load <2 x float>, ptr %pc, align 4
@@ -6131,19 +6133,19 @@ entry:
   br label %outer
 outer:
   %i = load i64, ptr %pi
-  %oc = icmp slt i64 %i, 21
+  %oc = icmp slt i64 %i, 16
   br i1 %oc, label %inner.init, label %done
 inner.init:
   store i64 0, ptr %pj
   br label %inner
 inner:
   %j = load i64, ptr %pj
-  %ic = icmp slt i64 %j, 21
+  %ic = icmp slt i64 %j, 16
   br i1 %ic, label %body, label %outer.next
 body:
-  %pa = getelementptr float, ptr @values_float, i64 %i
+  %pa = getelementptr float, ptr @fma_values_float, i64 %i
   %a = load <2 x float>, ptr %pa, align 4
-  %pb = getelementptr float, ptr @values_float, i64 %j
+  %pb = getelementptr float, ptr @fma_values_float, i64 %j
   %b = load <2 x float>, ptr %pb, align 4
   %pc = getelementptr float, ptr @values_float, i64 12
   %c = load <2 x float>, ptr %pc, align 4
@@ -6816,19 +6818,19 @@ entry:
   br label %outer
 outer:
   %i = load i64, ptr %pi
-  %oc = icmp slt i64 %i, 21
+  %oc = icmp slt i64 %i, 16
   br i1 %oc, label %inner.init, label %done
 inner.init:
   store i64 0, ptr %pj
   br label %inner
 inner:
   %j = load i64, ptr %pj
-  %ic = icmp slt i64 %j, 21
+  %ic = icmp slt i64 %j, 16
   br i1 %ic, label %body, label %outer.next
 body:
-  %pa = getelementptr float, ptr @values_float, i64 %i
+  %pa = getelementptr float, ptr @fma_values_float, i64 %i
   %a = load <3 x float>, ptr %pa, align 4
-  %pb = getelementptr float, ptr @values_float, i64 %j
+  %pb = getelementptr float, ptr @fma_values_float, i64 %j
   %b = load <3 x float>, ptr %pb, align 4
   %pc = getelementptr float, ptr @values_float, i64 0
   %c = load <3 x float>, ptr %pc, align 4
@@ -6858,19 +6860,19 @@ entry:
   br label %outer
 outer:
   %i = load i64, ptr %pi
-  %oc = icmp slt i64 %i, 21
+  %oc = icmp slt i64 %i, 16
   br i1 %oc, label %inner.init, label %done
 inner.init:
   store i64 0, ptr %pj
   br label %inner
 inner:
   %j = load i64, ptr %pj
-  %ic = icmp slt i64 %j, 21
+  %ic = icmp slt i64 %j, 16
   br i1 %ic, label %body, label %outer.next
 body:
-  %pa = getelementptr float, ptr @values_float, i64 %i
+  %pa = getelementptr float, ptr @fma_values_float, i64 %i
   %a = load <3 x float>, ptr %pa, align 4
-  %pb = getelementptr float, ptr @values_float, i64 %j
+  %pb = getelementptr float, ptr @fma_values_float, i64 %j
   %b = load <3 x float>, ptr %pb, align 4
   %pc = getelementptr float, ptr @values_float, i64 7
   %c = load <3 x float>, ptr %pc, align 4
@@ -6900,19 +6902,19 @@ entry:
   br label %outer
 outer:
   %i = load i64, ptr %pi
-  %oc = icmp slt i64 %i, 21
+  %oc = icmp slt i64 %i, 16
   br i1 %oc, label %inner.init, label %done
 inner.init:
   store i64 0, ptr %pj
   br label %inner
 inner:
   %j = load i64, ptr %pj
-  %ic = icmp slt i64 %j, 21
+  %ic = icmp slt i64 %j, 16
   br i1 %ic, label %body, label %outer.next
 body:
-  %pa = getelementptr float, ptr @values_float, i64 %i
+  %pa = getelementptr float, ptr @fma_values_float, i64 %i
   %a = load <3 x float>, ptr %pa, align 4
-  %pb = getelementptr float, ptr @values_float, i64 %j
+  %pb = getelementptr float, ptr @fma_values_float, i64 %j
   %b = load <3 x float>, ptr %pb, align 4
   %pc = getelementptr float, ptr @values_float, i64 12
   %c = load <3 x float>, ptr %pc, align 4
@@ -7623,19 +7625,19 @@ entry:
   br label %outer
 outer:
   %i = load i64, ptr %pi
-  %oc = icmp slt i64 %i, 21
+  %oc = icmp slt i64 %i, 16
   br i1 %oc, label %inner.init, label %done
 inner.init:
   store i64 0, ptr %pj
   br label %inner
 inner:
   %j = load i64, ptr %pj
-  %ic = icmp slt i64 %j, 21
+  %ic = icmp slt i64 %j, 16
   br i1 %ic, label %body, label %outer.next
 body:
-  %pa = getelementptr float, ptr @values_float, i64 %i
+  %pa = getelementptr float, ptr @fma_values_float, i64 %i
   %a = load <4 x float>, ptr %pa, align 4
-  %pb = getelementptr float, ptr @values_float, i64 %j
+  %pb = getelementptr float, ptr @fma_values_float, i64 %j
   %b = load <4 x float>, ptr %pb, align 4
   %pc = getelementptr float, ptr @values_float, i64 0
   %c = load <4 x float>, ptr %pc, align 4
@@ -7667,19 +7669,19 @@ entry:
   br label %outer
 outer:
   %i = load i64, ptr %pi
-  %oc = icmp slt i64 %i, 21
+  %oc = icmp slt i64 %i, 16
   br i1 %oc, label %inner.init, label %done
 inner.init:
   store i64 0, ptr %pj
   br label %inner
 inner:
   %j = load i64, ptr %pj
-  %ic = icmp slt i64 %j, 21
+  %ic = icmp slt i64 %j, 16
   br i1 %ic, label %body, label %outer.next
 body:
-  %pa = getelementptr float, ptr @values_float, i64 %i
+  %pa = getelementptr float, ptr @fma_values_float, i64 %i
   %a = load <4 x float>, ptr %pa, align 4
-  %pb = getelementptr float, ptr @values_float, i64 %j
+  %pb = getelementptr float, ptr @fma_values_float, i64 %j
   %b = load <4 x float>, ptr %pb, align 4
   %pc = getelementptr float, ptr @values_float, i64 7
   %c = load <4 x float>, ptr %pc, align 4
@@ -7711,19 +7713,19 @@ entry:
   br label %outer
 outer:
   %i = load i64, ptr %pi
-  %oc = icmp slt i64 %i, 21
+  %oc = icmp slt i64 %i, 16
   br i1 %oc, label %inner.init, label %done
 inner.init:
   store i64 0, ptr %pj
   br label %inner
 inner:
   %j = load i64, ptr %pj
-  %ic = icmp slt i64 %j, 21
+  %ic = icmp slt i64 %j, 16
   br i1 %ic, label %body, label %outer.next
 body:
-  %pa = getelementptr float, ptr @values_float, i64 %i
+  %pa = getelementptr float, ptr @fma_values_float, i64 %i
   %a = load <4 x float>, ptr %pa, align 4
-  %pb = getelementptr float, ptr @values_float, i64 %j
+  %pb = getelementptr float, ptr @fma_values_float, i64 %j
   %b = load <4 x float>, ptr %pb, align 4
   %pc = getelementptr float, ptr @values_float, i64 12
   %c = load <4 x float>, ptr %pc, align 4
@@ -8580,19 +8582,19 @@ entry:
   br label %outer
 outer:
   %i = load i64, ptr %pi
-  %oc = icmp slt i64 %i, 21
+  %oc = icmp slt i64 %i, 16
   br i1 %oc, label %inner.init, label %done
 inner.init:
   store i64 0, ptr %pj
   br label %inner
 inner:
   %j = load i64, ptr %pj
-  %ic = icmp slt i64 %j, 21
+  %ic = icmp slt i64 %j, 16
   br i1 %ic, label %body, label %outer.next
 body:
-  %pa = getelementptr float, ptr @values_float, i64 %i
+  %pa = getelementptr float, ptr @fma_values_float, i64 %i
   %a = load <8 x float>, ptr %pa, align 4
-  %pb = getelementptr float, ptr @values_float, i64 %j
+  %pb = getelementptr float, ptr @fma_values_float, i64 %j
   %b = load <8 x float>, ptr %pb, align 4
   %pc = getelementptr float, ptr @values_float, i64 0
   %c = load <8 x float>, ptr %pc, align 4
@@ -8632,19 +8634,19 @@ entry:
   br label %outer
 outer:
   %i = load i64, ptr %pi
-  %oc = icmp slt i64 %i, 21
+  %oc = icmp slt i64 %i, 16
   br i1 %oc, label %inner.init, label %done
 inner.init:
   store i64 0, ptr %pj
   br label %inner
 inner:
   %j = load i64, ptr %pj
-  %ic = icmp slt i64 %j, 21
+  %ic = icmp slt i64 %j, 16
   br i1 %ic, label %body, label %outer.next
 body:
-  %pa = getelementptr float, ptr @values_float, i64 %i
+  %pa = getelementptr float, ptr @fma_values_float, i64 %i
   %a = load <8 x float>, ptr %pa, align 4
-  %pb = getelementptr float, ptr @values_float, i64 %j
+  %pb = getelementptr float, ptr @fma_values_float, i64 %j
   %b = load <8 x float>, ptr %pb, align 4
   %pc = getelementptr float, ptr @values_float, i64 7
   %c = load <8 x float>, ptr %pc, align 4
@@ -8684,19 +8686,19 @@ entry:
   br label %outer
 outer:
   %i = load i64, ptr %pi
-  %oc = icmp slt i64 %i, 21
+  %oc = icmp slt i64 %i, 16
   br i1 %oc, label %inner.init, label %done
 inner.init:
   store i64 0, ptr %pj
   br label %inner
 inner:
   %j = load i64, ptr %pj
-  %ic = icmp slt i64 %j, 21
+  %ic = icmp slt i64 %j, 16
   br i1 %ic, label %body, label %outer.next
 body:
-  %pa = getelementptr float, ptr @values_float, i64 %i
+  %pa = getelementptr float, ptr @fma_values_float, i64 %i
   %a = load <8 x float>, ptr %pa, align 4
-  %pb = getelementptr float, ptr @values_float, i64 %j
+  %pb = getelementptr float, ptr @fma_values_float, i64 %j
   %b = load <8 x float>, ptr %pb, align 4
   %pc = getelementptr float, ptr @values_float, i64 12
   %c = load <8 x float>, ptr %pc, align 4
@@ -9849,19 +9851,19 @@ entry:
   br label %outer
 outer:
   %i = load i64, ptr %pi
-  %oc = icmp slt i64 %i, 21
+  %oc = icmp slt i64 %i, 16
   br i1 %oc, label %inner.init, label %done
 inner.init:
   store i64 0, ptr %pj
   br label %inner
 inner:
   %j = load i64, ptr %pj
-  %ic = icmp slt i64 %j, 21
+  %ic = icmp slt i64 %j, 16
   br i1 %ic, label %body, label %outer.next
 body:
-  %pa = getelementptr float, ptr @values_float, i64 %i
+  %pa = getelementptr float, ptr @fma_values_float, i64 %i
   %a = load <16 x float>, ptr %pa, align 4
-  %pb = getelementptr float, ptr @values_float, i64 %j
+  %pb = getelementptr float, ptr @fma_values_float, i64 %j
   %b = load <16 x float>, ptr %pb, align 4
   %pc = getelementptr float, ptr @values_float, i64 0
   %c = load <16 x float>, ptr %pc, align 4
@@ -9917,19 +9919,19 @@ entry:
   br label %outer
 outer:
   %i = load i64, ptr %pi
-  %oc = icmp slt i64 %i, 21
+  %oc = icmp slt i64 %i, 16
   br i1 %oc, label %inner.init, label %done
 inner.init:
   store i64 0, ptr %pj
   br label %inner
 inner:
   %j = load i64, ptr %pj
-  %ic = icmp slt i64 %j, 21
+  %ic = icmp slt i64 %j, 16
   br i1 %ic, label %body, label %outer.next
 body:
-  %pa = getelementptr float, ptr @values_float, i64 %i
+  %pa = getelementptr float, ptr @fma_values_float, i64 %i
   %a = load <16 x float>, ptr %pa, align 4
-  %pb = getelementptr float, ptr @values_float, i64 %j
+  %pb = getelementptr float, ptr @fma_values_float, i64 %j
   %b = load <16 x float>, ptr %pb, align 4
   %pc = getelementptr float, ptr @values_float, i64 7
   %c = load <16 x float>, ptr %pc, align 4
@@ -9985,19 +9987,19 @@ entry:
   br label %outer
 outer:
   %i = load i64, ptr %pi
-  %oc = icmp slt i64 %i, 21
+  %oc = icmp slt i64 %i, 16
   br i1 %oc, label %inner.init, label %done
 inner.init:
   store i64 0, ptr %pj
   br label %inner
 inner:
   %j = load i64, ptr %pj
-  %ic = icmp slt i64 %j, 21
+  %ic = icmp slt i64 %j, 16
   br i1 %ic, label %body, label %outer.next
 body:
-  %pa = getelementptr float, ptr @values_float, i64 %i
+  %pa = getelementptr float, ptr @fma_values_float, i64 %i
   %a = load <16 x float>, ptr %pa, align 4
-  %pb = getelementptr float, ptr @values_float, i64 %j
+  %pb = getelementptr float, ptr @fma_values_float, i64 %j
   %b = load <16 x float>, ptr %pb, align 4
   %pc = getelementptr float, ptr @values_float, i64 12
   %c = load <16 x float>, ptr %pc, align 4

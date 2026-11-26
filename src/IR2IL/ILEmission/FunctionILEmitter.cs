@@ -2393,6 +2393,7 @@ internal sealed partial class FunctionILEmitter : ILEmitter
             if (IntrinsicFunctions.LLVMIntrinsics.TryGetValue(functionName, out var intrinsic)
                 || LLVMFloatMathIntrinsicFunction.TryCreate(functionName, instruction.TypeOf, TypeSystem, out intrinsic)
                 || LLVMIntegerIntrinsicFunction.TryCreate(functionName, operands[0].TypeOf, instruction.TypeOf, TypeSystem, out intrinsic)
+                || LLVMCttzElemsIntrinsicFunction.TryCreate(functionName, operands[0].TypeOf, TypeSystem, out intrinsic)
                 || LLVMVectorReduceIntrinsicFunction.TryCreate(functionName, operands[^2].TypeOf, ((int)instruction.FastMathFlags & (int)LLVMFastMathFlags.LLVMFastMathAllowReassoc) != 0, TypeSystem, out intrinsic))
             {
                 var callContext = new IntrinsicFunctionCallContext(

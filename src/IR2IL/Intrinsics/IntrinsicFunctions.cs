@@ -15,7 +15,6 @@ internal static class IntrinsicFunctions
 
         // Standard intrinsics using custom methods.
         { "llvm.experimental.vector.partial.reduce.add.v4i32.v16i32", StandardIntrinsicFunction.Create(typeof(LLVMIntrinsics), nameof(Runtime.LLVMIntrinsics.VectorPartialReduceAddV4I32V16I32)) },
-        { "llvm.experimental.cttz.elts.i64.v2i1", StandardIntrinsicFunction.Create(typeof(LLVMIntrinsics), nameof(Runtime.LLVMIntrinsics.CttzElemsV2I1)) },
 
         // Irregular intrinsics.
         { "llvm.dbg.declare", new LLVMDbgDeclareIntrinsicFunction() },

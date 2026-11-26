@@ -27,6 +27,10 @@ from generate_float_tests import (  # noqa: E402
 
 VALUES = [0.0, -0.0, 0.5, -0.5, 1.0, -1.0, 2.0, 3.5, -2.75, 0.1, 10.0, -100.0, 12345.678, 1e-3, 700.0, -700.0,
           1e30, 5e-324, math.inf, -math.inf, math.nan]
+# Multiplicands of `fmuladd`, whose products are exact in float and double (at most 12 significant bits each): LLVM may
+# fuse the multiplication and the addition or not, and the results differ when the product is rounded, so a target
+# that fuses (ARM64) and one that does not (x64 without FMA) would disagree on other values.
+FMA_VALUES = [0.0, -0.0, 0.5, -0.5, 1.0, -1.0, 2.0, 3.5, -2.75, 10.0, -100.0, 700.0, -700.0, math.inf, -math.inf, math.nan]
 # Powers and arctangents: moderate values only, so the results stay finite for most pairs.
 EXACT_UNARY = ["sqrt", "fabs", "ceil"]
 APPROX_UNARY = ["sin", "cos", "tan", "asin", "acos", "atan", "sinh", "cosh", "tanh", "exp", "log", "log10"]
@@ -88,6 +92,7 @@ def main():
     ]
     for ty in ("double", "float"):
         parts.append(array(f"values_{ty}", ty, repeated(values[ty], 4)))
+        parts.append(array(f"fma_values_{ty}", ty, repeated([to_float(v) if ty == "float" else v for v in FMA_VALUES], 16)))
     parts.append("")
     declared = set()
     functions, names = [], []
@@ -122,16 +127,18 @@ def main():
                 body = load_a + load_b + [f"%r = call {t} @{intrinsic_name(op, ty, n)}({t} %a, {t} %b)"] \
                     + result_lines(ty, n, "emit" if exact else "emit_approx_x")
                 functions.append(loop(name, count, True, body))
-        # fmuladd: every pair for the multiplicands, with a few addends.
+        # fmuladd: every pair of the exact multiplicands, with a few addends.
         declare("fmuladd", ty, n, 3)
+        fma_a = [f"%pa = getelementptr {ty}, ptr @fma_values_{ty}, i64 %i", f"%a = load {t}, ptr %pa, align {align}"]
+        fma_b = [f"%pb = getelementptr {ty}, ptr @fma_values_{ty}, i64 %j", f"%b = load {t}, ptr %pb, align {align}"]
         for addend in (0, 7, 12):
             name = f"run_fmuladd_{shape_name(ty, n)}_{addend}"
             names.append(name)
-            body = load_a + load_b + [f"%pc = getelementptr {ty}, ptr @values_{ty}, i64 {addend}",
+            body = fma_a + fma_b + [f"%pc = getelementptr {ty}, ptr @values_{ty}, i64 {addend}",
                                       f"%c = load {t}, ptr %pc, align {align}",
                                       f"%r = call {t} @{intrinsic_name('fmuladd', ty, n)}({t} %a, {t} %b, {t} %c)"] \
                 + result_lines(ty, n, "emit")
-            functions.append(loop(name, count, True, body))
+            functions.append(loop(name, len(FMA_VALUES), True, body))
     # is.fpclass: scalars only.
     for ty in ("double", "float"):
         t = ty
