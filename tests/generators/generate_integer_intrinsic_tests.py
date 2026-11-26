@@ -120,7 +120,7 @@ def main():
         count = len(values)
         for lanes in LANE_COUNTS:
             ty = f"<{lanes} x {lane}>"
-            if bits * lanes > 512:
+            if bits * lanes > 1024:
                 continue
             align = bits // 8
             load_a = [f"%pa = getelementptr {lane}, ptr @values_{lane}_repeated, i64 %i",

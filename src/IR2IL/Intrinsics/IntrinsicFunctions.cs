@@ -10,15 +10,8 @@ internal static class IntrinsicFunctions
     public static readonly Dictionary<string, IntrinsicFunction> LLVMIntrinsics = new()
     {
         // Standard intrinsics using Base Class Library methods.
-        { "llvm.ctpop.i8", StandardIntrinsicFunction.Create(typeof(sbyte), nameof(sbyte.PopCount), typeof(sbyte)) },
-        { "llvm.ctpop.i16", StandardIntrinsicFunction.Create(typeof(short), nameof(short.PopCount), typeof(short)) },
         { "llvm.is.fpclass.f32", new LLVMIsFPClassIntrinsicFunction(isDouble: false) },
         { "llvm.is.fpclass.f64", new LLVMIsFPClassIntrinsicFunction(isDouble: true) },
-        { "llvm.scmp.i32.i32", StandardIntrinsicFunction.Create(typeof(VectorUtility), nameof(VectorUtility.Scmp)) },
-        { "llvm.smin.i32", StandardIntrinsicFunction.Create(typeof(Math), nameof(Math.Min), typeof(int), typeof(int)) },
-        { "llvm.smax.i32", StandardIntrinsicFunction.Create(typeof(Math), nameof(Math.Max), typeof(int), typeof(int)) },
-        { "llvm.smax.i64", StandardIntrinsicFunction.Create(typeof(Math), nameof(Math.Max), typeof(long), typeof(long)) },
-        { "llvm.smax.v4i32", StandardIntrinsicFunction.CreateGeneric(typeof(Vector128), nameof(Vector128.Max), typeof(int)) },
         { "llvm.vector.reduce.add.v4i64", StandardIntrinsicFunction.CreateGeneric(typeof(Vector256), nameof(Vector256.Sum), typeof(long)) },
         { "llvm.vector.reduce.add.v8i32", StandardIntrinsicFunction.CreateGeneric(typeof(Vector256), nameof(Vector256.Sum), typeof(int)) },
         { "llvm.vector.reduce.add.v8i64", StandardIntrinsicFunction.CreateGeneric(typeof(Vector512), nameof(Vector512.Sum), typeof(long)) },

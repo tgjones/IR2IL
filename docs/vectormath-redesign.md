@@ -362,7 +362,7 @@ Each step builds and passes its tests on its own, which makes it a natural commi
   - Update the `EmitCall` call site.
   - Delete the math table entries (§4.6) and the `VectorUtility` math helpers (§5.5).
   - Run `dotnet test src --filter "Name~math_intrinsics"`, then `--filter "Name~vector_padded_lanes"`.
-- [ ] **Step 3: integer intrinsics.**
+- [x] **Step 3: integer intrinsics.**
   - Add `VectorUtility.PopCount` (§5.1) and the `LLVMIntrinsics` scalar helpers (§5.4).
   - Rewrite `LLVMIntegerIntrinsicFunction` (§4.3).
   - Delete the integer table entries and `VectorUtility.Scmp`.

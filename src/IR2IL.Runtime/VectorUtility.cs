@@ -455,8 +455,71 @@ public static class VectorUtility
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public static Vector512<sbyte> NormalizeI1Lanes(Vector512<sbyte> vector) => vector & Vector512<sbyte>.One;
 
-    // Scmp / Ucmp
+    // PopCount: the number of set bits of each lane. T may be signed or unsigned; only the lane width matters.
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static int Scmp(int a, int b) => a < b ? -1 : a > b ? 1 : 0;
+    public static Vector64<T> PopCount<T>(Vector64<T> vector)
+    {
+        if (AdvSimd.IsSupported)
+        {
+            // CNT counts the bits of each byte; UADDLP adds neighbouring lanes into lanes of twice the width.
+            var bytes = AdvSimd.PopCount(vector.AsByte());
+            if (Unsafe.SizeOf<T>() == 1) return bytes.As<byte, T>();
+            var shorts = AdvSimd.AddPairwiseWidening(bytes);
+            if (Unsafe.SizeOf<T>() == 2) return shorts.As<ushort, T>();
+            var ints = AdvSimd.AddPairwiseWidening(shorts);
+            if (Unsafe.SizeOf<T>() == 4) return ints.As<uint, T>();
+            return AdvSimd.AddPairwiseWideningScalar(ints).As<ulong, T>();
+        }
+
+        var x = vector.AsByte();
+        x -= (x >>> 1) & Vector64.Create((byte)0x55);
+        x = (x & Vector64.Create((byte)0x33)) + ((x >>> 2) & Vector64.Create((byte)0x33));
+        x = (x + (x >>> 4)) & Vector64.Create((byte)0x0F);
+        if (Unsafe.SizeOf<T>() == 1) return x.As<byte, T>();
+        var s = x.AsUInt16(); s = (s & Vector64.Create((ushort)0xFF)) + (s >>> 8);
+        if (Unsafe.SizeOf<T>() == 2) return s.As<ushort, T>();
+        var w = s.AsUInt32(); w = (w & Vector64.Create(0xFFFFu)) + (w >>> 16);
+        if (Unsafe.SizeOf<T>() == 4) return w.As<uint, T>();
+        var q = w.AsUInt64(); q = (q & Vector64.Create(0xFFFFFFFFul)) + (q >>> 32);
+        return q.As<ulong, T>();
+    }
+
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    public static Vector128<T> PopCount<T>(Vector128<T> vector)
+    {
+        if (AdvSimd.IsSupported)
+        {
+            var bytes = AdvSimd.PopCount(vector.AsByte());
+            if (Unsafe.SizeOf<T>() == 1) return bytes.As<byte, T>();
+            var shorts = AdvSimd.AddPairwiseWidening(bytes);
+            if (Unsafe.SizeOf<T>() == 2) return shorts.As<ushort, T>();
+            var ints = AdvSimd.AddPairwiseWidening(shorts);
+            if (Unsafe.SizeOf<T>() == 4) return ints.As<uint, T>();
+            return AdvSimd.AddPairwiseWidening(ints).As<ulong, T>();
+        }
+
+        // No x86 vector popcount is exposed in .NET 11, so count with SIMD bit tricks, which work everywhere.
+        var x = vector.AsByte();
+        x -= (x >>> 1) & Vector128.Create((byte)0x55);
+        x = (x & Vector128.Create((byte)0x33)) + ((x >>> 2) & Vector128.Create((byte)0x33));
+        x = (x + (x >>> 4)) & Vector128.Create((byte)0x0F);
+        if (Unsafe.SizeOf<T>() == 1) return x.As<byte, T>();
+        var s = x.AsUInt16(); s = (s & Vector128.Create((ushort)0xFF)) + (s >>> 8);
+        if (Unsafe.SizeOf<T>() == 2) return s.As<ushort, T>();
+        var w = s.AsUInt32(); w = (w & Vector128.Create(0xFFFFu)) + (w >>> 16);
+        if (Unsafe.SizeOf<T>() == 4) return w.As<uint, T>();
+        var q = w.AsUInt64(); q = (q & Vector128.Create(0xFFFFFFFFul)) + (q >>> 32);
+        return q.As<ulong, T>();
+    }
+
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    public static Vector256<T> PopCount<T>(Vector256<T> vector) => Vector256.Create(PopCount(vector.GetLower()), PopCount(vector.GetUpper()));
+
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    public static Vector512<T> PopCount<T>(Vector512<T> vector) => Vector512.Create(PopCount(vector.GetLower()), PopCount(vector.GetUpper()));
+
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    public static Vector1024<T> PopCount<T>(Vector1024<T> vector) where T : unmanaged
+        => Vector1024.Create(PopCount(vector.GetLower()), PopCount(vector.GetUpper()));
 }

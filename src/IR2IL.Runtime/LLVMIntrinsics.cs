@@ -9,6 +9,24 @@ namespace IR2IL.Runtime;
 
 public static unsafe class LLVMIntrinsics
 {
+    // llvm.abs with the poison flag clear: the absolute value of the minimum is the minimum (int.Abs would throw).
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    public static int Abs(int x) => x < 0 ? -x : x;
+
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    public static long Abs(long x) => x < 0 ? -x : x;
+
+    // llvm.usub.sat: x - y, or zero when y is larger.
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    public static uint UnsignedSubtractSaturate(uint x, uint y) => x > y ? x - y : 0;
+
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    public static ulong UnsignedSubtractSaturate(ulong x, ulong y) => x > y ? x - y : 0;
+
+    // llvm.scmp and llvm.ucmp: -1, 0 or 1, as an int for the caller to widen.
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    public static int Compare<T>(T x, T y) where T : IBinaryInteger<T> => x > y ? 1 : x < y ? -1 : 0;
+
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public static bool AreUnordered(double a, double b)
     {

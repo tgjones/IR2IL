@@ -210,6 +210,13 @@ declare <8 x i64> @llvm.smax.v8i64(<8 x i64>, <8 x i64>)
 declare <8 x i64> @llvm.umin.v8i64(<8 x i64>, <8 x i64>)
 declare <8 x i64> @llvm.umax.v8i64(<8 x i64>, <8 x i64>)
 declare <8 x i64> @llvm.usub.sat.v8i64(<8 x i64>, <8 x i64>)
+declare <16 x i64> @llvm.abs.v16i64(<16 x i64>, i1 immarg)
+declare <16 x i64> @llvm.ctpop.v16i64(<16 x i64>)
+declare <16 x i64> @llvm.smin.v16i64(<16 x i64>, <16 x i64>)
+declare <16 x i64> @llvm.smax.v16i64(<16 x i64>, <16 x i64>)
+declare <16 x i64> @llvm.umin.v16i64(<16 x i64>, <16 x i64>)
+declare <16 x i64> @llvm.umax.v16i64(<16 x i64>, <16 x i64>)
+declare <16 x i64> @llvm.usub.sat.v16i64(<16 x i64>, <16 x i64>)
 
 @values_i8 = private constant [32 x i8] [i8 0, i8 1, i8 -1, i8 2, i8 -2, i8 3, i8 -3, i8 5, i8 -5, i8 7, i8 -7, i8 8, i8 -8, i8 63, i8 -63, i8 64, i8 -64, i8 100, i8 -100, i8 127, i8 -127, i8 -128, i8 -24, i8 24, i8 85, i8 -85, i8 -86, i8 86, i8 15, i8 -15, i8 126, i8 -126]
 @values_i16 = private constant [42 x i16] [i16 0, i16 1, i16 -1, i16 2, i16 -2, i16 3, i16 -3, i16 5, i16 -5, i16 7, i16 -7, i16 8, i16 -8, i16 63, i16 -63, i16 64, i16 -64, i16 100, i16 -100, i16 127, i16 -127, i16 128, i16 -128, i16 255, i16 -255, i16 256, i16 -256, i16 1000, i16 -1000, i16 21845, i16 -21845, i16 -21846, i16 21846, i16 3855, i16 -3855, i16 -32768, i16 -32767, i16 32767, i16 32766, i16 -32766, i16 16384, i16 -16384]
@@ -11474,6 +11481,458 @@ done:
   ret void
 }
 
+define void @run_abs_v16i64() {
+entry:
+  %pi = alloca i64
+  %pj = alloca i64
+  store i64 0, ptr %pi
+  br label %outer
+outer:
+  %i = load i64, ptr %pi
+  %oc = icmp slt i64 %i, 54
+  br i1 %oc, label %inner.init, label %done
+inner.init:
+  store i64 0, ptr %pj
+  br label %inner
+inner:
+  %j = load i64, ptr %pj
+  br label %body
+body:
+  %pa = getelementptr i64, ptr @values_i64_repeated, i64 %i
+  %a = load <16 x i64>, ptr %pa, align 8
+  %r = call <16 x i64> @llvm.abs.v16i64(<16 x i64> %a, i1 false)
+  %x0 = extractelement <16 x i64> %r, i32 0
+  call void @emit_i64(i64 %x0)
+  %x1 = extractelement <16 x i64> %r, i32 1
+  call void @emit_i64(i64 %x1)
+  %x2 = extractelement <16 x i64> %r, i32 2
+  call void @emit_i64(i64 %x2)
+  %x3 = extractelement <16 x i64> %r, i32 3
+  call void @emit_i64(i64 %x3)
+  %x4 = extractelement <16 x i64> %r, i32 4
+  call void @emit_i64(i64 %x4)
+  %x5 = extractelement <16 x i64> %r, i32 5
+  call void @emit_i64(i64 %x5)
+  %x6 = extractelement <16 x i64> %r, i32 6
+  call void @emit_i64(i64 %x6)
+  %x7 = extractelement <16 x i64> %r, i32 7
+  call void @emit_i64(i64 %x7)
+  %x8 = extractelement <16 x i64> %r, i32 8
+  call void @emit_i64(i64 %x8)
+  %x9 = extractelement <16 x i64> %r, i32 9
+  call void @emit_i64(i64 %x9)
+  %x10 = extractelement <16 x i64> %r, i32 10
+  call void @emit_i64(i64 %x10)
+  %x11 = extractelement <16 x i64> %r, i32 11
+  call void @emit_i64(i64 %x11)
+  %x12 = extractelement <16 x i64> %r, i32 12
+  call void @emit_i64(i64 %x12)
+  %x13 = extractelement <16 x i64> %r, i32 13
+  call void @emit_i64(i64 %x13)
+  %x14 = extractelement <16 x i64> %r, i32 14
+  call void @emit_i64(i64 %x14)
+  %x15 = extractelement <16 x i64> %r, i32 15
+  call void @emit_i64(i64 %x15)
+  br label %outer.next
+outer.next:
+  %in = add i64 %i, 1
+  store i64 %in, ptr %pi
+  br label %outer
+done:
+  ret void
+}
+
+define void @run_ctpop_v16i64() {
+entry:
+  %pi = alloca i64
+  %pj = alloca i64
+  store i64 0, ptr %pi
+  br label %outer
+outer:
+  %i = load i64, ptr %pi
+  %oc = icmp slt i64 %i, 54
+  br i1 %oc, label %inner.init, label %done
+inner.init:
+  store i64 0, ptr %pj
+  br label %inner
+inner:
+  %j = load i64, ptr %pj
+  br label %body
+body:
+  %pa = getelementptr i64, ptr @values_i64_repeated, i64 %i
+  %a = load <16 x i64>, ptr %pa, align 8
+  %r = call <16 x i64> @llvm.ctpop.v16i64(<16 x i64> %a)
+  %x0 = extractelement <16 x i64> %r, i32 0
+  call void @emit_i64(i64 %x0)
+  %x1 = extractelement <16 x i64> %r, i32 1
+  call void @emit_i64(i64 %x1)
+  %x2 = extractelement <16 x i64> %r, i32 2
+  call void @emit_i64(i64 %x2)
+  %x3 = extractelement <16 x i64> %r, i32 3
+  call void @emit_i64(i64 %x3)
+  %x4 = extractelement <16 x i64> %r, i32 4
+  call void @emit_i64(i64 %x4)
+  %x5 = extractelement <16 x i64> %r, i32 5
+  call void @emit_i64(i64 %x5)
+  %x6 = extractelement <16 x i64> %r, i32 6
+  call void @emit_i64(i64 %x6)
+  %x7 = extractelement <16 x i64> %r, i32 7
+  call void @emit_i64(i64 %x7)
+  %x8 = extractelement <16 x i64> %r, i32 8
+  call void @emit_i64(i64 %x8)
+  %x9 = extractelement <16 x i64> %r, i32 9
+  call void @emit_i64(i64 %x9)
+  %x10 = extractelement <16 x i64> %r, i32 10
+  call void @emit_i64(i64 %x10)
+  %x11 = extractelement <16 x i64> %r, i32 11
+  call void @emit_i64(i64 %x11)
+  %x12 = extractelement <16 x i64> %r, i32 12
+  call void @emit_i64(i64 %x12)
+  %x13 = extractelement <16 x i64> %r, i32 13
+  call void @emit_i64(i64 %x13)
+  %x14 = extractelement <16 x i64> %r, i32 14
+  call void @emit_i64(i64 %x14)
+  %x15 = extractelement <16 x i64> %r, i32 15
+  call void @emit_i64(i64 %x15)
+  br label %outer.next
+outer.next:
+  %in = add i64 %i, 1
+  store i64 %in, ptr %pi
+  br label %outer
+done:
+  ret void
+}
+
+define void @run_smin_v16i64() {
+entry:
+  %pi = alloca i64
+  %pj = alloca i64
+  store i64 0, ptr %pi
+  br label %outer
+outer:
+  %i = load i64, ptr %pi
+  %oc = icmp slt i64 %i, 54
+  br i1 %oc, label %inner.init, label %done
+inner.init:
+  store i64 0, ptr %pj
+  br label %inner
+inner:
+  %j = load i64, ptr %pj
+  %ic = icmp slt i64 %j, 54
+  br i1 %ic, label %body, label %outer.next
+body:
+  %pa = getelementptr i64, ptr @values_i64_repeated, i64 %i
+  %a = load <16 x i64>, ptr %pa, align 8
+  %pb = getelementptr i64, ptr @values_i64_repeated, i64 %j
+  %b = load <16 x i64>, ptr %pb, align 8
+  %r = call <16 x i64> @llvm.smin.v16i64(<16 x i64> %a, <16 x i64> %b)
+  %x0 = extractelement <16 x i64> %r, i32 0
+  call void @emit_i64(i64 %x0)
+  %x1 = extractelement <16 x i64> %r, i32 1
+  call void @emit_i64(i64 %x1)
+  %x2 = extractelement <16 x i64> %r, i32 2
+  call void @emit_i64(i64 %x2)
+  %x3 = extractelement <16 x i64> %r, i32 3
+  call void @emit_i64(i64 %x3)
+  %x4 = extractelement <16 x i64> %r, i32 4
+  call void @emit_i64(i64 %x4)
+  %x5 = extractelement <16 x i64> %r, i32 5
+  call void @emit_i64(i64 %x5)
+  %x6 = extractelement <16 x i64> %r, i32 6
+  call void @emit_i64(i64 %x6)
+  %x7 = extractelement <16 x i64> %r, i32 7
+  call void @emit_i64(i64 %x7)
+  %x8 = extractelement <16 x i64> %r, i32 8
+  call void @emit_i64(i64 %x8)
+  %x9 = extractelement <16 x i64> %r, i32 9
+  call void @emit_i64(i64 %x9)
+  %x10 = extractelement <16 x i64> %r, i32 10
+  call void @emit_i64(i64 %x10)
+  %x11 = extractelement <16 x i64> %r, i32 11
+  call void @emit_i64(i64 %x11)
+  %x12 = extractelement <16 x i64> %r, i32 12
+  call void @emit_i64(i64 %x12)
+  %x13 = extractelement <16 x i64> %r, i32 13
+  call void @emit_i64(i64 %x13)
+  %x14 = extractelement <16 x i64> %r, i32 14
+  call void @emit_i64(i64 %x14)
+  %x15 = extractelement <16 x i64> %r, i32 15
+  call void @emit_i64(i64 %x15)
+  %jn = add i64 %j, 1
+  store i64 %jn, ptr %pj
+  br label %inner
+outer.next:
+  %in = add i64 %i, 1
+  store i64 %in, ptr %pi
+  br label %outer
+done:
+  ret void
+}
+
+define void @run_smax_v16i64() {
+entry:
+  %pi = alloca i64
+  %pj = alloca i64
+  store i64 0, ptr %pi
+  br label %outer
+outer:
+  %i = load i64, ptr %pi
+  %oc = icmp slt i64 %i, 54
+  br i1 %oc, label %inner.init, label %done
+inner.init:
+  store i64 0, ptr %pj
+  br label %inner
+inner:
+  %j = load i64, ptr %pj
+  %ic = icmp slt i64 %j, 54
+  br i1 %ic, label %body, label %outer.next
+body:
+  %pa = getelementptr i64, ptr @values_i64_repeated, i64 %i
+  %a = load <16 x i64>, ptr %pa, align 8
+  %pb = getelementptr i64, ptr @values_i64_repeated, i64 %j
+  %b = load <16 x i64>, ptr %pb, align 8
+  %r = call <16 x i64> @llvm.smax.v16i64(<16 x i64> %a, <16 x i64> %b)
+  %x0 = extractelement <16 x i64> %r, i32 0
+  call void @emit_i64(i64 %x0)
+  %x1 = extractelement <16 x i64> %r, i32 1
+  call void @emit_i64(i64 %x1)
+  %x2 = extractelement <16 x i64> %r, i32 2
+  call void @emit_i64(i64 %x2)
+  %x3 = extractelement <16 x i64> %r, i32 3
+  call void @emit_i64(i64 %x3)
+  %x4 = extractelement <16 x i64> %r, i32 4
+  call void @emit_i64(i64 %x4)
+  %x5 = extractelement <16 x i64> %r, i32 5
+  call void @emit_i64(i64 %x5)
+  %x6 = extractelement <16 x i64> %r, i32 6
+  call void @emit_i64(i64 %x6)
+  %x7 = extractelement <16 x i64> %r, i32 7
+  call void @emit_i64(i64 %x7)
+  %x8 = extractelement <16 x i64> %r, i32 8
+  call void @emit_i64(i64 %x8)
+  %x9 = extractelement <16 x i64> %r, i32 9
+  call void @emit_i64(i64 %x9)
+  %x10 = extractelement <16 x i64> %r, i32 10
+  call void @emit_i64(i64 %x10)
+  %x11 = extractelement <16 x i64> %r, i32 11
+  call void @emit_i64(i64 %x11)
+  %x12 = extractelement <16 x i64> %r, i32 12
+  call void @emit_i64(i64 %x12)
+  %x13 = extractelement <16 x i64> %r, i32 13
+  call void @emit_i64(i64 %x13)
+  %x14 = extractelement <16 x i64> %r, i32 14
+  call void @emit_i64(i64 %x14)
+  %x15 = extractelement <16 x i64> %r, i32 15
+  call void @emit_i64(i64 %x15)
+  %jn = add i64 %j, 1
+  store i64 %jn, ptr %pj
+  br label %inner
+outer.next:
+  %in = add i64 %i, 1
+  store i64 %in, ptr %pi
+  br label %outer
+done:
+  ret void
+}
+
+define void @run_umin_v16i64() {
+entry:
+  %pi = alloca i64
+  %pj = alloca i64
+  store i64 0, ptr %pi
+  br label %outer
+outer:
+  %i = load i64, ptr %pi
+  %oc = icmp slt i64 %i, 54
+  br i1 %oc, label %inner.init, label %done
+inner.init:
+  store i64 0, ptr %pj
+  br label %inner
+inner:
+  %j = load i64, ptr %pj
+  %ic = icmp slt i64 %j, 54
+  br i1 %ic, label %body, label %outer.next
+body:
+  %pa = getelementptr i64, ptr @values_i64_repeated, i64 %i
+  %a = load <16 x i64>, ptr %pa, align 8
+  %pb = getelementptr i64, ptr @values_i64_repeated, i64 %j
+  %b = load <16 x i64>, ptr %pb, align 8
+  %r = call <16 x i64> @llvm.umin.v16i64(<16 x i64> %a, <16 x i64> %b)
+  %x0 = extractelement <16 x i64> %r, i32 0
+  call void @emit_i64(i64 %x0)
+  %x1 = extractelement <16 x i64> %r, i32 1
+  call void @emit_i64(i64 %x1)
+  %x2 = extractelement <16 x i64> %r, i32 2
+  call void @emit_i64(i64 %x2)
+  %x3 = extractelement <16 x i64> %r, i32 3
+  call void @emit_i64(i64 %x3)
+  %x4 = extractelement <16 x i64> %r, i32 4
+  call void @emit_i64(i64 %x4)
+  %x5 = extractelement <16 x i64> %r, i32 5
+  call void @emit_i64(i64 %x5)
+  %x6 = extractelement <16 x i64> %r, i32 6
+  call void @emit_i64(i64 %x6)
+  %x7 = extractelement <16 x i64> %r, i32 7
+  call void @emit_i64(i64 %x7)
+  %x8 = extractelement <16 x i64> %r, i32 8
+  call void @emit_i64(i64 %x8)
+  %x9 = extractelement <16 x i64> %r, i32 9
+  call void @emit_i64(i64 %x9)
+  %x10 = extractelement <16 x i64> %r, i32 10
+  call void @emit_i64(i64 %x10)
+  %x11 = extractelement <16 x i64> %r, i32 11
+  call void @emit_i64(i64 %x11)
+  %x12 = extractelement <16 x i64> %r, i32 12
+  call void @emit_i64(i64 %x12)
+  %x13 = extractelement <16 x i64> %r, i32 13
+  call void @emit_i64(i64 %x13)
+  %x14 = extractelement <16 x i64> %r, i32 14
+  call void @emit_i64(i64 %x14)
+  %x15 = extractelement <16 x i64> %r, i32 15
+  call void @emit_i64(i64 %x15)
+  %jn = add i64 %j, 1
+  store i64 %jn, ptr %pj
+  br label %inner
+outer.next:
+  %in = add i64 %i, 1
+  store i64 %in, ptr %pi
+  br label %outer
+done:
+  ret void
+}
+
+define void @run_umax_v16i64() {
+entry:
+  %pi = alloca i64
+  %pj = alloca i64
+  store i64 0, ptr %pi
+  br label %outer
+outer:
+  %i = load i64, ptr %pi
+  %oc = icmp slt i64 %i, 54
+  br i1 %oc, label %inner.init, label %done
+inner.init:
+  store i64 0, ptr %pj
+  br label %inner
+inner:
+  %j = load i64, ptr %pj
+  %ic = icmp slt i64 %j, 54
+  br i1 %ic, label %body, label %outer.next
+body:
+  %pa = getelementptr i64, ptr @values_i64_repeated, i64 %i
+  %a = load <16 x i64>, ptr %pa, align 8
+  %pb = getelementptr i64, ptr @values_i64_repeated, i64 %j
+  %b = load <16 x i64>, ptr %pb, align 8
+  %r = call <16 x i64> @llvm.umax.v16i64(<16 x i64> %a, <16 x i64> %b)
+  %x0 = extractelement <16 x i64> %r, i32 0
+  call void @emit_i64(i64 %x0)
+  %x1 = extractelement <16 x i64> %r, i32 1
+  call void @emit_i64(i64 %x1)
+  %x2 = extractelement <16 x i64> %r, i32 2
+  call void @emit_i64(i64 %x2)
+  %x3 = extractelement <16 x i64> %r, i32 3
+  call void @emit_i64(i64 %x3)
+  %x4 = extractelement <16 x i64> %r, i32 4
+  call void @emit_i64(i64 %x4)
+  %x5 = extractelement <16 x i64> %r, i32 5
+  call void @emit_i64(i64 %x5)
+  %x6 = extractelement <16 x i64> %r, i32 6
+  call void @emit_i64(i64 %x6)
+  %x7 = extractelement <16 x i64> %r, i32 7
+  call void @emit_i64(i64 %x7)
+  %x8 = extractelement <16 x i64> %r, i32 8
+  call void @emit_i64(i64 %x8)
+  %x9 = extractelement <16 x i64> %r, i32 9
+  call void @emit_i64(i64 %x9)
+  %x10 = extractelement <16 x i64> %r, i32 10
+  call void @emit_i64(i64 %x10)
+  %x11 = extractelement <16 x i64> %r, i32 11
+  call void @emit_i64(i64 %x11)
+  %x12 = extractelement <16 x i64> %r, i32 12
+  call void @emit_i64(i64 %x12)
+  %x13 = extractelement <16 x i64> %r, i32 13
+  call void @emit_i64(i64 %x13)
+  %x14 = extractelement <16 x i64> %r, i32 14
+  call void @emit_i64(i64 %x14)
+  %x15 = extractelement <16 x i64> %r, i32 15
+  call void @emit_i64(i64 %x15)
+  %jn = add i64 %j, 1
+  store i64 %jn, ptr %pj
+  br label %inner
+outer.next:
+  %in = add i64 %i, 1
+  store i64 %in, ptr %pi
+  br label %outer
+done:
+  ret void
+}
+
+define void @run_usub_sat_v16i64() {
+entry:
+  %pi = alloca i64
+  %pj = alloca i64
+  store i64 0, ptr %pi
+  br label %outer
+outer:
+  %i = load i64, ptr %pi
+  %oc = icmp slt i64 %i, 54
+  br i1 %oc, label %inner.init, label %done
+inner.init:
+  store i64 0, ptr %pj
+  br label %inner
+inner:
+  %j = load i64, ptr %pj
+  %ic = icmp slt i64 %j, 54
+  br i1 %ic, label %body, label %outer.next
+body:
+  %pa = getelementptr i64, ptr @values_i64_repeated, i64 %i
+  %a = load <16 x i64>, ptr %pa, align 8
+  %pb = getelementptr i64, ptr @values_i64_repeated, i64 %j
+  %b = load <16 x i64>, ptr %pb, align 8
+  %r = call <16 x i64> @llvm.usub.sat.v16i64(<16 x i64> %a, <16 x i64> %b)
+  %x0 = extractelement <16 x i64> %r, i32 0
+  call void @emit_i64(i64 %x0)
+  %x1 = extractelement <16 x i64> %r, i32 1
+  call void @emit_i64(i64 %x1)
+  %x2 = extractelement <16 x i64> %r, i32 2
+  call void @emit_i64(i64 %x2)
+  %x3 = extractelement <16 x i64> %r, i32 3
+  call void @emit_i64(i64 %x3)
+  %x4 = extractelement <16 x i64> %r, i32 4
+  call void @emit_i64(i64 %x4)
+  %x5 = extractelement <16 x i64> %r, i32 5
+  call void @emit_i64(i64 %x5)
+  %x6 = extractelement <16 x i64> %r, i32 6
+  call void @emit_i64(i64 %x6)
+  %x7 = extractelement <16 x i64> %r, i32 7
+  call void @emit_i64(i64 %x7)
+  %x8 = extractelement <16 x i64> %r, i32 8
+  call void @emit_i64(i64 %x8)
+  %x9 = extractelement <16 x i64> %r, i32 9
+  call void @emit_i64(i64 %x9)
+  %x10 = extractelement <16 x i64> %r, i32 10
+  call void @emit_i64(i64 %x10)
+  %x11 = extractelement <16 x i64> %r, i32 11
+  call void @emit_i64(i64 %x11)
+  %x12 = extractelement <16 x i64> %r, i32 12
+  call void @emit_i64(i64 %x12)
+  %x13 = extractelement <16 x i64> %r, i32 13
+  call void @emit_i64(i64 %x13)
+  %x14 = extractelement <16 x i64> %r, i32 14
+  call void @emit_i64(i64 %x14)
+  %x15 = extractelement <16 x i64> %r, i32 15
+  call void @emit_i64(i64 %x15)
+  %jn = add i64 %j, 1
+  store i64 %jn, ptr %pj
+  br label %inner
+outer.next:
+  %in = add i64 %i, 1
+  store i64 %in, ptr %pi
+  br label %outer
+done:
+  ret void
+}
+
 define i32 @main() {
   call void @run_abs_i8_loaded()
   call void @run_ctpop_i8_loaded()
@@ -11736,5 +12195,12 @@ define i32 @main() {
   call void @run_umin_v8i64()
   call void @run_umax_v8i64()
   call void @run_usub_sat_v8i64()
+  call void @run_abs_v16i64()
+  call void @run_ctpop_v16i64()
+  call void @run_smin_v16i64()
+  call void @run_smax_v16i64()
+  call void @run_umin_v16i64()
+  call void @run_umax_v16i64()
+  call void @run_usub_sat_v16i64()
   ret i32 0
 }

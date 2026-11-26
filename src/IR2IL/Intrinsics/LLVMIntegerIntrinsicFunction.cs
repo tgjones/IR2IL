@@ -13,24 +13,32 @@ namespace IR2IL.Intrinsics;
 /// An integer intrinsic (<c>abs</c>, <c>smin</c>, <c>smax</c>, <c>umin</c>, <c>umax</c>, <c>scmp</c>, <c>ucmp</c>,
 /// <c>ctpop</c>, <c>usub.sat</c>) on a scalar of up to 64 bits or a vector, resolved from the operand type by
 /// <see cref="TryCreate"/> for every overload. A scalar operand is extended from its logical width as the intrinsic
-/// reads it (signed or unsigned) and passed to the operation of <see cref="VectorMath"/>; a vector goes through the
-/// lane loop of <see cref="VectorMath"/>.
+/// reads it (signed or unsigned) and passed to a <c>Math</c>, <c>uint</c>/<c>ulong</c> or <see cref="LLVMIntrinsics"/>
+/// method. A vector calls the BCL method of its container type directly (unsigned operations reinterpret the lanes
+/// first), or <see cref="VectorUtility"/>.PopCount.
 /// </summary>
-internal sealed class LLVMIntegerIntrinsicFunction(MethodInfo method, int operandCount, bool isSigned, int laneCount, int resultBits) : IntrinsicFunction
+internal sealed class LLVMIntegerIntrinsicFunction(
+    MethodInfo method,
+    int operandCount,
+    bool isSigned,
+    int resultBits,
+    Type? nonGenericVectorType = null,
+    Type? laneType = null,
+    Type? unsignedLaneType = null) : IntrinsicFunction
 {
-    // Intrinsic base name -> (operation type, number of value operands, read as signed).
-    private static readonly Dictionary<string, (Type? Operation, int Arity, bool Signed)> Operations = new()
+    // Intrinsic base name -> (number of value operands, read as signed, name of the vector method; null for ctpop, which
+    // uses VectorUtility.PopCount, and for scmp and ucmp, which have no vector form).
+    private static readonly Dictionary<string, (int Arity, bool Signed, string? VectorMethod)> Operations = new()
     {
-        ["abs"] = (typeof(VectorMath.IntegerAbs<>), 1, true),
-        ["smin"] = (typeof(VectorMath.IntegerMin<>), 2, true),
-        ["smax"] = (typeof(VectorMath.IntegerMax<>), 2, true),
-        ["umin"] = (typeof(VectorMath.IntegerMin<>), 2, false),
-        ["umax"] = (typeof(VectorMath.IntegerMax<>), 2, false),
-        ["ctpop"] = (typeof(VectorMath.PopCount<>), 1, false),
-        ["usub.sat"] = (typeof(VectorMath.UnsignedSubtractSaturate<>), 2, false),
-        // The result of a comparison has its own width, so it has no lane operation and no vector form.
-        ["scmp"] = (null, 2, true),
-        ["ucmp"] = (null, 2, false),
+        ["abs"] = (1, true, "Abs"),
+        ["smin"] = (2, true, "Min"),
+        ["smax"] = (2, true, "Max"),
+        ["umin"] = (2, false, "Min"),
+        ["umax"] = (2, false, "Max"),
+        ["usub.sat"] = (2, false, "SubtractSaturate"),
+        ["ctpop"] = (1, false, null),
+        ["scmp"] = (2, true, null),
+        ["ucmp"] = (2, false, null),
     };
 
     public override bool IsPure => true;
@@ -45,10 +53,10 @@ internal sealed class LLVMIntegerIntrinsicFunction(MethodInfo method, int operan
             return false;
         }
 
-        var (operation, arity, isSigned) = Operations[baseName];
+        var (arity, isSigned, vectorMethodName) = Operations[baseName];
         if (operandType.Kind == LLVMTypeKind.LLVMVectorTypeKind)
         {
-            if (operation == null
+            if (baseName is "scmp" or "ucmp"
                 || operandType.ElementType.Kind != LLVMTypeKind.LLVMIntegerTypeKind
                 || operandType.ElementType.IntWidth is not (8 or 16 or 32 or 64))
             {
@@ -56,11 +64,30 @@ internal sealed class LLVMIntegerIntrinsicFunction(MethodInfo method, int operan
             }
 
             var lane = typeSystem.GetMsilVectorElementType(operandType.ElementType);
-            lane = isSigned ? lane : ToUnsigned(lane);
-            var methodName = arity == 1 ? nameof(VectorMath.Unary) : nameof(VectorMath.Binary);
-            var vectorMethod = typeof(VectorMath).GetStaticMethodStrict(methodName)
-                .MakeGenericMethod(typeSystem.GetMsilVectorType(operandType), lane, operation.MakeGenericType(lane));
-            intrinsic = new LLVMIntegerIntrinsicFunction(vectorMethod, arity, isSigned, (int)operandType.VectorSize, 0);
+            var vectorType = typeSystem.GetMsilVectorType(operandType);
+            var nonGeneric = typeSystem.GetNonGenericVectorType(operandType);
+            MethodInfo vectorMethod;
+            Type? unsignedLane = null;
+            if (vectorMethodName == null)
+            {
+                var definition = vectorType.GetGenericTypeDefinition();
+                vectorMethod = typeof(VectorUtility).GetMethods(BindingFlags.Public | BindingFlags.Static)
+                    .Single(m => m.Name == nameof(VectorUtility.PopCount)
+                        && m.GetParameters()[0].ParameterType.GetGenericTypeDefinition() == definition)
+                    .MakeGenericMethod(lane);
+            }
+            else if (isSigned)
+            {
+                vectorMethod = VectorIntrinsicEmitter.GetVectorMethod(nonGeneric, vectorMethodName, vectorType, lane, arity);
+            }
+            else
+            {
+                unsignedLane = LaneTypes.GetUnsignedLaneType(lane);
+                var unsignedVector = vectorType.GetGenericTypeDefinition().MakeGenericType(unsignedLane);
+                vectorMethod = VectorIntrinsicEmitter.GetVectorMethod(nonGeneric, vectorMethodName, unsignedVector, unsignedLane, arity);
+            }
+
+            intrinsic = new LLVMIntegerIntrinsicFunction(vectorMethod, arity, isSigned, 0, nonGeneric, lane, unsignedLane);
             return true;
         }
 
@@ -69,11 +96,19 @@ internal sealed class LLVMIntegerIntrinsicFunction(MethodInfo method, int operan
             return false;
         }
 
-        var scalar = operandType.IntWidth <= 32 ? (isSigned ? typeof(int) : typeof(uint)) : (isSigned ? typeof(long) : typeof(ulong));
-        var scalarMethod = operation == null
-            ? typeof(VectorMath).GetStaticMethodStrict(nameof(VectorMath.Compare)).MakeGenericMethod(scalar)
-            : operation.MakeGenericType(scalar).GetMethod("Apply", BindingFlags.Public | BindingFlags.Static, Enumerable.Repeat(scalar, arity).ToArray())!;
-        intrinsic = new LLVMIntegerIntrinsicFunction(scalarMethod, arity, isSigned, 0, operation == null ? (int)resultType.IntWidth : 0);
+        var is64 = operandType.IntWidth > 32;
+        var scalar = is64 ? (isSigned ? typeof(long) : typeof(ulong)) : (isSigned ? typeof(int) : typeof(uint));
+        var parameters = Enumerable.Repeat(scalar, arity).ToArray();
+        var scalarMethod = baseName switch
+        {
+            "abs" => typeof(LLVMIntrinsics).GetMethodStrict(nameof(LLVMIntrinsics.Abs), parameters),
+            "smin" or "umin" => typeof(Math).GetMethodStrict(nameof(Math.Min), parameters),
+            "smax" or "umax" => typeof(Math).GetMethodStrict(nameof(Math.Max), parameters),
+            "ctpop" => scalar.GetMethodStrict("PopCount", parameters),
+            "usub.sat" => typeof(LLVMIntrinsics).GetMethodStrict(nameof(LLVMIntrinsics.UnsignedSubtractSaturate), parameters),
+            _ => typeof(LLVMIntrinsics).GetStaticMethodStrict(nameof(LLVMIntrinsics.Compare)).MakeGenericMethod(scalar),
+        };
+        intrinsic = new LLVMIntegerIntrinsicFunction(scalarMethod, arity, isSigned, baseName is "scmp" or "ucmp" ? (int)resultType.IntWidth : 0);
         return true;
     }
 
@@ -91,23 +126,20 @@ internal sealed class LLVMIntegerIntrinsicFunction(MethodInfo method, int operan
         return null;
     }
 
-    private static Type ToUnsigned(Type lane) => Type.GetTypeCode(lane) switch
-    {
-        TypeCode.SByte => typeof(byte),
-        TypeCode.Int16 => typeof(ushort),
-        TypeCode.Int32 => typeof(uint),
-        TypeCode.Int64 => typeof(ulong),
-        _ => lane,
-    };
-
     public override void BuildCall(IntrinsicFunctionCallContext context)
     {
+        var il = context.ILGenerator;
+
         // declare i32 @llvm.abs.i32(i32 %val, i1 immarg %is_int_min_poison): the flag is not a stack value.
         for (var i = 0; i < operandCount; i++)
         {
-            if (laneCount > 0)
+            if (nonGenericVectorType != null)
             {
                 context.EmitValue(context.Operands[i]);
+                if (unsignedLaneType != null)
+                {
+                    VectorIntrinsicEmitter.EmitReinterpret(il, nonGenericVectorType, laneType!, unsignedLaneType);
+                }
             }
             else if (isSigned)
             {
@@ -119,17 +151,17 @@ internal sealed class LLVMIntegerIntrinsicFunction(MethodInfo method, int operan
             }
         }
 
-        if (laneCount > 0)
-        {
-            context.ILGenerator.Emit(OpCodes.Ldc_I4, laneCount);
-        }
+        il.Emit(OpCodes.Call, method);
 
-        context.ILGenerator.Emit(OpCodes.Call, method);
+        if (unsignedLaneType != null)
+        {
+            VectorIntrinsicEmitter.EmitReinterpret(il, nonGenericVectorType!, unsignedLaneType, laneType!);
+        }
 
         // A comparison returns an int; the result type may be an i64.
         if (resultBits > 32)
         {
-            context.ILGenerator.Emit(OpCodes.Conv_I8);
+            il.Emit(OpCodes.Conv_I8);
         }
     }
 }
